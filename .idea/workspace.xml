@@ -1,0 +1,1595 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated>
+      <config projectName="OpenMM" targetName="PythonInstall" />
+      <config projectName="OpenMM" targetName="TestOpenCLCMAPTorsionForce" />
+      <config projectName="OpenMM" targetName="NightlyTest" />
+      <config projectName="OpenMM" targetName="TestReferenceWcaDispersionForce" />
+      <config projectName="OpenMM" targetName="TestCpuHarmonicAngleForce" />
+      <config projectName="OpenMM" targetName="TestSerializeState" />
+      <config projectName="OpenMM" targetName="TestSerializeSystem" />
+      <config projectName="OpenMM" targetName="TestSerializeHarmonicBondForce" />
+      <config projectName="OpenMM" targetName="TestSplineFitter" />
+      <config projectName="OpenMM" targetName="NightlyUpdate" />
+      <config projectName="OpenMM" targetName="TestOpenCLBrownianIntegrator" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaPiTorsionForce" />
+      <config projectName="OpenMM" targetName="TestSerializePeriodicTorsionForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomBondForce" />
+      <config projectName="OpenMM" targetName="TestSerializeHarmonicAngleForce" />
+      <config projectName="OpenMM" targetName="TestReferenceKineticEnergy" />
+      <config projectName="OpenMM" targetName="TestCpuGBSAOBCForce" />
+      <config projectName="OpenMM" targetName="TestCpuGayBerneForce" />
+      <config projectName="OpenMM" targetName="ExperimentalTest" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomCVForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLEwald" />
+      <config projectName="OpenMM" targetName="HelloArgon" />
+      <config projectName="OpenMM" targetName="Nightly" />
+      <config projectName="OpenMM" targetName="TestReferenceDrudeForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLGayBerneForce" />
+      <config projectName="OpenMM" targetName="ExperimentalSubmit" />
+      <config projectName="OpenMM" targetName="TestOpenCLDrudeSCFIntegrator" />
+      <config projectName="OpenMM" targetName="TestOpenCLLangevinIntegrator" />
+      <config projectName="OpenMM" targetName="TestSerializeCMAPTorsion" />
+      <config projectName="OpenMM" targetName="Experimental" />
+      <config projectName="OpenMM" targetName="TestCpuEwald" />
+      <config projectName="OpenMM" targetName="ContinuousSubmit" />
+      <config projectName="OpenMM" targetName="TestCpuNeighborList" />
+      <config projectName="OpenMM" targetName="TestCpuPeriodicTorsionForce" />
+      <config projectName="OpenMM" targetName="TestCpuLangevinIntegrator" />
+      <config projectName="OpenMM" targetName="ContinuousBuild" />
+      <config projectName="OpenMM" targetName="OpenMMRPMD" />
+      <config projectName="OpenMM" targetName="ContinuousStart" />
+      <config projectName="OpenMM" targetName="TestFindExclusions" />
+      <config projectName="OpenMM" targetName="TestOpenCLDrudeForce" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestReferenceVariableVerletIntegrator" />
+      <config projectName="OpenMM" targetName="TestCpuCustomManyParticleForce" />
+      <config projectName="OpenMM" targetName="NightlyMemoryCheck" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaOutOfPlaneBendForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCompoundIntegrator" />
+      <config projectName="OpenMM" targetName="HelloEthane" />
+      <config projectName="OpenMM" targetName="TestOpenCLVerletIntegrator" />
+      <config projectName="OpenMM" targetName="OpenMM" />
+      <config projectName="OpenMM" targetName="ApiWrappers" />
+      <config projectName="OpenMM" targetName="TestOpenCLVariableVerletIntegrator" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomManyParticleForce" />
+      <config projectName="OpenMM" targetName="TestCpuSettle" />
+      <config projectName="OpenMM" targetName="AmoebaApiWrappers" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomAngleForce" />
+      <config projectName="OpenMM" targetName="ContinuousUpdate" />
+      <config projectName="OpenMM" targetName="TestReferenceDispersionPME" />
+      <config projectName="OpenMM" targetName="TestOpenCLVariableLangevinIntegrator" />
+      <config projectName="OpenMM" targetName="RunSwig" />
+      <config projectName="OpenMM" targetName="TestOpenCLNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomManyParticleForce" />
+      <config projectName="OpenMM" targetName="TestSerializeRBTorsionForce" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomExternalForce" />
+      <config projectName="OpenMM" targetName="TestReferenceMonteCarloBarostat" />
+      <config projectName="OpenMM" targetName="ContinuousMemCheck" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomCentroidBondForce" />
+      <config projectName="OpenMM" targetName="TestVectorize" />
+      <config projectName="OpenMM" targetName="TestOpenCLCheckpoints" />
+      <config projectName="OpenMM" targetName="TestEnforcePeriodicBox" />
+      <config projectName="OpenMM" targetName="TestCpuDispersionPME" />
+      <config projectName="OpenMM" targetName="ExperimentalMemCheck" />
+      <config projectName="OpenMM" targetName="TestReferenceDrudeSCFIntegrator" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaAngleForce" />
+      <config projectName="OpenMM" targetName="TestSerializeAndersenThermostat" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomCentroidBondForce" />
+      <config projectName="OpenMM" targetName="TestReferenceAndersenThermostat" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomHbondForce" />
+      <config projectName="OpenMM" targetName="TestCpuRBTorsionForce" />
+      <config projectName="OpenMM" targetName="TestReferenceLocalEnergyMinimizer" />
+      <config projectName="OpenMM" targetName="OpenMMAmoebaReference" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomAngleForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomGBForce" />
+      <config projectName="OpenMM" targetName="OpenMMRPMDOpenCL" />
+      <config projectName="OpenMM" targetName="TestReferenceDrudeLangevinIntegrator" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaMultipoleForce" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomCentroidBondForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCompoundIntegrator" />
+      <config projectName="OpenMM" targetName="ExperimentalCoverage" />
+      <config projectName="OpenMM" targetName="TestReferenceCMAPTorsionForce" />
+      <config projectName="OpenMM" targetName="NightlyCoverage" />
+      <config projectName="OpenMM" targetName="TestOpenCLDrudeLangevinIntegrator" />
+      <config projectName="OpenMM" targetName="TestReferenceHarmonicBondForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomIntegrator" />
+      <config projectName="OpenMM" targetName="TestCpuCompoundIntegrator" />
+      <config projectName="OpenMM" targetName="TestOpenCLVirtualSites" />
+      <config projectName="OpenMM" targetName="TestOpenCLLocalEnergyMinimizer" />
+      <config projectName="OpenMM" targetName="TestReferenceEwald" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomTorsionForce" />
+      <config projectName="OpenMM" targetName="Continuous" />
+      <config projectName="OpenMM" targetName="NightlyStart" />
+      <config projectName="OpenMM" targetName="sphinxpdf" />
+      <config projectName="OpenMM" targetName="OpenMMCPU" />
+      <config projectName="OpenMM" targetName="PythonBdist" />
+      <config projectName="OpenMM" targetName="TestSerializeIntegrator" />
+      <config projectName="OpenMM" targetName="OpenMMDrudeReference" />
+      <config projectName="OpenMM" targetName="TestOpenCLGBSAOBCForce" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaExtrapolatedPolarization" />
+      <config projectName="OpenMM" targetName="TestReferenceRpmd" />
+      <config projectName="OpenMM" targetName="NightlySubmit" />
+      <config projectName="OpenMM" targetName="TestSystem" />
+      <config projectName="OpenMM" targetName="HelloSodiumChlorideInC" />
+      <config projectName="OpenMM" targetName="ExperimentalBuild" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomCompoundBondForce" />
+      <config projectName="OpenMM" targetName="ExperimentalConfigure" />
+      <config projectName="OpenMM" targetName="TestSerializeMonteCarloBarostat" />
+      <config projectName="OpenMM" targetName="TestCpuCheckpoints" />
+      <config projectName="OpenMM" targetName="ExperimentalStart" />
+      <config projectName="OpenMM" targetName="ContinuousTest" />
+      <config projectName="OpenMM" targetName="OpenMMDrude" />
+      <config projectName="OpenMM" targetName="TestOpenCLRpmd" />
+      <config projectName="OpenMM" targetName="sphinxhtml" />
+      <config projectName="OpenMM" targetName="TestOpenCLDeviceQuery" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaGeneralizedKirkwoodForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomExternalForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCheckpoints" />
+      <config projectName="OpenMM" targetName="TestSerializeTabulatedFunctions" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomCompoundBondForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLMultipleForces" />
+      <config projectName="OpenMM" targetName="OpenMMDrudeOpenCL" />
+      <config projectName="OpenMM" targetName="OpenMMRPMDReference" />
+      <config projectName="OpenMM" targetName="ExperimentalUpdate" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaStretchBendForce" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomCVForce" />
+      <config projectName="OpenMM" targetName="TestCpuCustomNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomCompoundBondForce" />
+      <config projectName="OpenMM" targetName="TestFindMolecules" />
+      <config projectName="OpenMM" targetName="TestSerializeNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCMMotionRemover" />
+      <config projectName="OpenMM" targetName="BuildModule" />
+      <config projectName="OpenMM" targetName="TestReferenceGBSAOBCForce" />
+      <config projectName="OpenMM" targetName="TestSerializeMonteCarloMembraneBarostat" />
+      <config projectName="OpenMM" targetName="TestReferenceSettle" />
+      <config projectName="OpenMM" targetName="TestSerializeGayBerneForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLHarmonicBondForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestReferenceVerletIntegrator" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomBondForce" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomGBForce" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaInPlaneAngleForce" />
+      <config projectName="OpenMM" targetName="TestReferenceMonteCarloMembraneBarostat" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomBondForce" />
+      <config projectName="OpenMM" targetName="ContinuousConfigure" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaBondForce" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomManyParticleForce" />
+      <config projectName="OpenMM" targetName="TestReferenceNeighborList" />
+      <config projectName="OpenMM" targetName="TestReferenceMonteCarloAnisotropicBarostat" />
+      <config projectName="OpenMM" targetName="TestSerializeCMMotionRemover" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLDispersionPME" />
+      <config projectName="OpenMM" targetName="TestReferenceRBTorsionForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLSettle" />
+      <config projectName="OpenMM" targetName="HelloArgonInC" />
+      <config projectName="OpenMM" targetName="TestOpenCLMonteCarloAnisotropicBarostat" />
+      <config projectName="OpenMM" targetName="TestSerializeMonteCarloAnisotropicBarostat" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomCVForce" />
+      <config projectName="OpenMM" targetName="TestReferenceHarmonicAngleForce" />
+      <config projectName="OpenMM" targetName="TestReferenceRandom" />
+      <config projectName="OpenMM" targetName="NightlyMemCheck" />
+      <config projectName="OpenMM" targetName="TestOpenCLRBTorsionForce" />
+      <config projectName="OpenMM" targetName="TestSerializationNode" />
+      <config projectName="OpenMM" targetName="TestSerializeCustomHbondForce" />
+      <config projectName="OpenMM" targetName="OpenMMOpenCL" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomGBForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomTorsionForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomAngleForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLFFT" />
+      <config projectName="OpenMM" targetName="TestReferenceBrownianIntegrator" />
+      <config projectName="OpenMM" targetName="TestParser" />
+      <config projectName="OpenMM" targetName="TestReferencePeriodicTorsionForce" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaTorsionTorsionForce" />
+      <config projectName="OpenMM" targetName="TestReferenceGayBerneForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomTorsionForce" />
+      <config projectName="OpenMM" targetName="TestVectorize8" />
+      <config projectName="OpenMM" targetName="TestOpenCLCMMotionRemover" />
+      <config projectName="OpenMM" targetName="OpenMMAmoeba" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomExternalForce" />
+      <config projectName="OpenMM" targetName="TestReferenceCustomIntegrator" />
+      <config projectName="OpenMM" targetName="PythonSdist" />
+      <config projectName="OpenMM" targetName="TestOpenCLAndersenThermostat" />
+      <config projectName="OpenMM" targetName="NightlyConfigure" />
+      <config projectName="OpenMM" targetName="TestReferenceNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestCpuCustomGBForce" />
+      <config projectName="OpenMM" targetName="NightlyBuild" />
+      <config projectName="OpenMM" targetName="TestOpenCLMonteCarloBarostat" />
+      <config projectName="OpenMM" targetName="ContinuousCoverage" />
+      <config projectName="OpenMM" targetName="TestOpenCLPeriodicTorsionForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLCustomHbondForce" />
+      <config projectName="OpenMM" targetName="TestReferenceAmoebaVdwForce" />
+      <config projectName="OpenMM" targetName="TestReferenceLangevinIntegrator" />
+      <config projectName="OpenMM" targetName="TestCpuNonbondedForce" />
+      <config projectName="OpenMM" targetName="TestOpenCLRandom" />
+      <config projectName="OpenMM" targetName="TestReferenceVariableLangevinIntegrator" />
+      <config projectName="OpenMM" targetName="HelloSodiumChloride" />
+      <config projectName="OpenMM" targetName="TestOpenCLSort" />
+      <config projectName="OpenMM" targetName="HelloWaterBox" />
+      <config projectName="OpenMM" targetName="TestReferenceVirtualSites" />
+      <config projectName="OpenMM" targetName="TestOpenCLHarmonicAngleForce" />
+      <config projectName="OpenMM" targetName="TestSerializeGBSAOBCForce" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" GENERATION_DIR="build-debug" BUILD_OPTIONS="-j 12" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7d683019-02e9-4cdf-a286-fe9181b8cb67" name="Default Changelist" comment="" />
+    <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
+    <ignored path="$PROJECT_DIR$/build-debug/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectConfigurationFiles">
+    <option name="files">
+      <list>
+        <option value="$PROJECT_DIR$/.idea/openmm.iml" />
+        <option value="$PROJECT_DIR$/.idea/misc.xml" />
+        <option value="$PROJECT_DIR$/.idea/vcs.xml" />
+        <option value="$PROJECT_DIR$/.idea/modules.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="3840" />
+    <option name="y" value="23" />
+    <option name="width" value="1858" />
+    <option name="height" value="1177" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="OpenMM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="openmm" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="OpenMM" type="b2602c69:ProjectViewProjectNode" />
+              <item name="openmm" type="462c0819:PsiDirectoryNode" />
+              <item name="build-debug" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="CMakeSettings" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="CMake Application.ContinuousBuild">
+    <configuration name="AmoebaApiWrappers" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="AmoebaApiWrappers" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ApiWrappers" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ApiWrappers" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BuildModule" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="BuildModule" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Continuous" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="Continuous" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousBuild" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousBuild" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousBuild">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousConfigure" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousConfigure" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousConfigure">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousCoverage" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousCoverage" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousCoverage">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousMemCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousMemCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousMemCheck">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousStart" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousStart" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousStart">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousSubmit" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousSubmit" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousSubmit">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousTest" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousTest" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousTest">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContinuousUpdate" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ContinuousUpdate" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ContinuousUpdate">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Experimental" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="Experimental" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalBuild" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalBuild" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalBuild">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalConfigure" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalConfigure" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalConfigure">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalCoverage" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalCoverage" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalCoverage">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalMemCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalMemCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalMemCheck">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalStart" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalStart" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalStart">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalSubmit" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalSubmit" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalSubmit">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalTest" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalTest" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalTest">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExperimentalUpdate" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="ExperimentalUpdate" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="ExperimentalUpdate">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloArgon" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="HelloArgon" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="HelloArgon">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloArgonInC" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="HelloArgonInC" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="HelloArgonInC">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloEthane" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="HelloEthane" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="HelloEthane">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloSodiumChloride" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="HelloSodiumChloride" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="HelloSodiumChloride">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloSodiumChlorideInC" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="HelloSodiumChlorideInC" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="HelloSodiumChlorideInC">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloWaterBox" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="HelloWaterBox" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="HelloWaterBox">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Nightly" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="Nightly" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyBuild" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyBuild" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyBuild">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyConfigure" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyConfigure" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyConfigure">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyCoverage" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyCoverage" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyCoverage">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyMemCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyMemCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyMemCheck">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyMemoryCheck" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyMemoryCheck" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyMemoryCheck">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyStart" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyStart" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyStart">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlySubmit" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlySubmit" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlySubmit">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyTest" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyTest" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyTest">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NightlyUpdate" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="NightlyUpdate" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="NightlyUpdate">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMM" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMM" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMAmoeba" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMAmoeba" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMAmoebaReference" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMAmoebaReference" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMCPU" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMCPU" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMDrude" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMDrude" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMDrudeOpenCL" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMDrudeOpenCL" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMDrudeReference" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMDrudeReference" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMOpenCL" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMOpenCL" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMRPMD" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMRPMD" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMRPMDOpenCL" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMRPMDOpenCL" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMMRPMDReference" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="OpenMMRPMDReference" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PythonBdist" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="PythonBdist" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PythonInstall" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="PythonInstall" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PythonSdist" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="PythonSdist" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RunSwig" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="RunSwig" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuCheckpoints" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuCheckpoints" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuCheckpoints">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuCompoundIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuCompoundIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuCompoundIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuCustomGBForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuCustomGBForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuCustomGBForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuCustomManyParticleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuCustomManyParticleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuCustomManyParticleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuCustomNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuCustomNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuCustomNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuDispersionPME" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuDispersionPME" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuDispersionPME">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuEwald" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuEwald" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuEwald">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuGBSAOBCForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuGBSAOBCForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuGBSAOBCForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuGayBerneForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuGayBerneForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuGayBerneForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuHarmonicAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuHarmonicAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuHarmonicAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuLangevinIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuLangevinIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuLangevinIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuNeighborList" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuNeighborList" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuNeighborList">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuPeriodicTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuPeriodicTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuPeriodicTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuRBTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuRBTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuRBTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestCpuSettle" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestCpuSettle" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestCpuSettle">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestEnforcePeriodicBox" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestEnforcePeriodicBox" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestEnforcePeriodicBox">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestFindExclusions" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestFindExclusions" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestFindExclusions">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestFindMolecules" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestFindMolecules" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestFindMolecules">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLAndersenThermostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLAndersenThermostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLAndersenThermostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLBrownianIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLBrownianIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLBrownianIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCMAPTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCMAPTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCMAPTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCMMotionRemover" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCMMotionRemover" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCMMotionRemover">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCheckpoints" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCheckpoints" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCheckpoints">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCompoundIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCompoundIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCompoundIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomCVForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomCVForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomCVForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomCentroidBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomCentroidBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomCentroidBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomCompoundBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomCompoundBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomCompoundBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomExternalForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomExternalForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomExternalForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomGBForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomGBForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomGBForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomHbondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomHbondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomHbondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomManyParticleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomManyParticleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomManyParticleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLCustomTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLCustomTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLCustomTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLDeviceQuery" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLDeviceQuery" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLDeviceQuery">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLDispersionPME" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLDispersionPME" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLDispersionPME">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLDrudeForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLDrudeForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLDrudeForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLDrudeLangevinIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLDrudeLangevinIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLDrudeLangevinIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLDrudeSCFIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLDrudeSCFIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLDrudeSCFIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLEwald" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLEwald" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLEwald">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLFFT" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLFFT" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLFFT">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLGBSAOBCForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLGBSAOBCForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLGBSAOBCForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLGayBerneForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLGayBerneForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLGayBerneForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLHarmonicAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLHarmonicAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLHarmonicAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLHarmonicBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLHarmonicBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLHarmonicBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLLangevinIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLLangevinIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLLangevinIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLLocalEnergyMinimizer" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLLocalEnergyMinimizer" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLLocalEnergyMinimizer">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLMonteCarloAnisotropicBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLMonteCarloAnisotropicBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLMonteCarloAnisotropicBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLMonteCarloBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLMonteCarloBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLMonteCarloBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLMultipleForces" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLMultipleForces" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLMultipleForces">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLPeriodicTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLPeriodicTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLPeriodicTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLRBTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLRBTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLRBTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLRandom" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLRandom" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLRandom">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLRpmd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLRpmd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLRpmd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLSettle" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLSettle" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLSettle">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLSort" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLSort" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLSort">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLVariableLangevinIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLVariableLangevinIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLVariableLangevinIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLVariableVerletIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLVariableVerletIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLVariableVerletIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLVerletIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLVerletIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLVerletIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestOpenCLVirtualSites" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestOpenCLVirtualSites" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestOpenCLVirtualSites">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestParser" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestParser" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestParser">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaExtrapolatedPolarization" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaExtrapolatedPolarization" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaExtrapolatedPolarization">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaGeneralizedKirkwoodForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaGeneralizedKirkwoodForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaGeneralizedKirkwoodForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaInPlaneAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaInPlaneAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaInPlaneAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaMultipoleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaMultipoleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaMultipoleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaOutOfPlaneBendForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaOutOfPlaneBendForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaOutOfPlaneBendForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaPiTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaPiTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaPiTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaStretchBendForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaStretchBendForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaStretchBendForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaTorsionTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaTorsionTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaTorsionTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAmoebaVdwForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAmoebaVdwForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAmoebaVdwForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceAndersenThermostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceAndersenThermostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceAndersenThermostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceBrownianIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceBrownianIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceBrownianIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCMAPTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCMAPTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCMAPTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCMMotionRemover" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCMMotionRemover" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCMMotionRemover">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCheckpoints" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCheckpoints" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCheckpoints">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCompoundIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCompoundIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCompoundIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomCVForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomCVForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomCVForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomCentroidBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomCentroidBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomCentroidBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomCompoundBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomCompoundBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomCompoundBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomExternalForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomExternalForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomExternalForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomGBForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomGBForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomGBForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomHbondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomHbondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomHbondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomManyParticleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomManyParticleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomManyParticleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceCustomTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceCustomTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceCustomTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceDispersionPME" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceDispersionPME" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceDispersionPME">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceDrudeForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceDrudeForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceDrudeForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceDrudeLangevinIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceDrudeLangevinIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceDrudeLangevinIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceDrudeSCFIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceDrudeSCFIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceDrudeSCFIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceEwald" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceEwald" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceEwald">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceGBSAOBCForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceGBSAOBCForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceGBSAOBCForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceGayBerneForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceGayBerneForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceGayBerneForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceHarmonicAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceHarmonicAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceHarmonicAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceHarmonicBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceHarmonicBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceHarmonicBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceKineticEnergy" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceKineticEnergy" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceKineticEnergy">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceLangevinIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceLangevinIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceLangevinIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceLocalEnergyMinimizer" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceLocalEnergyMinimizer" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceLocalEnergyMinimizer">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceMonteCarloAnisotropicBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceMonteCarloAnisotropicBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceMonteCarloAnisotropicBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceMonteCarloBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceMonteCarloBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceMonteCarloBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceMonteCarloMembraneBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceMonteCarloMembraneBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceMonteCarloMembraneBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceNeighborList" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceNeighborList" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceNeighborList">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferencePeriodicTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferencePeriodicTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferencePeriodicTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceRBTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceRBTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceRBTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceRandom" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceRandom" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceRandom">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceRpmd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceRpmd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceRpmd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceSettle" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceSettle" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceSettle">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceVariableLangevinIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceVariableLangevinIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceVariableLangevinIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceVariableVerletIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceVariableVerletIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceVariableVerletIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceVerletIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceVerletIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceVerletIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceVirtualSites" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceVirtualSites" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceVirtualSites">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestReferenceWcaDispersionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestReferenceWcaDispersionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestReferenceWcaDispersionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializationNode" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializationNode" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializationNode">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeAndersenThermostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeAndersenThermostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeAndersenThermostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCMAPTorsion" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCMAPTorsion" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCMAPTorsion">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCMMotionRemover" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCMMotionRemover" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCMMotionRemover">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomCVForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomCVForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomCVForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomCentroidBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomCentroidBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomCentroidBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomCompoundBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomCompoundBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomCompoundBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomExternalForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomExternalForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomExternalForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomGBForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomGBForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomGBForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomHbondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomHbondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomHbondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomManyParticleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomManyParticleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomManyParticleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeCustomTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeCustomTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeCustomTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeGBSAOBCForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeGBSAOBCForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeGBSAOBCForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeGayBerneForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeGayBerneForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeGayBerneForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeHarmonicAngleForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeHarmonicAngleForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeHarmonicAngleForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeHarmonicBondForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeHarmonicBondForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeHarmonicBondForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeIntegrator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeIntegrator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeIntegrator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeMonteCarloAnisotropicBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeMonteCarloAnisotropicBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeMonteCarloAnisotropicBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeMonteCarloBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeMonteCarloBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeMonteCarloBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeMonteCarloMembraneBarostat" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeMonteCarloMembraneBarostat" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeMonteCarloMembraneBarostat">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeNonbondedForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeNonbondedForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeNonbondedForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializePeriodicTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializePeriodicTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializePeriodicTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeRBTorsionForce" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeRBTorsionForce" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeRBTorsionForce">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeState" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeState" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeState">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeSystem" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeSystem" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeSystem">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSerializeTabulatedFunctions" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSerializeTabulatedFunctions" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSerializeTabulatedFunctions">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSplineFitter" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSplineFitter" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSplineFitter">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestSystem" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestSystem" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestSystem">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestVectorize" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestVectorize" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestVectorize">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestVectorize8" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="TestVectorize8" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="OpenMM" RUN_TARGET_NAME="TestVectorize8">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sphinxhtml" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="sphinxhtml" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sphinxpdf" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="OpenMM" TARGET_NAME="sphinxpdf" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="CMake Application.AmoebaApiWrappers" />
+      <item itemvalue="CMake Application.ApiWrappers" />
+      <item itemvalue="CMake Application.BuildModule" />
+      <item itemvalue="CMake Application.ContinuousBuild" />
+      <item itemvalue="CMake Application.ContinuousConfigure" />
+      <item itemvalue="CMake Application.ContinuousCoverage" />
+      <item itemvalue="CMake Application.ContinuousMemCheck" />
+      <item itemvalue="CMake Application.ContinuousStart" />
+      <item itemvalue="CMake Application.ContinuousSubmit" />
+      <item itemvalue="CMake Application.ContinuousTest" />
+      <item itemvalue="CMake Application.ContinuousUpdate" />
+      <item itemvalue="CMake Application.Continuous" />
+      <item itemvalue="CMake Application.ExperimentalBuild" />
+      <item itemvalue="CMake Application.ExperimentalConfigure" />
+      <item itemvalue="CMake Application.ExperimentalCoverage" />
+      <item itemvalue="CMake Application.ExperimentalMemCheck" />
+      <item itemvalue="CMake Application.ExperimentalStart" />
+      <item itemvalue="CMake Application.ExperimentalSubmit" />
+      <item itemvalue="CMake Application.ExperimentalTest" />
+      <item itemvalue="CMake Application.ExperimentalUpdate" />
+      <item itemvalue="CMake Application.Experimental" />
+      <item itemvalue="CMake Application.HelloArgonInC" />
+      <item itemvalue="CMake Application.HelloArgon" />
+      <item itemvalue="CMake Application.HelloEthane" />
+      <item itemvalue="CMake Application.HelloSodiumChlorideInC" />
+      <item itemvalue="CMake Application.HelloSodiumChloride" />
+      <item itemvalue="CMake Application.HelloWaterBox" />
+      <item itemvalue="CMake Application.NightlyBuild" />
+      <item itemvalue="CMake Application.NightlyConfigure" />
+      <item itemvalue="CMake Application.NightlyCoverage" />
+      <item itemvalue="CMake Application.NightlyMemCheck" />
+      <item itemvalue="CMake Application.NightlyMemoryCheck" />
+      <item itemvalue="CMake Application.NightlyStart" />
+      <item itemvalue="CMake Application.NightlySubmit" />
+      <item itemvalue="CMake Application.NightlyTest" />
+      <item itemvalue="CMake Application.NightlyUpdate" />
+      <item itemvalue="CMake Application.Nightly" />
+      <item itemvalue="CMake Application.OpenMMAmoebaReference" />
+      <item itemvalue="CMake Application.OpenMMAmoeba" />
+      <item itemvalue="CMake Application.OpenMMCPU" />
+      <item itemvalue="CMake Application.OpenMMDrudeOpenCL" />
+      <item itemvalue="CMake Application.OpenMMDrudeReference" />
+      <item itemvalue="CMake Application.OpenMMDrude" />
+      <item itemvalue="CMake Application.OpenMMOpenCL" />
+      <item itemvalue="CMake Application.OpenMMRPMDOpenCL" />
+      <item itemvalue="CMake Application.OpenMMRPMDReference" />
+      <item itemvalue="CMake Application.OpenMMRPMD" />
+      <item itemvalue="CMake Application.OpenMM" />
+      <item itemvalue="CMake Application.PythonBdist" />
+      <item itemvalue="CMake Application.PythonInstall" />
+      <item itemvalue="CMake Application.PythonSdist" />
+      <item itemvalue="CMake Application.RunSwig" />
+      <item itemvalue="CMake Application.TestCpuCheckpoints" />
+      <item itemvalue="CMake Application.TestCpuCompoundIntegrator" />
+      <item itemvalue="CMake Application.TestCpuCustomGBForce" />
+      <item itemvalue="CMake Application.TestCpuCustomManyParticleForce" />
+      <item itemvalue="CMake Application.TestCpuCustomNonbondedForce" />
+      <item itemvalue="CMake Application.TestCpuDispersionPME" />
+      <item itemvalue="CMake Application.TestCpuEwald" />
+      <item itemvalue="CMake Application.TestCpuGBSAOBCForce" />
+      <item itemvalue="CMake Application.TestCpuGayBerneForce" />
+      <item itemvalue="CMake Application.TestCpuHarmonicAngleForce" />
+      <item itemvalue="CMake Application.TestCpuLangevinIntegrator" />
+      <item itemvalue="CMake Application.TestCpuNeighborList" />
+      <item itemvalue="CMake Application.TestCpuNonbondedForce" />
+      <item itemvalue="CMake Application.TestCpuPeriodicTorsionForce" />
+      <item itemvalue="CMake Application.TestCpuRBTorsionForce" />
+      <item itemvalue="CMake Application.TestCpuSettle" />
+      <item itemvalue="CMake Application.TestEnforcePeriodicBox" />
+      <item itemvalue="CMake Application.TestFindExclusions" />
+      <item itemvalue="CMake Application.TestFindMolecules" />
+      <item itemvalue="CMake Application.TestOpenCLAndersenThermostat" />
+      <item itemvalue="CMake Application.TestOpenCLBrownianIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLCMAPTorsionForce" />
+      <item itemvalue="CMake Application.TestOpenCLCMMotionRemover" />
+      <item itemvalue="CMake Application.TestOpenCLCheckpoints" />
+      <item itemvalue="CMake Application.TestOpenCLCompoundIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLCustomAngleForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomBondForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomCVForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomCentroidBondForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomCompoundBondForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomExternalForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomGBForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomHbondForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLCustomManyParticleForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomNonbondedForce" />
+      <item itemvalue="CMake Application.TestOpenCLCustomTorsionForce" />
+      <item itemvalue="CMake Application.TestOpenCLDeviceQuery" />
+      <item itemvalue="CMake Application.TestOpenCLDispersionPME" />
+      <item itemvalue="CMake Application.TestOpenCLDrudeForce" />
+      <item itemvalue="CMake Application.TestOpenCLDrudeLangevinIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLDrudeSCFIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLEwald" />
+      <item itemvalue="CMake Application.TestOpenCLFFT" />
+      <item itemvalue="CMake Application.TestOpenCLGBSAOBCForce" />
+      <item itemvalue="CMake Application.TestOpenCLGayBerneForce" />
+      <item itemvalue="CMake Application.TestOpenCLHarmonicAngleForce" />
+      <item itemvalue="CMake Application.TestOpenCLHarmonicBondForce" />
+      <item itemvalue="CMake Application.TestOpenCLLangevinIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLLocalEnergyMinimizer" />
+      <item itemvalue="CMake Application.TestOpenCLMonteCarloAnisotropicBarostat" />
+      <item itemvalue="CMake Application.TestOpenCLMonteCarloBarostat" />
+      <item itemvalue="CMake Application.TestOpenCLMultipleForces" />
+      <item itemvalue="CMake Application.TestOpenCLNonbondedForce" />
+      <item itemvalue="CMake Application.TestOpenCLPeriodicTorsionForce" />
+      <item itemvalue="CMake Application.TestOpenCLRBTorsionForce" />
+      <item itemvalue="CMake Application.TestOpenCLRandom" />
+      <item itemvalue="CMake Application.TestOpenCLRpmd" />
+      <item itemvalue="CMake Application.TestOpenCLSettle" />
+      <item itemvalue="CMake Application.TestOpenCLSort" />
+      <item itemvalue="CMake Application.TestOpenCLVariableLangevinIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLVariableVerletIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLVerletIntegrator" />
+      <item itemvalue="CMake Application.TestOpenCLVirtualSites" />
+      <item itemvalue="CMake Application.TestParser" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaAngleForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaBondForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaExtrapolatedPolarization" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaGeneralizedKirkwoodForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaInPlaneAngleForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaMultipoleForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaOutOfPlaneBendForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaPiTorsionForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaStretchBendForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaTorsionTorsionForce" />
+      <item itemvalue="CMake Application.TestReferenceAmoebaVdwForce" />
+      <item itemvalue="CMake Application.TestReferenceAndersenThermostat" />
+      <item itemvalue="CMake Application.TestReferenceBrownianIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceCMAPTorsionForce" />
+      <item itemvalue="CMake Application.TestReferenceCMMotionRemover" />
+      <item itemvalue="CMake Application.TestReferenceCheckpoints" />
+      <item itemvalue="CMake Application.TestReferenceCompoundIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceCustomAngleForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomBondForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomCVForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomCentroidBondForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomCompoundBondForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomExternalForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomGBForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomHbondForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceCustomManyParticleForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomNonbondedForce" />
+      <item itemvalue="CMake Application.TestReferenceCustomTorsionForce" />
+      <item itemvalue="CMake Application.TestReferenceDispersionPME" />
+      <item itemvalue="CMake Application.TestReferenceDrudeForce" />
+      <item itemvalue="CMake Application.TestReferenceDrudeLangevinIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceDrudeSCFIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceEwald" />
+      <item itemvalue="CMake Application.TestReferenceGBSAOBCForce" />
+      <item itemvalue="CMake Application.TestReferenceGayBerneForce" />
+      <item itemvalue="CMake Application.TestReferenceHarmonicAngleForce" />
+      <item itemvalue="CMake Application.TestReferenceHarmonicBondForce" />
+      <item itemvalue="CMake Application.TestReferenceKineticEnergy" />
+      <item itemvalue="CMake Application.TestReferenceLangevinIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceLocalEnergyMinimizer" />
+      <item itemvalue="CMake Application.TestReferenceMonteCarloAnisotropicBarostat" />
+      <item itemvalue="CMake Application.TestReferenceMonteCarloBarostat" />
+      <item itemvalue="CMake Application.TestReferenceMonteCarloMembraneBarostat" />
+      <item itemvalue="CMake Application.TestReferenceNeighborList" />
+      <item itemvalue="CMake Application.TestReferenceNonbondedForce" />
+      <item itemvalue="CMake Application.TestReferencePeriodicTorsionForce" />
+      <item itemvalue="CMake Application.TestReferenceRBTorsionForce" />
+      <item itemvalue="CMake Application.TestReferenceRandom" />
+      <item itemvalue="CMake Application.TestReferenceRpmd" />
+      <item itemvalue="CMake Application.TestReferenceSettle" />
+      <item itemvalue="CMake Application.TestReferenceVariableLangevinIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceVariableVerletIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceVerletIntegrator" />
+      <item itemvalue="CMake Application.TestReferenceVirtualSites" />
+      <item itemvalue="CMake Application.TestReferenceWcaDispersionForce" />
+      <item itemvalue="CMake Application.TestSerializationNode" />
+      <item itemvalue="CMake Application.TestSerializeAndersenThermostat" />
+      <item itemvalue="CMake Application.TestSerializeCMAPTorsion" />
+      <item itemvalue="CMake Application.TestSerializeCMMotionRemover" />
+      <item itemvalue="CMake Application.TestSerializeCustomAngleForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomBondForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomCVForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomCentroidBondForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomCompoundBondForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomExternalForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomGBForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomHbondForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomManyParticleForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomNonbondedForce" />
+      <item itemvalue="CMake Application.TestSerializeCustomTorsionForce" />
+      <item itemvalue="CMake Application.TestSerializeGBSAOBCForce" />
+      <item itemvalue="CMake Application.TestSerializeGayBerneForce" />
+      <item itemvalue="CMake Application.TestSerializeHarmonicAngleForce" />
+      <item itemvalue="CMake Application.TestSerializeHarmonicBondForce" />
+      <item itemvalue="CMake Application.TestSerializeIntegrator" />
+      <item itemvalue="CMake Application.TestSerializeMonteCarloAnisotropicBarostat" />
+      <item itemvalue="CMake Application.TestSerializeMonteCarloBarostat" />
+      <item itemvalue="CMake Application.TestSerializeMonteCarloMembraneBarostat" />
+      <item itemvalue="CMake Application.TestSerializeNonbondedForce" />
+      <item itemvalue="CMake Application.TestSerializePeriodicTorsionForce" />
+      <item itemvalue="CMake Application.TestSerializeRBTorsionForce" />
+      <item itemvalue="CMake Application.TestSerializeState" />
+      <item itemvalue="CMake Application.TestSerializeSystem" />
+      <item itemvalue="CMake Application.TestSerializeTabulatedFunctions" />
+      <item itemvalue="CMake Application.TestSplineFitter" />
+      <item itemvalue="CMake Application.TestSystem" />
+      <item itemvalue="CMake Application.TestVectorize8" />
+      <item itemvalue="CMake Application.TestVectorize" />
+      <item itemvalue="CMake Application.sphinxhtml" />
+      <item itemvalue="CMake Application.sphinxpdf" />
+    </list>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7d683019-02e9-4cdf-a286-fe9181b8cb67" name="Default Changelist" comment="" />
+      <created>1555582072061</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1555582072061</updated>
+      <workItem from="1555582073417" duration="367000" />
+      <workItem from="1555583811768" duration="87000" />
+      <workItem from="1555585741252" duration="18000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="472000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="3840" y="23" width="1858" height="1177" extended-state="0" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25411636" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Database Changes" order="7" />
+      <window_info active="true" anchor="bottom" id="Messages" order="8" visible="true" weight="0.3299909" />
+      <window_info anchor="bottom" id="Terminal" order="9" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" order="11" />
+      <window_info anchor="bottom" id="CMake" order="12" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+</project>
