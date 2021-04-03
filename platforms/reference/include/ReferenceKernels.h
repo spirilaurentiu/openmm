@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2008-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -38,11 +38,18 @@
 #include "ReferenceNeighborList.h"
 #include "lepton/CompiledExpression.h"
 #include "lepton/CustomFunction.h"
+#include <array>
+#include <utility>
 
 namespace OpenMM {
 
 class ReferenceObc;
 class ReferenceAndersenThermostat;
+class ReferenceLangevinMiddleDynamics;
+class ReferenceCustomBondIxn;
+class ReferenceCustomAngleIxn;
+class ReferenceCustomTorsionIxn;
+class ReferenceCustomExternalIxn;
 class ReferenceCustomCentroidBondIxn;
 class ReferenceCustomCompoundBondIxn;
 class ReferenceCustomCVForce;
@@ -52,7 +59,9 @@ class ReferenceGayBerneForce;
 class ReferenceBrownianDynamics;
 class ReferenceStochasticDynamics;
 class ReferenceConstraintAlgorithm;
+class ReferenceNoseHooverChain;
 class ReferenceMonteCarloBarostat;
+class ReferenceNoseHooverDynamics;
 class ReferenceVariableStochasticDynamics;
 class ReferenceVariableVerletDynamics;
 class ReferenceVerletDynamics;
@@ -259,7 +268,6 @@ class ReferenceCalcHarmonicBondForceKernel : public CalcHarmonicBondForceKernel 
 public:
     ReferenceCalcHarmonicBondForceKernel(std::string name, const Platform& platform) : CalcHarmonicBondForceKernel(name, platform) {
     }
-    ~ReferenceCalcHarmonicBondForceKernel();
     /**
      * Initialize the kernel.
      * 
@@ -285,8 +293,8 @@ public:
     void copyParametersToContext(ContextImpl& context, const HarmonicBondForce& force);
 private:
     int numBonds;
-    int **bondIndexArray;
-    double **bondParamArray;
+    std::vector<std::vector<int> >bondIndexArray;
+    std::vector<std::vector<double> >bondParamArray;
     bool usePeriodic;
 };
 
@@ -295,7 +303,7 @@ private:
  */
 class ReferenceCalcCustomBondForceKernel : public CalcCustomBondForceKernel {
 public:
-    ReferenceCalcCustomBondForceKernel(std::string name, const Platform& platform) : CalcCustomBondForceKernel(name, platform) {
+    ReferenceCalcCustomBondForceKernel(std::string name, const Platform& platform) : CalcCustomBondForceKernel(name, platform), ixn(NULL) {
     }
     ~ReferenceCalcCustomBondForceKernel();
     /**
@@ -323,8 +331,9 @@ public:
     void copyParametersToContext(ContextImpl& context, const CustomBondForce& force);
 private:
     int numBonds;
-    int **bondIndexArray;
-    double **bondParamArray;
+    ReferenceCustomBondIxn* ixn;
+    std::vector<std::vector<int> >bondIndexArray;
+    std::vector<std::vector<double> >bondParamArray;
     Lepton::CompiledExpression energyExpression, forceExpression;
     std::vector<Lepton::CompiledExpression> energyParamDerivExpressions;
     std::vector<std::string> parameterNames, globalParameterNames, energyParamDerivNames;
@@ -338,7 +347,6 @@ class ReferenceCalcHarmonicAngleForceKernel : public CalcHarmonicAngleForceKerne
 public:
     ReferenceCalcHarmonicAngleForceKernel(std::string name, const Platform& platform) : CalcHarmonicAngleForceKernel(name, platform) {
     }
-    ~ReferenceCalcHarmonicAngleForceKernel();
     /**
      * Initialize the kernel.
      * 
@@ -364,8 +372,8 @@ public:
     void copyParametersToContext(ContextImpl& context, const HarmonicAngleForce& force);
 private:
     int numAngles;
-    int **angleIndexArray;
-    double **angleParamArray;
+    std::vector<std::vector<int> >angleIndexArray;
+    std::vector<std::vector<double> >angleParamArray;
     bool usePeriodic;
 };
 
@@ -374,7 +382,7 @@ private:
  */
 class ReferenceCalcCustomAngleForceKernel : public CalcCustomAngleForceKernel {
 public:
-    ReferenceCalcCustomAngleForceKernel(std::string name, const Platform& platform) : CalcCustomAngleForceKernel(name, platform) {
+    ReferenceCalcCustomAngleForceKernel(std::string name, const Platform& platform) : CalcCustomAngleForceKernel(name, platform), ixn(NULL) {
     }
     ~ReferenceCalcCustomAngleForceKernel();
     /**
@@ -402,8 +410,9 @@ public:
     void copyParametersToContext(ContextImpl& context, const CustomAngleForce& force);
 private:
     int numAngles;
-    int **angleIndexArray;
-    double **angleParamArray;
+    ReferenceCustomAngleIxn* ixn;
+    std::vector<std::vector<int> >angleIndexArray;
+    std::vector<std::vector<double> >angleParamArray;
     Lepton::CompiledExpression energyExpression, forceExpression;
     std::vector<Lepton::CompiledExpression> energyParamDerivExpressions;
     std::vector<std::string> parameterNames, globalParameterNames, energyParamDerivNames;
@@ -417,7 +426,6 @@ class ReferenceCalcPeriodicTorsionForceKernel : public CalcPeriodicTorsionForceK
 public:
     ReferenceCalcPeriodicTorsionForceKernel(std::string name, const Platform& platform) : CalcPeriodicTorsionForceKernel(name, platform) {
     }
-    ~ReferenceCalcPeriodicTorsionForceKernel();
     /**
      * Initialize the kernel.
      * 
@@ -443,8 +451,8 @@ public:
     void copyParametersToContext(ContextImpl& context, const PeriodicTorsionForce& force);
 private:
     int numTorsions;
-    int **torsionIndexArray;
-    double **torsionParamArray;
+    std::vector<std::vector<int> >torsionIndexArray;
+    std::vector<std::vector<double> >torsionParamArray;
     bool usePeriodic;
 };
 
@@ -455,7 +463,6 @@ class ReferenceCalcRBTorsionForceKernel : public CalcRBTorsionForceKernel {
 public:
     ReferenceCalcRBTorsionForceKernel(std::string name, const Platform& platform) : CalcRBTorsionForceKernel(name, platform) {
     }
-    ~ReferenceCalcRBTorsionForceKernel();
     /**
      * Initialize the kernel.
      * 
@@ -481,8 +488,8 @@ public:
     void copyParametersToContext(ContextImpl& context, const RBTorsionForce& force);
 private:
     int numTorsions;
-    int **torsionIndexArray;
-    double **torsionParamArray;
+    std::vector<std::vector<int> >torsionIndexArray;
+    std::vector<std::vector<double> >torsionParamArray;
     bool usePeriodic;
 };
 
@@ -528,7 +535,7 @@ private:
  */
 class ReferenceCalcCustomTorsionForceKernel : public CalcCustomTorsionForceKernel {
 public:
-    ReferenceCalcCustomTorsionForceKernel(std::string name, const Platform& platform) : CalcCustomTorsionForceKernel(name, platform) {
+    ReferenceCalcCustomTorsionForceKernel(std::string name, const Platform& platform) : CalcCustomTorsionForceKernel(name, platform), ixn(NULL) {
     }
     ~ReferenceCalcCustomTorsionForceKernel();
     /**
@@ -556,8 +563,9 @@ public:
     void copyParametersToContext(ContextImpl& context, const CustomTorsionForce& force);
 private:
     int numTorsions;
-    int **torsionIndexArray;
-    double **torsionParamArray;
+    ReferenceCustomTorsionIxn* ixn;
+    std::vector<std::vector<int> >torsionIndexArray;
+    std::vector<std::vector<double> >torsionParamArray;
     Lepton::CompiledExpression energyExpression, forceExpression;
     std::vector<Lepton::CompiledExpression> energyParamDerivExpressions;
     std::vector<std::string> parameterNames, globalParameterNames, energyParamDerivNames;
@@ -615,12 +623,15 @@ public:
      */
     void getLJPMEParameters(double& alpha, int& nx, int& ny, int& nz) const;
 private:
+    void computeParameters(ContextImpl& context);
     int numParticles, num14;
-    int **bonded14IndexArray;
-    double **particleParamArray, **bonded14ParamArray;
+    std::vector<std::vector<int> >bonded14IndexArray;
+    std::vector<std::vector<double> > particleParamArray, bonded14ParamArray;
+    std::vector<std::array<double, 3> > baseParticleParams, baseExceptionParams;
+    std::map<std::pair<std::string, int>, std::array<double, 3> > particleParamOffsets, exceptionParamOffsets;
     double nonbondedCutoff, switchingDistance, rfDielectric, ewaldAlpha, ewaldDispersionAlpha, dispersionCoefficient;
     int kmax[3], gridSize[3], dispersionGridSize[3];
-    bool useSwitchingFunction;
+    bool useSwitchingFunction, exceptionsArePeriodic;
     std::vector<std::set<int> > exclusions;
     NonbondedMethod nonbondedMethod;
     NeighborList* neighborList;
@@ -659,7 +670,7 @@ public:
     void copyParametersToContext(ContextImpl& context, const CustomNonbondedForce& force);
 private:
     int numParticles;
-    double **particleParamArray;
+    std::vector<std::vector<double> > particleParamArray;
     double nonbondedCutoff, switchingDistance, periodicBoxSize[3], longRangeCoefficient;
     bool useSwitchingFunction, hasInitializedLongRangeCorrection;
     CustomNonbondedForce* forceCopy;
@@ -745,7 +756,7 @@ public:
 private:
     int numParticles;
     bool isPeriodic;
-    double **particleParamArray;
+    std::vector<std::vector<double> > particleParamArray;
     double nonbondedCutoff;
     std::vector<std::set<int> > exclusions;
     std::vector<std::string> particleParameterNames, globalParameterNames, energyParamDerivNames, valueNames;
@@ -768,7 +779,7 @@ private:
  */
 class ReferenceCalcCustomExternalForceKernel : public CalcCustomExternalForceKernel {
 public:
-    ReferenceCalcCustomExternalForceKernel(std::string name, const Platform& platform) : CalcCustomExternalForceKernel(name, platform) {
+    ReferenceCalcCustomExternalForceKernel(std::string name, const Platform& platform) : CalcCustomExternalForceKernel(name, platform), ixn(NULL) {
     }
     ~ReferenceCalcCustomExternalForceKernel();
     /**
@@ -795,23 +806,13 @@ public:
      */
     void copyParametersToContext(ContextImpl& context, const CustomExternalForce& force);
 private:
-    class PeriodicDistanceFunction;
     int numParticles;
+    ReferenceCustomExternalIxn* ixn;
     std::vector<int> particles;
-    double **particleParamArray;
+    std::vector<std::vector<double> > particleParamArray;
     Lepton::CompiledExpression energyExpression, forceExpressionX, forceExpressionY, forceExpressionZ;
     std::vector<std::string> parameterNames, globalParameterNames;
     Vec3* boxVectors;
-};
-
-class ReferenceCalcCustomExternalForceKernel::PeriodicDistanceFunction : public Lepton::CustomFunction {
-public:
-    Vec3** boxVectorHandle;
-    PeriodicDistanceFunction(Vec3** boxVectorHandle);
-    int getNumArguments() const;
-    double evaluate(const double* arguments) const;
-    double evaluateDerivative(const double* arguments, const int* derivOrder) const;
-    Lepton::CustomFunction* clone() const;
 };
 
 /**
@@ -848,7 +849,7 @@ public:
 private:
     int numDonors, numAcceptors, numParticles;
     bool isPeriodic;
-    double **donorParamArray, **acceptorParamArray;
+    std::vector<std::vector<double> > donorParamArray, acceptorParamArray;
     double nonbondedCutoff;
     ReferenceCustomHbondIxn* ixn;
     std::vector<std::set<int> > exclusions;
@@ -888,10 +889,11 @@ public:
     void copyParametersToContext(ContextImpl& context, const CustomCentroidBondForce& force);
 private:
     int numBonds, numParticles;
-    double **bondParamArray;
+    std::vector<std::vector<double> > bondParamArray;
     ReferenceCustomCentroidBondIxn* ixn;
     std::vector<std::string> globalParameterNames, energyParamDerivNames;
     bool usePeriodic;
+    Vec3* boxVectors;
 };
 
 /**
@@ -927,10 +929,11 @@ public:
     void copyParametersToContext(ContextImpl& context, const CustomCompoundBondForce& force);
 private:
     int numBonds;
-    double **bondParamArray;
+    std::vector<std::vector<double> > bondParamArray;
     ReferenceCustomCompoundBondIxn* ixn;
     std::vector<std::string> globalParameterNames, energyParamDerivNames;
     bool usePeriodic;
+    Vec3* boxVectors;
 };
 
 /**
@@ -967,7 +970,7 @@ public:
 private:
     int numParticles;
     double cutoffDistance;
-    double **particleParamArray;
+    std::vector<std::vector<double> > particleParamArray;
     ReferenceCustomManyParticleIxn* ixn;
     std::vector<std::string> globalParameterNames;
     NonbondedMethod nonbondedMethod;
@@ -1040,9 +1043,51 @@ public:
      * @param innerContext   the context created by the CustomCVForce for computing collective variables
      */
     void copyState(ContextImpl& context, ContextImpl& innerContext);
+    /**
+     * Copy changed parameters over to a context.
+     *
+     * @param context    the context to copy parameters to
+     * @param force      the CustomCVForce to copy the parameters from
+     */
+    void copyParametersToContext(ContextImpl& context, const CustomCVForce& force);
 private:
     ReferenceCustomCVForce* ixn;
     std::vector<std::string> globalParameterNames, energyParamDerivNames;
+};
+
+/**
+ * This kernel is invoked by RMSDForce to calculate the forces acting on the system and the energy of the system.
+ */
+class ReferenceCalcRMSDForceKernel : public CalcRMSDForceKernel {
+public:
+    ReferenceCalcRMSDForceKernel(std::string name, const Platform& platform) : CalcRMSDForceKernel(name, platform) {
+    }
+    /**
+     * Initialize the kernel.
+     *
+     * @param system     the System this kernel will be applied to
+     * @param force      the RMSDForce this kernel will be used for
+     */
+    void initialize(const System& system, const RMSDForce& force);
+    /**
+     * Execute the kernel to calculate the forces and/or energy.
+     *
+     * @param context        the context in which to execute this kernel
+     * @param includeForces  true if forces should be calculated
+     * @param includeEnergy  true if the energy should be calculated
+     * @return the potential energy due to the force
+     */
+    double execute(ContextImpl& context, bool includeForces, bool includeEnergy);
+    /**
+     * Copy changed parameters over to a context.
+     *
+     * @param context    the context to copy parameters to
+     * @param force      the RMSDForce to copy the parameters from
+     */
+    void copyParametersToContext(ContextImpl& context, const RMSDForce& force);
+private:
+    std::vector<Vec3> referencePos;
+    std::vector<int> particles;
 };
 
 /**
@@ -1080,6 +1125,107 @@ private:
     ReferenceVerletDynamics* dynamics;
     std::vector<double> masses;
     double prevStepSize;
+}
+;
+/**
+ * This kernel is invoked by NoseHooverIntegrator to take one time step.
+ */
+class ReferenceIntegrateNoseHooverStepKernel : public IntegrateNoseHooverStepKernel {
+public:
+    ReferenceIntegrateNoseHooverStepKernel(std::string name, const Platform& platform, ReferencePlatform::PlatformData& data) : IntegrateNoseHooverStepKernel(name, platform),
+        data(data), dynamics(0) {
+    }
+    ~ReferenceIntegrateNoseHooverStepKernel();
+    /**
+     * Initialize the kernel.
+     * 
+     * @param system     the System this kernel will be applied to
+     * @param integrator the NoseHooverIntegrator this kernel will be used for
+     */
+    void initialize(const System& system, const NoseHooverIntegrator& integrator);
+    /**
+     * Execute the kernel.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the VerletIntegrator this kernel is being used for
+     * @param forcesAreValid a reference to the parent integrator's boolean for keeping
+     *                       track of the validity of the current forces.
+     */
+    void execute(ContextImpl& context, const NoseHooverIntegrator& integrator, bool &forcesAreValid);
+    /**
+     * Compute the kinetic energy.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the NoseHooverIntegrator this kernel is being used for
+     */
+    double computeKineticEnergy(ContextImpl& context, const NoseHooverIntegrator& integrator);
+    /**
+     * Execute the kernel that propagates the Nose Hoover chain and determines the velocity scale factor.
+     * 
+     * @param context  the context in which to execute this kernel
+     * @param noseHooverChain the object describing the chain to be propagated.
+     * @param kineticEnergy the {center of mass, relative} kineticEnergies of the particles being thermostated by this chain.
+     * @param timeStep the time step used by the integrator.
+     * @return the velocity scale factor to apply to the particles associated with this heat bath.
+     */
+    std::pair<double, double> propagateChain(ContextImpl& context, const NoseHooverChain &noseHooverChain, std::pair<double, double> kineticEnergy, double timeStep);
+    /**
+     * Execute the kernal that computes the total (kinetic + potential) heat bath energy.
+     *
+     * @param context the context in which to execute this kernel
+     * @param noseHooverChain the chain whose energy is to be determined.
+     * @return the total heat bath energy.
+     */
+    double computeHeatBathEnergy(ContextImpl& context, const NoseHooverChain &noseHooverChain);
+    /**
+     * Execute the kernel that computes the kinetic energy for a subset of atoms,
+     * or the relative kinetic energy of Drude particles with respect to their parent atoms
+     *
+     * @param context the context in which to execute this kernel
+     * @param noseHooverChain the chain whose energy is to be determined.
+     * @param downloadValue whether the computed value should be downloaded and returned.
+     */
+    std::pair<double, double> computeMaskedKineticEnergy(ContextImpl& context, const NoseHooverChain &noseHooverChain, bool downloadValue);
+    /**
+     * Execute the kernel that scales the velocities of particles associated with a nose hoover chain
+     *
+     * @param context the context in which to execute this kernel
+     * @param noseHooverChain the chain whose energy is to be determined.
+     * @param scaleFactor the multiplicative factor by which {absolute, relative} velocities are scaled.
+     */
+    void scaleVelocities(ContextImpl& context, const NoseHooverChain &noseHooverChain, std::pair<double, double> scaleFactor);
+    /**
+     * Write the chain states to a checkpoint.
+     */
+    void createCheckpoint(ContextImpl& context, std::ostream& stream) const;
+    /**
+     * Load the chain states from a checkpoint.
+     */
+    void loadCheckpoint(ContextImpl& context, std::istream& stream);
+    /**
+     * Get the internal states of all chains.
+     * 
+     * @param context       the context for which to get the states
+     * @param positions     element [i][j] contains the position of bead j for chain i
+     * @param velocities    element [i][j] contains the velocity of bead j for chain i
+     */
+    void getChainStates(ContextImpl& context, std::vector<std::vector<double> >& positions, std::vector<std::vector<double> >& velocities) const;
+    /**
+     * Set the internal states of all chains.
+     * 
+     * @param context       the context for which to get the states
+     * @param positions     element [i][j] contains the position of bead j for chain i
+     * @param velocities    element [i][j] contains the velocity of bead j for chain i
+     */
+    void setChainStates(ContextImpl& context, const std::vector<std::vector<double> >& positions, const std::vector<std::vector<double> >& velocities);
+private:
+    ReferencePlatform::PlatformData& data;
+    ReferenceNoseHooverChain* chainPropagator;
+    ReferenceNoseHooverDynamics* dynamics;
+    std::vector<double> masses;
+    std::vector<std::vector<double> > chainPositions;
+    std::vector<std::vector<double> > chainVelocities;
+    double prevStepSize;
 };
 
 /**
@@ -1115,6 +1261,43 @@ public:
 private:
     ReferencePlatform::PlatformData& data;
     ReferenceStochasticDynamics* dynamics;
+    std::vector<double> masses;
+    double prevTemp, prevFriction, prevStepSize;
+};
+
+/**
+ * This kernel is invoked by LangevinMiddleIntegrator to take one time step.
+ */
+class ReferenceIntegrateLangevinMiddleStepKernel : public IntegrateLangevinMiddleStepKernel {
+public:
+    ReferenceIntegrateLangevinMiddleStepKernel(std::string name, const Platform& platform, ReferencePlatform::PlatformData& data) : IntegrateLangevinMiddleStepKernel(name, platform),
+        data(data), dynamics(0) {
+    }
+    ~ReferenceIntegrateLangevinMiddleStepKernel();
+    /**
+     * Initialize the kernel, setting up the particle masses.
+     * 
+     * @param system     the System this kernel will be applied to
+     * @param integrator the LangevinMiddleIntegrator this kernel will be used for
+     */
+    void initialize(const System& system, const LangevinMiddleIntegrator& integrator);
+    /**
+     * Execute the kernel.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the LangevinMiddleIntegrator this kernel is being used for
+     */
+    void execute(ContextImpl& context, const LangevinMiddleIntegrator& integrator);
+    /**
+     * Compute the kinetic energy.
+     * 
+     * @param context    the context in which to execute this kernel
+     * @param integrator the LangevinMiddleIntegrator this kernel is being used for
+     */
+    double computeKineticEnergy(ContextImpl& context, const LangevinMiddleIntegrator& integrator);
+private:
+    ReferencePlatform::PlatformData& data;
+    ReferenceLangevinMiddleDynamics* dynamics;
     std::vector<double> masses;
     double prevTemp, prevFriction, prevStepSize;
 };

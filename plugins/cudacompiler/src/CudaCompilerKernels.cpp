@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2015 Stanford University and the Authors.           *
+ * Portions copyright (c) 2015-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -45,17 +45,23 @@ using namespace std;
     }
 
 static string getErrorString(nvrtcResult result) {
-    switch (result) {
-        case NVRTC_SUCCESS: return "NVRTC_SUCCESS";
-        case NVRTC_ERROR_OUT_OF_MEMORY: return "NVRTC_ERROR_OUT_OF_MEMORY";
-        case NVRTC_ERROR_PROGRAM_CREATION_FAILURE: return "NVRTC_ERROR_PROGRAM_CREATION_FAILURE";
-        case NVRTC_ERROR_INVALID_INPUT: return "NVRTC_ERROR_INVALID_INPUT";
-        case NVRTC_ERROR_INVALID_PROGRAM: return "NVRTC_ERROR_INVALID_PROGRAM";
-        case NVRTC_ERROR_INVALID_OPTION: return "NVRTC_ERROR_INVALID_OPTION";
-        case NVRTC_ERROR_COMPILATION: return "NVRTC_ERROR_COMPILATION";
-        case NVRTC_ERROR_BUILTIN_OPERATION_FAILURE: return "NVRTC_ERROR_BUILTIN_OPERATION_FAILURE";
-    }
-    return "NVRTC error";
+    return nvrtcGetErrorString(result);
+}
+
+CudaRuntimeCompilerKernel::CudaRuntimeCompilerKernel(const std::string& name, const Platform& platform) : CudaCompilerKernel(name, platform) {
+    // Find the maximum architecture the compiler supports.
+    
+#if CUDA_VERSION < 11020
+    // CUDA versions before 11.2 can't query the compiler to see what it supports.
+    
+    maxSupportedArchitecture = 75;
+#else
+    int numArchs;
+    CHECK_RESULT(nvrtcGetNumSupportedArchs(&numArchs), "Error querying supported architectures");
+    vector<int> archs(numArchs);
+    CHECK_RESULT(nvrtcGetSupportedArchs(archs.data()), "Error querying supported architectures");
+    maxSupportedArchitecture = archs.back();
+#endif
 }
 
 string CudaRuntimeCompilerKernel::createModule(const string& source, const string& flags, CudaContext& cu) {
@@ -74,7 +80,7 @@ string CudaRuntimeCompilerKernel::createModule(const string& source, const strin
     // Compile the program to PTX.
     
     nvrtcProgram program;
-    CHECK_RESULT(nvrtcCreateProgram(&program, source.c_str(), "", 0, NULL, NULL), "Error creating program");
+    CHECK_RESULT(nvrtcCreateProgram(&program, source.c_str(), NULL, 0, NULL, NULL), "Error creating program");
     try {
         nvrtcResult result = nvrtcCompileProgram(program, options.size(), &options[0]);
         if (result != NVRTC_SUCCESS) {

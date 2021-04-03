@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2012 Stanford University and the Authors.      *
+ * Portions copyright (c) 2008-2020 Stanford University and the Authors.      *
  * Authors: Mark Friedrichs                                                   *
  * Contributors:                                                              *
  *                                                                            *
@@ -35,6 +35,7 @@
 
 #include "openmm/internal/AssertionUtilities.h"
 #include "openmm/Context.h"
+#include "openmm/CustomNonbondedForce.h"
 #include "OpenMMAmoeba.h"
 #include "openmm/System.h"
 #include "openmm/AmoebaVdwForce.h"
@@ -138,12 +139,13 @@ void testVdw() {
         positions[ii][2] *= AngstromToNm;
     }
     for (int ii = 0; ii < amoebaVdwForce->getNumParticles();  ii++) {
-        int indexIV;
+        int indexIV, type;
         double sigma, epsilon, reduction;
-        amoebaVdwForce->getParticleParameters(ii, indexIV, sigma, epsilon, reduction);
+        bool isAlchemical;
+        amoebaVdwForce->getParticleParameters(ii, indexIV, sigma, epsilon, reduction, isAlchemical, type);
         sigma        *= AngstromToNm;
         epsilon      *= CalToJoule;
-        amoebaVdwForce->setParticleParameters(ii, indexIV, sigma, epsilon, reduction);
+        amoebaVdwForce->setParticleParameters(ii, indexIV, sigma, epsilon, reduction, isAlchemical, type);
     }
     platformName = "CUDA";
     Context context(system, integrator, Platform::getPlatformByName(platformName));
@@ -168,10 +170,11 @@ void testVdw() {
     // Try changing the particle parameters and make sure it's still correct.
     
     for (int i = 0; i < numberOfParticles; i++) {
-        int indexIV;
+        int indexIV, type;
         double mass, sigma, epsilon, reduction;
-        amoebaVdwForce->getParticleParameters(i, indexIV, sigma, epsilon, reduction);
-        amoebaVdwForce->setParticleParameters(i, indexIV, 0.9*sigma, 2.0*epsilon, 0.95*reduction);
+        bool isAlchemical;
+        amoebaVdwForce->getParticleParameters(i, indexIV, sigma, epsilon, reduction, isAlchemical, type);
+        amoebaVdwForce->setParticleParameters(i, indexIV, 0.9*sigma, 2.0*epsilon, 0.95*reduction, isAlchemical, type);
     }
     LangevinIntegrator integrator2(0.0, 0.1, 0.01);
     Context context2(system, integrator2, Platform::getPlatformByName(platformName));
@@ -195,17 +198,25 @@ void testVdw() {
     ASSERT_EQUAL_TOL(state1.getPotentialEnergy(), state2.getPotentialEnergy(), tolerance);
 }
 
-void setupAndGetForcesEnergyVdwAmmonia(const std::string& sigmaCombiningRule, const std::string& epsilonCombiningRule, double cutoff,
-                                       double boxDimension, std::vector<Vec3>& forces, double& energy) {
+void setupAndGetForcesEnergyVdwAmmonia2(const std::string& sigmaCombiningRule, const std::string& epsilonCombiningRule, double cutoff,
+                                       double boxDimension, std::vector<Vec3>& forces, double& energy,
+                                       AmoebaVdwForce::AlchemicalMethod alchemicalMethod, int softcorePower, double softcoreAlpha, double vdwLambda){
 
     // beginning of Vdw setup
 
     System system;
-    AmoebaVdwForce* amoebaVdwForce        = new AmoebaVdwForce();;
+    AmoebaVdwForce* amoebaVdwForce        = new AmoebaVdwForce();
     int numberOfParticles                 = 8;
     amoebaVdwForce->setSigmaCombiningRule(sigmaCombiningRule);
     amoebaVdwForce->setEpsilonCombiningRule(epsilonCombiningRule);
     amoebaVdwForce->setCutoff(cutoff);
+    bool alchemical = false;
+    if (alchemicalMethod != AmoebaVdwForce::None) {
+       amoebaVdwForce->setAlchemicalMethod(alchemicalMethod);
+       amoebaVdwForce->setSoftcorePower(softcorePower);
+       amoebaVdwForce->setSoftcoreAlpha(softcoreAlpha);
+       alchemical = true;
+    }
     if (boxDimension > 0.0) {
         Vec3 a(boxDimension, 0.0, 0.0);
         Vec3 b(0.0, boxDimension, 0.0);
@@ -213,10 +224,12 @@ void setupAndGetForcesEnergyVdwAmmonia(const std::string& sigmaCombiningRule, co
         system.setDefaultPeriodicBoxVectors(a, b, c);
         amoebaVdwForce->setNonbondedMethod(AmoebaVdwForce::CutoffPeriodic);
         amoebaVdwForce->setUseDispersionCorrection(1);
-    } else {
+    }
+    else {
         amoebaVdwForce->setNonbondedMethod(AmoebaVdwForce::NoCutoff);
         amoebaVdwForce->setUseDispersionCorrection(0);
     }
+
 
     // addParticle: ivIndex, radius, epsilon, reductionFactor
 
@@ -233,16 +246,16 @@ void setupAndGetForcesEnergyVdwAmmonia(const std::string& sigmaCombiningRule, co
     amoebaVdwForce->addParticle(0,   1.3500000e-01,   8.3680000e-02,   9.1000000e-01);
 
     system.addParticle(  1.4007000e+01);
-    amoebaVdwForce->addParticle(4,   1.8550000e-01,   4.3932000e-01,   0.0000000e+00);
+    amoebaVdwForce->addParticle(4,   1.8550000e-01,   4.3932000e-01,   0.0000000e+00, alchemical);
 
     system.addParticle(  1.0080000e+00);
-    amoebaVdwForce->addParticle(4,   1.3500000e-01,   8.3680000e-02,   9.1000000e-01);
+    amoebaVdwForce->addParticle(4,   1.3500000e-01,   8.3680000e-02,   9.1000000e-01, alchemical);
 
     system.addParticle(  1.0080000e+00);
-    amoebaVdwForce->addParticle(4,   1.3500000e-01,   8.3680000e-02,   9.1000000e-01);
+    amoebaVdwForce->addParticle(4,   1.3500000e-01,   8.3680000e-02,   9.1000000e-01, alchemical);
 
     system.addParticle(  1.0080000e+00);
-    amoebaVdwForce->addParticle(4,   1.3500000e-01,   8.3680000e-02,   9.1000000e-01);
+    amoebaVdwForce->addParticle(4,   1.3500000e-01,   8.3680000e-02,   9.1000000e-01, alchemical);
 
     // ParticleExclusions
 
@@ -323,10 +336,26 @@ void setupAndGetForcesEnergyVdwAmmonia(const std::string& sigmaCombiningRule, co
     LangevinIntegrator integrator(0.0, 0.1, 0.01);
     Context context(system, integrator, Platform::getPlatformByName(platformName));
 
+    // Load the vdw lambda value into the context.
+    if (alchemicalMethod != AmoebaVdwForce::None) {
+       context.setParameter(AmoebaVdwForce::Lambda(), vdwLambda);
+    }
+
+
     context.setPositions(positions);
     State state                      = context.getState(State::Forces | State::Energy);
     forces                           = state.getForces();
     energy                           = state.getPotentialEnergy();
+}
+
+void setupAndGetForcesEnergyVdwAmmonia(const std::string& sigmaCombiningRule, const std::string& epsilonCombiningRule, double cutoff,
+                                       double boxDimension, std::vector<Vec3>& forces, double& energy) {
+     AmoebaVdwForce::AlchemicalMethod alchemicalMethod = AmoebaVdwForce::None;
+     int softcorePower = 5;
+     double softcoreAlpha = 0.7;
+     double vdwLambda = 1.0;
+     setupAndGetForcesEnergyVdwAmmonia2(sigmaCombiningRule, epsilonCombiningRule, cutoff, boxDimension, forces, energy,
+                                       alchemicalMethod, softcorePower, softcoreAlpha, vdwLambda);
 }
 
 void compareForcesEnergy(std::string& testName, double expectedEnergy, double energy,
@@ -363,6 +392,74 @@ void testVdwAmmoniaCubicMeanHhg() {
     expectedForces[5]         = Vec3(  1.6750145e+00,  -3.2448374e-01,  -1.8030914e-01);
     expectedForces[6]         = Vec3( -2.3412420e+02,   1.0754069e-02,   7.6287492e+00);
     expectedForces[7]         = Vec3(  1.6756544e+00,   3.2497316e-01,  -1.7906832e-01);
+
+    double tolerance          = 1.0e-04;
+    compareForcesEnergy(testName, expectedEnergy, energy, expectedForces, forces, tolerance);
+}
+
+// test VDW w/ sigmaRule=CubicMean and epsilonRule=W-H
+
+void testVdwAmmoniaCubicMeanWH() {
+
+    std::string testName      = "testVdwAmmoniaCubicMeanWH";
+
+    int numberOfParticles     = 8;
+    double boxDimension       = -1.0;
+    double cutoff             = 9000000.0;
+    std::vector<Vec3> forces;
+    double energy;
+
+
+    setupAndGetForcesEnergyVdwAmmonia("CUBIC-MEAN", "W-H", cutoff, boxDimension, forces, energy);
+    std::vector<Vec3> expectedForces(numberOfParticles);
+
+    double expectedEnergy     =  3.771794e+00;
+
+    expectedForces[0]         = Vec3( 2.3979839e+02,  -1.1829842e-02,  -5.3258772e+00);
+    expectedForces[1]         = Vec3(-1.9942459e+00,   4.3142144e-01,  -1.7290171e-01);
+    expectedForces[2]         = Vec3(-1.9935442e+00,  -4.2937965e-01,  -1.7369876e-01);
+    expectedForces[3]         = Vec3(-8.9050582e-01,  -4.8659920e-04,   2.2190848e-01);
+    expectedForces[4]         = Vec3(-5.2306326e+01,   1.4895040e-03,  -3.3588483e-01);
+    expectedForces[5]         = Vec3( 1.4153288e+00,  -2.7130186e-01,  -1.5480591e-01);
+    expectedForces[6]         = Vec3(-1.8544507e+02,   8.4027272e-03,   6.0950274e+00);
+    expectedForces[7]         = Vec3( 1.4159723e+00,   2.7168386e-01,  -1.5376786e-01);
+
+    double tolerance          = 1.0e-04;
+    compareForcesEnergy(testName, expectedEnergy, energy, expectedForces, forces, tolerance);
+}
+
+
+// test alchemical VDW 
+
+void testVdwAlchemical(int power, double alpha, double lambda, AmoebaVdwForce::AlchemicalMethod method) {
+
+    std::string testName      = "testVdwAlchemical";
+
+    int numberOfParticles     = 8;
+    double boxDimension       = -1.0;
+    double cutoff             = 9000000.0;
+    std::vector<Vec3> forces;
+    double energy;
+
+    setupAndGetForcesEnergyVdwAmmonia2("CUBIC-MEAN", "HHG", cutoff, boxDimension, forces, energy,
+                                      method, power, alpha, lambda);
+    std::vector<Vec3> expectedForces(numberOfParticles);
+
+    double expectedEnergy     =  4.8012258e+00;
+    expectedForces[0]         = Vec3( 2.9265247e+02,  -1.4507808e-02,  -6.9562123e+00);
+    expectedForces[1]         = Vec3(-2.2451693e+00,   4.8143073e-01,  -2.0041494e-01);
+    expectedForces[2]         = Vec3(-2.2440698e+00,  -4.7905450e-01,  -2.0125284e-01);
+    expectedForces[3]         = Vec3(-1.0840394e+00,  -5.8531253e-04,   2.6934135e-01);
+    expectedForces[4]         = Vec3(-5.6305662e+01,   1.4733908e-03,  -1.8083306e-01);
+    expectedForces[5]         = Vec3( 1.6750145e+00,  -3.2448374e-01,  -1.8030914e-01);
+    expectedForces[6]         = Vec3(-2.3412420e+02,   1.0754069e-02,   7.6287492e+00);
+    expectedForces[7]         = Vec3( 1.6756544e+00,   3.2497316e-01,  -1.7906832e-01);
+
+    double scale = pow(lambda, power);
+    expectedEnergy *= scale;
+    for (int i=0; i<8; i++) {
+        expectedForces[i] *= scale;
+    }
 
     double tolerance          = 1.0e-04;
     compareForcesEnergy(testName, expectedEnergy, energy, expectedForces, forces, tolerance);
@@ -2010,6 +2107,94 @@ void testTriclinic() {
     }
 }
 
+void testCompareToCustom(AmoebaVdwForce::PotentialFunction potential) {
+    const int numParticles = 10;
+    const double cutoff = 1.0;
+    System system;
+    AmoebaVdwForce* vdw = new AmoebaVdwForce();
+    vdw->setNonbondedMethod(AmoebaVdwForce::CutoffPeriodic);
+    vdw->setCutoff(cutoff);
+    vdw->setPotentialFunction(potential);
+    vdw->setSigmaCombiningRule("ARITHMETIC");
+    vdw->setEpsilonCombiningRule("GEOMETRIC");
+    vdw->setUseDispersionCorrection(true);
+    system.addForce(vdw);
+    CustomNonbondedForce* custom;
+    if (potential == AmoebaVdwForce::LennardJones)
+        custom = new CustomNonbondedForce("4*eps*((sigma/r)^12-(sigma/r)^6); sigma=sigma1+sigma2; eps=sqrt(eps1*eps2)");
+    else
+        custom = new CustomNonbondedForce("eps*((1.07/(p+0.07))^7 * ((1.12/(p^7+0.12))-2)); p=r/sigma; sigma=sigma1+sigma2; eps=sqrt(eps1*eps2)");
+    custom->addPerParticleParameter("sigma");
+    custom->addPerParticleParameter("eps");
+    custom->setNonbondedMethod(CustomNonbondedForce::CutoffPeriodic);
+    custom->setCutoffDistance(cutoff);
+    custom->setUseLongRangeCorrection(true);
+    custom->setUseSwitchingFunction(true);
+    custom->setSwitchingDistance(0.9*cutoff);
+    custom->setForceGroup(1);
+    system.addForce(custom);
+    vector<Vec3> positions;
+    OpenMM_SFMT::SFMT sfmt;
+    init_gen_rand(0, sfmt);
+    for (int i = 0; i < numParticles; i++) {
+        system.addParticle(1.0);
+        if (i%2 == 0) {
+            vdw->addParticle(i, 0.2, 1.0, 0.0);
+            custom->addParticle({0.2, 1.0});
+        }
+        else {
+            vdw->addParticle(i, 0.25, 0.5, 0.0);
+            custom->addParticle({0.25, 0.5});
+        }
+        positions.push_back(2*Vec3(genrand_real2(sfmt), genrand_real2(sfmt), genrand_real2(sfmt)));
+    }
+    LangevinIntegrator integrator(0.0, 0.1, 0.01);
+    Context context(system, integrator, Platform::getPlatformByName("CUDA"));
+    context.setPositions(positions);
+    State state1 = context.getState(State::Energy | State::Forces, true, 1);
+    State state2 = context.getState(State::Energy | State::Forces, true, 2);
+    ASSERT_EQUAL_TOL(state1.getPotentialEnergy(), state2.getPotentialEnergy(), 1e-3);
+    for (int i = 0; i < numParticles; i++)
+        ASSERT_EQUAL_VEC(state1.getForces()[i], state2.getForces()[i], 1e-5);
+}
+
+void testParticleTypes() {
+    System system;
+    for (int i = 0; i < 4; i++)
+        system.addParticle(1.0);
+    AmoebaVdwForce* vdw = new AmoebaVdwForce();
+    system.addForce(vdw);
+    vdw->setPotentialFunction(AmoebaVdwForce::LennardJones);
+    vdw->setSigmaCombiningRule("ARITHMETIC");
+    vdw->setEpsilonCombiningRule("GEOMETRIC");
+    vdw->addParticle(0, 0, 1.0);
+    vdw->addParticle(1, 2, 1.0);
+    vdw->addParticle(2, 0, 1.0);
+    vdw->addParticle(3, 1, 1.0);
+    vdw->addParticleType(0.3, 1.0);
+    vdw->addParticleType(0.4, 1.1);
+    vdw->addParticleType(0.5, 1.2);
+    vdw->addTypePair(2, 0, 0.6, 1.5);
+    vector<Vec3> positions;
+    positions.push_back(Vec3(0, 0, 0));
+    positions.push_back(Vec3(1, 0, 0));
+    positions.push_back(Vec3(0, 1, 0));
+    positions.push_back(Vec3(1, 1, 0));
+    LangevinIntegrator integrator(0.0, 0.1, 0.01);
+    Context context(system, integrator, Platform::getPlatformByName("CUDA"));
+    context.setPositions(positions);
+    State state = context.getState(State::Energy);
+    vector<double> r = {1.0, 1.0, sqrt(2.0), sqrt(2.0), 1.0, 1.0};
+    vector<double> sigma = {0.6, 0.3+0.3, 0.3+0.4, 0.6, 0.5+0.4, 0.3+0.4};
+    vector<double> epsilon = {1.5, sqrt(1.0*1.0), sqrt(1.0*1.1), 1.5, sqrt(1.1*1.2), sqrt(1.0*1.1)};
+    double expectedEnergy = 0;
+    for (int i = 0; i < 6; i++) {
+        double p = sigma[i]/r[i];
+        expectedEnergy += 4*epsilon[i]*(pow(p, 12) - pow(p, 6));
+    }
+    ASSERT_EQUAL_TOL(expectedEnergy, state.getPotentialEnergy(), 1e-5);
+}
+
 int main(int argc, char* argv[]) {
     try {
         std::cout << "TestCudaAmoebaVdwForce running test..." << std::endl;
@@ -2024,6 +2209,10 @@ int main(int argc, char* argv[]) {
         // test VDW w/ sigmaRule=CubicMean and epsilonRule=HHG
 
         testVdwAmmoniaCubicMeanHhg();
+
+	// test VDW w/ sigmaRule=CubicMean and epsilonRule=HHG
+
+        testVdwAmmoniaCubicMeanWH();
 
         // test VDW w/ sigmaRule=Arithmetic and epsilonRule=Arithmetic
 
@@ -2061,6 +2250,34 @@ int main(int argc, char* argv[]) {
         // test triclinic boxes
 
         testTriclinic();
+        
+        // Compare to an equivalent CustomNonbondedForce.
+
+        testCompareToCustom(AmoebaVdwForce::Buffered147);
+        testCompareToCustom(AmoebaVdwForce::LennardJones);
+        
+        // Test specifying parameters by particle type.
+        
+        testParticleTypes();
+
+        // Set lambda and the softcore power (n) to any values, while softcore alpha set to 0. 
+        // The energy and forces are equal to scaling those from testVdwAmmoniaCubicMeanHhg by lambda^n;
+        int n = 5;
+        double alpha = 0.0;
+        double lambda = 0.9;
+        AmoebaVdwForce::AlchemicalMethod method = AmoebaVdwForce::Annihilate;
+        testVdwAlchemical(n, alpha, lambda, method);
+
+        // Test the Decouple alchemical method.
+        lambda = 0.5;
+        method = AmoebaVdwForce::Decouple;
+        testVdwAlchemical(n, alpha, lambda, method);
+
+        // Test alpha > 0.
+        // This requires lambda = 0, since the energy and forces are not simply scaled by lambda^n.
+        lambda = 0.0;
+        alpha = 0.7;
+        testVdwAlchemical(n, alpha, lambda, method);
 
     } catch(const std::exception& e) {
         std::cout << "exception: " << e.what() << std::endl;

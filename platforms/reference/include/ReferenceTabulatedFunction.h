@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2014-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2014-2019 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -35,6 +35,7 @@
 #include "openmm/TabulatedFunction.h"
 #include "openmm/internal/windowsExport.h"
 #include "lepton/CustomFunction.h"
+#include <memory>
 #include <vector>
 
 namespace OpenMM {
@@ -58,6 +59,7 @@ private:
     ReferenceContinuous1DFunction(const ReferenceContinuous1DFunction& other);
     const Continuous1DFunction& function;
     double min, max;
+    bool periodic;
     std::vector<double> x, values, derivs;
 };
 
@@ -76,6 +78,7 @@ private:
     const Continuous2DFunction& function;
     int xsize, ysize;
     double xmin, xmax, ymin, ymax;
+    bool periodic;
     std::vector<double> x, y, values;
     std::vector<std::vector<double> > c;
 };
@@ -95,6 +98,7 @@ private:
     const Continuous3DFunction& function;
     int xsize, ysize, zsize;
     double xmin, xmax, ymin, ymax, zmin, zmax;
+    bool periodic;
     std::vector<double> x, y, z, values;
     std::vector<std::vector<double> > c;
 };
@@ -144,6 +148,22 @@ private:
     const Discrete3DFunction& function;
     int xsize, ysize, zsize;
     std::vector<double> values;
+};
+
+/**
+ * This is a lightweight wrapper around an immutable CustomFunction.  It makes
+ * cloning very inexpensive since nothing needs to be copied except a single
+ * pointer.
+ */
+class OPENMM_EXPORT SharedFunctionWrapper : public Lepton::CustomFunction {
+public:
+    SharedFunctionWrapper(std::shared_ptr<const CustomFunction> pointer);
+    int getNumArguments() const;
+    double evaluate(const double* arguments) const;
+    double evaluateDerivative(const double* arguments, const int* derivOrder) const;
+    CustomFunction* clone() const;
+private:
+    std::shared_ptr<const CustomFunction> pointer;
 };
 
 } // namespace OpenMM

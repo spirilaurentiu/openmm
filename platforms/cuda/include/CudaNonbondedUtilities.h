@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2019 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -27,15 +27,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  * -------------------------------------------------------------------------- */
 
-#include "CudaContext.h"
 #include "openmm/System.h"
+#include "CudaArray.h"
 #include "CudaExpressionUtilities.h"
+#include "openmm/common/NonbondedUtilities.h"
+#include <cuda.h>
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace OpenMM {
     
+class CudaContext;
 class CudaSort;
 
 /**
@@ -63,7 +66,7 @@ class CudaSort;
  * by ForceImpls during calcForcesAndEnergy().
  */
 
-class OPENMM_EXPORT_CUDA CudaNonbondedUtilities {
+class OPENMM_EXPORT_COMMON CudaNonbondedUtilities : public NonbondedUtilities  {
 public:
     class ParameterInfo;
     CudaNonbondedUtilities(CudaContext& context);
@@ -78,15 +81,39 @@ public:
      * @param exclusionList    for each atom, specifies the list of other atoms whose interactions should be excluded
      * @param kernel           the code to evaluate the interaction
      * @param forceGroup       the force group in which the interaction should be calculated
+     */
+    void addInteraction(bool usesCutoff, bool usesPeriodic, bool usesExclusions, double cutoffDistance, const std::vector<std::vector<int> >& exclusionList, const std::string& kernel, int forceGroup);
+    /**
+     * Add a nonbonded interaction to be evaluated by the default interaction kernel.
+     *
+     * @param usesCutoff       specifies whether a cutoff should be applied to this interaction
+     * @param usesPeriodic     specifies whether periodic boundary conditions should be applied to this interaction
+     * @param usesExclusions   specifies whether this interaction uses exclusions.  If this is true, it must have identical exclusions to every other interaction.
+     * @param cutoffDistance   the cutoff distance for this interaction (ignored if usesCutoff is false)
+     * @param exclusionList    for each atom, specifies the list of other atoms whose interactions should be excluded
+     * @param kernel           the code to evaluate the interaction
+     * @param forceGroup       the force group in which the interaction should be calculated
      * @param supportsPairList specifies whether this interaction can work with a neighbor list that uses a separate pair list
      */
-    void addInteraction(bool usesCutoff, bool usesPeriodic, bool usesExclusions, double cutoffDistance, const std::vector<std::vector<int> >& exclusionList, const std::string& kernel, int forceGroup, bool supportsPairList=false);
+    void addInteraction(bool usesCutoff, bool usesPeriodic, bool usesExclusions, double cutoffDistance, const std::vector<std::vector<int> >& exclusionList, const std::string& kernel, int forceGroup, bool supportsPairList);
     /**
      * Add a per-atom parameter that the default interaction kernel may depend on.
+     */
+    void addParameter(ComputeParameterInfo parameter);
+    /**
+     * Add a per-atom parameter that the default interaction kernel may depend on.
+     * 
+     * @deprecated Use the version that takes a ComputeParameterInfo instead.
      */
     void addParameter(const ParameterInfo& parameter);
     /**
      * Add an array (other than a per-atom parameter) that should be passed as an argument to the default interaction kernel.
+     */
+    void addArgument(ComputeParameterInfo parameter);
+    /**
+     * Add an array (other than a per-atom parameter) that should be passed as an argument to the default interaction kernel.
+     * 
+     * @deprecated Use the version that takes a ComputeParameterInfo instead.
      */
     void addArgument(const ParameterInfo& parameter);
     /**
@@ -108,6 +135,12 @@ public:
      * Initialize this object in preparation for a simulation.
      */
     void initialize(const System& system);
+    /**
+     * Get the number of force buffers required for nonbonded forces.
+     */
+    int getNumForceBuffers() const {
+        return 0;
+    }
     /**
      * Get the number of energy buffers required for nonbonded forces.
      */
@@ -143,6 +176,11 @@ public:
      */
     double getMaxCutoffDistance();
     /**
+     * Given a nonbonded cutoff, get the padded cutoff distance used in computing
+     * the neighbor list.
+     */
+    double padCutoff(double cutoff);
+    /**
      * Prepare to compute interactions.  This updates the neighbor list.
      */
     void prepareInteractions(int forceGroups);
@@ -164,61 +202,68 @@ public:
      * Get the array containing the center of each atom block.
      */
     CudaArray& getBlockCenters() {
-        return *blockCenter;
+        return blockCenter;
     }
     /**
      * Get the array containing the dimensions of each atom block.
      */
     CudaArray& getBlockBoundingBoxes() {
-        return *blockBoundingBox;
+        return blockBoundingBox;
     }
     /**
      * Get the array whose first element contains the number of tiles with interactions.
      */
     CudaArray& getInteractionCount() {
-        return *interactionCount;
+        return interactionCount;
     }
     /**
      * Get the array containing tiles with interactions.
      */
     CudaArray& getInteractingTiles() {
-        return *interactingTiles;
+        return interactingTiles;
     }
     /**
      * Get the array containing the atoms in each tile with interactions.
      */
     CudaArray& getInteractingAtoms() {
-        return *interactingAtoms;
+        return interactingAtoms;
     }
     /**
      * Get the array containing single pairs in the neighbor list.
      */
     CudaArray& getSinglePairs() {
-        return *singlePairs;
+        return singlePairs;
     }
     /**
      * Get the array containing exclusion flags.
      */
     CudaArray& getExclusions() {
-        return *exclusions;
+        return exclusions;
     }
     /**
      * Get the array containing tiles with exclusions.
      */
     CudaArray& getExclusionTiles() {
-        return *exclusionTiles;
+        return exclusionTiles;
     }
     /**
      * Get the array containing the index into the exclusion array for each tile.
      */
     CudaArray& getExclusionIndices() {
-        return *exclusionIndices;
+        return exclusionIndices;
     }
     /**
      * Get the array listing where the exclusion data starts for each row.
      */
     CudaArray& getExclusionRowIndices() {
-        return *exclusionRowIndices;
+        return exclusionRowIndices;
+    }
+    /**
+     * Get the array containing a flag for whether the neighbor list was rebuilt
+     * on the most recent call to prepareInteractions().
+     */
+    CudaArray& getRebuildNeighborList() {
+        return rebuildNeighborList;
     }
     /**
      * Get the index of the first tile this context is responsible for processing.
@@ -265,27 +310,32 @@ public:
      * @param groups    the set of force groups
      */
     void createKernelsForGroups(int groups);
+    /**
+     * Set the source code for the main kernel.  This defaults to the content of nonbonded.cu.  It only needs to be
+     * changed in very unusual circumstances.
+     */
+    void setKernelSource(const std::string& source);
 private:
     class KernelSet;
     class BlockSortTrait;
     CudaContext& context;
     std::map<int, KernelSet> groupKernels;
-    CudaArray* exclusionTiles;
-    CudaArray* exclusions;
-    CudaArray* exclusionIndices;
-    CudaArray* exclusionRowIndices;
-    CudaArray* interactingTiles;
-    CudaArray* interactingAtoms;
-    CudaArray* interactionCount;
-    CudaArray* singlePairs;
-    CudaArray* singlePairCount;
-    CudaArray* blockCenter;
-    CudaArray* blockBoundingBox;
-    CudaArray* sortedBlocks;
-    CudaArray* sortedBlockCenter;
-    CudaArray* sortedBlockBoundingBox;
-    CudaArray* oldPositions;
-    CudaArray* rebuildNeighborList;
+    CudaArray exclusionTiles;
+    CudaArray exclusions;
+    CudaArray exclusionIndices;
+    CudaArray exclusionRowIndices;
+    CudaArray interactingTiles;
+    CudaArray interactingAtoms;
+    CudaArray interactionCount;
+    CudaArray singlePairs;
+    CudaArray singlePairCount;
+    CudaArray blockCenter;
+    CudaArray blockBoundingBox;
+    CudaArray sortedBlocks;
+    CudaArray sortedBlockCenter;
+    CudaArray sortedBlockBoundingBox;
+    CudaArray oldPositions;
+    CudaArray rebuildNeighborList;
     CudaSort* blockSorter;
     CUevent downloadCountEvent;
     int* pinnedCountBuffer;
@@ -298,7 +348,9 @@ private:
     std::map<int, std::string> groupKernelSource;
     double lastCutoff;
     bool useCutoff, usePeriodic, anyExclusions, usePadding, forceRebuildNeighborList, canUsePairList;
-    int startTileIndex, numTiles, startBlockIndex, numBlocks, maxTiles, maxSinglePairs, maxExclusions, numForceThreadBlocks, forceThreadBlockSize, numAtoms, groupFlags;
+    int startTileIndex, startBlockIndex, numBlocks, maxTiles, maxSinglePairs, maxExclusions, numForceThreadBlocks, forceThreadBlockSize, numAtoms, groupFlags;
+    long long numTiles;
+    std::string kernelSource;
 };
 
 /**
@@ -331,9 +383,10 @@ public:
      * @param numComponents  the number of components in the parameter
      * @param size           the size of the parameter in bytes
      * @param memory         the memory containing the parameter values
+     * @param constant       whether the memory should be marked as constant
      */
-    ParameterInfo(const std::string& name, const std::string& componentType, int numComponents, int size, CUdeviceptr memory) :
-            name(name), componentType(componentType), numComponents(numComponents), size(size), memory(memory) {
+    ParameterInfo(const std::string& name, const std::string& componentType, int numComponents, int size, CUdeviceptr memory, bool constant=true) :
+            name(name), componentType(componentType), numComponents(numComponents), size(size), memory(memory), constant(constant) {
         if (numComponents == 1)
             type = componentType;
         else {
@@ -360,12 +413,16 @@ public:
     CUdeviceptr& getMemory() {
         return memory;
     }
+    bool isConstant() const {
+        return constant;
+    }
 private:
     std::string name;
     std::string componentType;
     std::string type;
     int size, numComponents;
     CUdeviceptr memory;
+    bool constant;
 };
 
 } // namespace OpenMM

@@ -17,8 +17,8 @@ if sys.version_info[0] == 2:
 else:
     _string_types = (bytes, str)
 
-import simtk.unit as unit
-from simtk.openmm.vec3 import Vec3
+import openmm.unit as unit
+from openmm.vec3 import Vec3
 
 
 %}
@@ -26,14 +26,6 @@ from simtk.openmm.vec3 import Vec3
 %pythonappend OpenMM::Context::Context %{
     self._system = args[0]
     self._integrator = args[1]
-%}
-
-%pythonappend OpenMM::CompoundIntegrator::CompoundIntegrator %{
-    self._integrators = []
-%}
-
-%pythonprepend OpenMM::CompoundIntegrator::addIntegrator %{
-    self._integrators.append(integrator)
 %}
 
 %pythonprepend OpenMM::AmoebaAngleForce::addAngle %{

@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2008-2020 Stanford University and the Authors.      *
  * Authors:                                                                   *
  * Contributors:                                                              *
  *                                                                            *
@@ -25,14 +25,7 @@
  * -------------------------------------------------------------------------- */
 
 #include "AmoebaReferenceKernels.h"
-#include "AmoebaReferenceBondForce.h"
-#include "AmoebaReferenceAngleForce.h"
-#include "AmoebaReferenceInPlaneAngleForce.h"
-#include "AmoebaReferencePiTorsionForce.h"
-#include "AmoebaReferenceStretchBendForce.h"
-#include "AmoebaReferenceOutOfPlaneBendForce.h"
 #include "AmoebaReferenceTorsionTorsionForce.h"
-#include "AmoebaReferenceVdwForce.h"
 #include "AmoebaReferenceWcaDispersionForce.h"
 #include "AmoebaReferenceGeneralizedKirkwoodForce.h"
 #include "openmm/internal/AmoebaTorsionTorsionForceImpl.h"
@@ -40,11 +33,13 @@
 #include "ReferencePlatform.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/AmoebaMultipoleForce.h"
+#include "openmm/HippoNonbondedForce.h"
 #include "openmm/internal/AmoebaMultipoleForceImpl.h"
 #include "openmm/internal/AmoebaVdwForceImpl.h"
 #include "openmm/internal/AmoebaGeneralizedKirkwoodForceImpl.h"
 #include "openmm/NonbondedForce.h"
 #include "openmm/internal/NonbondedForceImpl.h"
+#include "SimTKReference/AmoebaReferenceHippoNonbondedForce.h"
 
 #include <cmath>
 #ifdef _MSC_VER
@@ -56,377 +51,32 @@ using namespace std;
 
 static vector<Vec3>& extractPositions(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *((vector<Vec3>*) data->positions);
+    return *data->positions;
 }
 
 static vector<Vec3>& extractVelocities(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *((vector<Vec3>*) data->velocities);
+    return *data->velocities;
 }
 
 static vector<Vec3>& extractForces(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *((vector<Vec3>*) data->forces);
+    return *data->forces;
 }
 
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *(Vec3*) data->periodicBoxSize;
+    return *data->periodicBoxSize;
 }
 
 static Vec3* extractBoxVectors(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return (Vec3*) data->periodicBoxVectors;
+    return data->periodicBoxVectors;
 }
 
 // ***************************************************************************
 
-ReferenceCalcAmoebaBondForceKernel::ReferenceCalcAmoebaBondForceKernel(std::string name, const Platform& platform, const System& system) : 
-                CalcAmoebaBondForceKernel(name, platform), system(system) {
-}
-
-ReferenceCalcAmoebaBondForceKernel::~ReferenceCalcAmoebaBondForceKernel() {
-}
-
-void ReferenceCalcAmoebaBondForceKernel::initialize(const System& system, const AmoebaBondForce& force) {
-
-    numBonds = force.getNumBonds();
-    for (int ii = 0; ii < numBonds; ii++) {
-
-        int particle1Index, particle2Index;
-        double lengthValue, kValue;
-        force.getBondParameters(ii, particle1Index, particle2Index, lengthValue, kValue);
-
-        particle1.push_back(particle1Index); 
-        particle2.push_back(particle2Index); 
-        length.push_back(static_cast<double>(lengthValue));
-        kQuadratic.push_back(kValue);
-    } 
-    globalBondCubic   = force.getAmoebaGlobalBondCubic();
-    globalBondQuartic = force.getAmoebaGlobalBondQuartic();
-    usePeriodic = force.usesPeriodicBoundaryConditions();
-}
-
-double ReferenceCalcAmoebaBondForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    vector<Vec3>& posData = extractPositions(context);
-    vector<Vec3>& forceData = extractForces(context);
-    AmoebaReferenceBondForce amoebaReferenceBondForce;
-    if (usePeriodic)
-        amoebaReferenceBondForce.setPeriodic(extractBoxVectors(context));
-    double energy = amoebaReferenceBondForce.calculateForceAndEnergy(numBonds, posData, particle1, particle2, length, kQuadratic,
-                                                                     globalBondCubic, globalBondQuartic,
-                                                                     forceData);
-    return static_cast<double>(energy);
-}
-
-void ReferenceCalcAmoebaBondForceKernel::copyParametersToContext(ContextImpl& context, const AmoebaBondForce& force) {
-    if (numBonds != force.getNumBonds())
-        throw OpenMMException("updateParametersInContext: The number of bonds has changed");
-
-    // Record the values.
-
-    for (int i = 0; i < numBonds; ++i) {
-        int particle1Index, particle2Index;
-        double lengthValue, kValue;
-        force.getBondParameters(i, particle1Index, particle2Index, lengthValue, kValue);
-        if (particle1Index != particle1[i] || particle2Index != particle2[i])
-            throw OpenMMException("updateParametersInContext: The set of particles in a bond has changed");
-        length[i] = lengthValue;
-        kQuadratic[i] = kValue;
-    }
-}
-
-// ***************************************************************************
-
-ReferenceCalcAmoebaAngleForceKernel::ReferenceCalcAmoebaAngleForceKernel(std::string name, const Platform& platform, const System& system) :
-            CalcAmoebaAngleForceKernel(name, platform), system(system) {
-}
-
-ReferenceCalcAmoebaAngleForceKernel::~ReferenceCalcAmoebaAngleForceKernel() {
-}
-
-void ReferenceCalcAmoebaAngleForceKernel::initialize(const System& system, const AmoebaAngleForce& force) {
-
-    numAngles = force.getNumAngles();
-
-    for (int ii = 0; ii < numAngles; ii++) {
-        int particle1Index, particle2Index, particle3Index;
-        double angleValue, k;
-        force.getAngleParameters(ii, particle1Index, particle2Index, particle3Index, angleValue, k);
-        particle1.push_back(particle1Index); 
-        particle2.push_back(particle2Index); 
-        particle3.push_back(particle3Index); 
-        angle.push_back(angleValue);
-        kQuadratic.push_back(k);
-    }
-    globalAngleCubic    = force.getAmoebaGlobalAngleCubic();
-    globalAngleQuartic  = force.getAmoebaGlobalAngleQuartic();
-    globalAnglePentic   = force.getAmoebaGlobalAnglePentic();
-    globalAngleSextic   = force.getAmoebaGlobalAngleSextic();
-    usePeriodic = force.usesPeriodicBoundaryConditions();
-}
-
-double ReferenceCalcAmoebaAngleForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    vector<Vec3>& posData = extractPositions(context);
-    vector<Vec3>& forceData = extractForces(context);
-    AmoebaReferenceAngleForce amoebaReferenceAngleForce;
-    if (usePeriodic)
-        amoebaReferenceAngleForce.setPeriodic(extractBoxVectors(context));
-    double energy = amoebaReferenceAngleForce.calculateForceAndEnergy(numAngles, 
-                                       posData, particle1, particle2, particle3, angle, kQuadratic, globalAngleCubic, globalAngleQuartic, globalAnglePentic, globalAngleSextic, forceData);
-    return static_cast<double>(energy);
-}
-
-void ReferenceCalcAmoebaAngleForceKernel::copyParametersToContext(ContextImpl& context, const AmoebaAngleForce& force) {
-    if (numAngles != force.getNumAngles())
-        throw OpenMMException("updateParametersInContext: The number of angles has changed");
-
-    // Record the values.
-
-    for (int i = 0; i < numAngles; ++i) {
-        int particle1Index, particle2Index, particle3Index;
-        double angleValue, k;
-        force.getAngleParameters(i, particle1Index, particle2Index, particle3Index, angleValue, k);
-        if (particle1Index != particle1[i] || particle2Index != particle2[i] || particle3Index != particle3[i])
-            throw OpenMMException("updateParametersInContext: The set of particles in an angle has changed");
-        angle[i] = angleValue;
-        kQuadratic[i] = k;
-    }
-}
-
-ReferenceCalcAmoebaInPlaneAngleForceKernel::ReferenceCalcAmoebaInPlaneAngleForceKernel(std::string name, const Platform& platform, const System& system) : 
-          CalcAmoebaInPlaneAngleForceKernel(name, platform), system(system) {
-}
-
-ReferenceCalcAmoebaInPlaneAngleForceKernel::~ReferenceCalcAmoebaInPlaneAngleForceKernel() {
-}
-
-void ReferenceCalcAmoebaInPlaneAngleForceKernel::initialize(const System& system, const AmoebaInPlaneAngleForce& force) {
-
-    numAngles = force.getNumAngles();
-    for (int ii = 0; ii < numAngles; ii++) {
-        int particle1Index, particle2Index, particle3Index, particle4Index;
-        double angleValue, k;
-        force.getAngleParameters(ii, particle1Index, particle2Index, particle3Index, particle4Index, angleValue, k);
-        particle1.push_back(particle1Index); 
-        particle2.push_back(particle2Index); 
-        particle3.push_back(particle3Index); 
-        particle4.push_back(particle4Index); 
-        angle.push_back(angleValue);
-        kQuadratic.push_back(k);
-    }
-    globalInPlaneAngleCubic    = force.getAmoebaGlobalInPlaneAngleCubic();
-    globalInPlaneAngleQuartic  = force.getAmoebaGlobalInPlaneAngleQuartic();
-    globalInPlaneAnglePentic   = force.getAmoebaGlobalInPlaneAnglePentic();
-    globalInPlaneAngleSextic   = force.getAmoebaGlobalInPlaneAngleSextic();
-    usePeriodic = force.usesPeriodicBoundaryConditions();
-}
-
-double ReferenceCalcAmoebaInPlaneAngleForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-
-    vector<Vec3>& posData = extractPositions(context);
-    vector<Vec3>& forceData = extractForces(context);
-    AmoebaReferenceInPlaneAngleForce amoebaReferenceInPlaneAngleForce;
-    if (usePeriodic)
-        amoebaReferenceInPlaneAngleForce.setPeriodic(extractBoxVectors(context));
-    double energy = amoebaReferenceInPlaneAngleForce.calculateForceAndEnergy(numAngles, posData, particle1, particle2, particle3, particle4, 
-                                                                             angle, kQuadratic, globalInPlaneAngleCubic, globalInPlaneAngleQuartic,
-                                                                             globalInPlaneAnglePentic, globalInPlaneAngleSextic, forceData);
-    return static_cast<double>(energy);
-}
-
-void ReferenceCalcAmoebaInPlaneAngleForceKernel::copyParametersToContext(ContextImpl& context, const AmoebaInPlaneAngleForce& force) {
-    if (numAngles != force.getNumAngles())
-        throw OpenMMException("updateParametersInContext: The number of angles has changed");
-
-    // Record the values.
-
-    for (int i = 0; i < numAngles; ++i) {
-        int particle1Index, particle2Index, particle3Index, particle4Index;
-        double angleValue, k;
-        force.getAngleParameters(i, particle1Index, particle2Index, particle3Index, particle4Index, angleValue, k);
-        if (particle1Index != particle1[i] || particle2Index != particle2[i] || particle3Index != particle3[i] || particle4Index != particle4[i])
-            throw OpenMMException("updateParametersInContext: The set of particles in an angle has changed");
-        angle[i] = angleValue;
-        kQuadratic[i] = k;
-    }
-}
-
-ReferenceCalcAmoebaPiTorsionForceKernel::ReferenceCalcAmoebaPiTorsionForceKernel(std::string name, const Platform& platform, const System& system) :
-         CalcAmoebaPiTorsionForceKernel(name, platform), system(system) {
-}
-
-ReferenceCalcAmoebaPiTorsionForceKernel::~ReferenceCalcAmoebaPiTorsionForceKernel() {
-}
-
-void ReferenceCalcAmoebaPiTorsionForceKernel::initialize(const System& system, const AmoebaPiTorsionForce& force) {
-
-    numPiTorsions                     = force.getNumPiTorsions();
-    for (int ii = 0; ii < numPiTorsions; ii++) {
-
-        int particle1Index, particle2Index, particle3Index, particle4Index, particle5Index, particle6Index;
-        double kTorsionParameter;
-        force.getPiTorsionParameters(ii, particle1Index, particle2Index, particle3Index, particle4Index, particle5Index, particle6Index, kTorsionParameter);
-        particle1.push_back(particle1Index); 
-        particle2.push_back(particle2Index); 
-        particle3.push_back(particle3Index); 
-        particle4.push_back(particle4Index); 
-        particle5.push_back(particle5Index); 
-        particle6.push_back(particle6Index); 
-        kTorsion.push_back(kTorsionParameter);
-    }
-    usePeriodic = force.usesPeriodicBoundaryConditions();
-}
-
-double ReferenceCalcAmoebaPiTorsionForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    vector<Vec3>& posData = extractPositions(context);
-    vector<Vec3>& forceData = extractForces(context);
-    AmoebaReferencePiTorsionForce amoebaReferencePiTorsionForce;
-    if (usePeriodic)
-        amoebaReferencePiTorsionForce.setPeriodic(extractBoxVectors(context));
-    double energy = amoebaReferencePiTorsionForce.calculateForceAndEnergy(numPiTorsions, posData, particle1, particle2,
-                                                                                    particle3, particle4, particle5, particle6,
-                                                                                    kTorsion, forceData);
-    return static_cast<double>(energy);
-}
-
-void ReferenceCalcAmoebaPiTorsionForceKernel::copyParametersToContext(ContextImpl& context, const AmoebaPiTorsionForce& force) {
-    if (numPiTorsions != force.getNumPiTorsions())
-        throw OpenMMException("updateParametersInContext: The number of torsions has changed");
-
-    // Record the values.
-
-    for (int i = 0; i < numPiTorsions; ++i) {
-        int particle1Index, particle2Index, particle3Index, particle4Index, particle5Index, particle6Index;
-        double kTorsionParameter;
-        force.getPiTorsionParameters(i, particle1Index, particle2Index, particle3Index, particle4Index, particle5Index, particle6Index, kTorsionParameter);
-        if (particle1Index != particle1[i] || particle2Index != particle2[i] || particle3Index != particle3[i] ||
-            particle4Index != particle4[i] || particle5Index != particle5[i] || particle6Index != particle6[i])
-            throw OpenMMException("updateParametersInContext: The set of particles in a torsion has changed");
-        kTorsion[i] = kTorsionParameter;
-    }
-}
-
-ReferenceCalcAmoebaStretchBendForceKernel::ReferenceCalcAmoebaStretchBendForceKernel(std::string name, const Platform& platform, const System& system) :
-                   CalcAmoebaStretchBendForceKernel(name, platform), system(system) {
-}
-
-ReferenceCalcAmoebaStretchBendForceKernel::~ReferenceCalcAmoebaStretchBendForceKernel() {
-}
-
-void ReferenceCalcAmoebaStretchBendForceKernel::initialize(const System& system, const AmoebaStretchBendForce& force) {
-
-    numStretchBends = force.getNumStretchBends();
-    for (int ii = 0; ii < numStretchBends; ii++) {
-        int particle1Index, particle2Index, particle3Index;
-        double lengthAB, lengthCB, angle, k1, k2;
-        force.getStretchBendParameters(ii, particle1Index, particle2Index, particle3Index, lengthAB, lengthCB, angle, k1, k2);
-        particle1.push_back(particle1Index); 
-        particle2.push_back(particle2Index); 
-        particle3.push_back(particle3Index); 
-        lengthABParameters.push_back(lengthAB);
-        lengthCBParameters.push_back(lengthCB);
-        angleParameters.push_back(angle);
-        k1Parameters.push_back(k1);
-        k2Parameters.push_back(k2);
-    }
-    usePeriodic = force.usesPeriodicBoundaryConditions();
-}
-
-double ReferenceCalcAmoebaStretchBendForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    vector<Vec3>& posData = extractPositions(context);
-    vector<Vec3>& forceData = extractForces(context);
-    AmoebaReferenceStretchBendForce amoebaReferenceStretchBendForce;
-    if (usePeriodic)
-        amoebaReferenceStretchBendForce.setPeriodic(extractBoxVectors(context));
-    double energy = amoebaReferenceStretchBendForce.calculateForceAndEnergy(numStretchBends, posData, particle1, particle2, particle3,
-                                                                                      lengthABParameters, lengthCBParameters, angleParameters, k1Parameters,
-                                                                                      k2Parameters, forceData);
-    return static_cast<double>(energy);
-}
-
-void ReferenceCalcAmoebaStretchBendForceKernel::copyParametersToContext(ContextImpl& context, const AmoebaStretchBendForce& force) {
-    if (numStretchBends != force.getNumStretchBends())
-        throw OpenMMException("updateParametersInContext: The number of stretch-bends has changed");
-
-    // Record the values.
-
-    for (int i = 0; i < numStretchBends; ++i) {
-        int particle1Index, particle2Index, particle3Index;
-        double lengthAB, lengthCB, angle, k1, k2;
-        force.getStretchBendParameters(i, particle1Index, particle2Index, particle3Index, lengthAB, lengthCB, angle, k1, k2);
-        if (particle1Index != particle1[i] || particle2Index != particle2[i] || particle3Index != particle3[i])
-            throw OpenMMException("updateParametersInContext: The set of particles in a stretch-bend has changed");
-        lengthABParameters[i] = lengthAB;
-        lengthCBParameters[i] = lengthCB;
-        angleParameters[i] = angle;
-        k1Parameters[i] = k1;
-        k2Parameters[i] = k2;
-    }
-}
-
-ReferenceCalcAmoebaOutOfPlaneBendForceKernel::ReferenceCalcAmoebaOutOfPlaneBendForceKernel(std::string name, const Platform& platform, const System& system) :
-          CalcAmoebaOutOfPlaneBendForceKernel(name, platform), system(system) {
-}
-
-ReferenceCalcAmoebaOutOfPlaneBendForceKernel::~ReferenceCalcAmoebaOutOfPlaneBendForceKernel() {
-}
-
-void ReferenceCalcAmoebaOutOfPlaneBendForceKernel::initialize(const System& system, const AmoebaOutOfPlaneBendForce& force) {
-
-    numOutOfPlaneBends = force.getNumOutOfPlaneBends();
-    for (int ii = 0; ii < numOutOfPlaneBends; ii++) {
-
-        int particle1Index, particle2Index, particle3Index, particle4Index;
-        double k;
-
-        force.getOutOfPlaneBendParameters(ii, particle1Index, particle2Index, particle3Index, particle4Index, k);
-        particle1.push_back(particle1Index); 
-        particle2.push_back(particle2Index); 
-        particle3.push_back(particle3Index); 
-        particle4.push_back(particle4Index); 
-        kParameters.push_back(k);
-    }
-    globalOutOfPlaneBendAngleCubic   = force.getAmoebaGlobalOutOfPlaneBendCubic();
-    globalOutOfPlaneBendAngleQuartic = force.getAmoebaGlobalOutOfPlaneBendQuartic();
-    globalOutOfPlaneBendAnglePentic  = force.getAmoebaGlobalOutOfPlaneBendPentic();
-    globalOutOfPlaneBendAngleSextic  = force.getAmoebaGlobalOutOfPlaneBendSextic();
-    usePeriodic = force.usesPeriodicBoundaryConditions();
-}
-
-double ReferenceCalcAmoebaOutOfPlaneBendForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
-    vector<Vec3>& posData = extractPositions(context);
-    vector<Vec3>& forceData = extractForces(context);
-    AmoebaReferenceOutOfPlaneBendForce amoebaReferenceOutOfPlaneBendForce;
-    if (usePeriodic)
-        amoebaReferenceOutOfPlaneBendForce.setPeriodic(extractBoxVectors(context));
-    double energy = amoebaReferenceOutOfPlaneBendForce.calculateForceAndEnergy(numOutOfPlaneBends, posData,
-                                                                               particle1, particle2, particle3, particle4,
-                                                                               kParameters, 
-                                                                               globalOutOfPlaneBendAngleCubic,
-                                                                               globalOutOfPlaneBendAngleQuartic,
-                                                                               globalOutOfPlaneBendAnglePentic,
-                                                                               globalOutOfPlaneBendAngleSextic, forceData); 
-    return static_cast<double>(energy);
-}
-
-void ReferenceCalcAmoebaOutOfPlaneBendForceKernel::copyParametersToContext(ContextImpl& context, const AmoebaOutOfPlaneBendForce& force) {
-    if (numOutOfPlaneBends != force.getNumOutOfPlaneBends())
-        throw OpenMMException("updateParametersInContext: The number of out-of-plane bends has changed");
-
-    // Record the values.
-
-    for (int i = 0; i < numOutOfPlaneBends; ++i) {
-        int particle1Index, particle2Index, particle3Index, particle4Index;
-        double k;
-        force.getOutOfPlaneBendParameters(i, particle1Index, particle2Index, particle3Index, particle4Index, k);
-        if (particle1Index != particle1[i] || particle2Index != particle2[i] || particle3Index != particle3[i] || particle4Index != particle4[i])
-            throw OpenMMException("updateParametersInContext: The set of particles in an out-of-plane bend has changed");
-        kParameters[i] = k;
-    }
-}
-
-ReferenceCalcAmoebaTorsionTorsionForceKernel::ReferenceCalcAmoebaTorsionTorsionForceKernel(std::string name, const Platform& platform, const System& system) :
+ReferenceCalcAmoebaTorsionTorsionForceKernel::ReferenceCalcAmoebaTorsionTorsionForceKernel(const std::string& name, const Platform& platform, const System& system) :
                 CalcAmoebaTorsionTorsionForceKernel(name, platform), system(system) {
 }
 
@@ -508,7 +158,7 @@ double ReferenceCalcAmoebaTorsionTorsionForceKernel::execute(ContextImpl& contex
  *                             AmoebaMultipole                                *
  * -------------------------------------------------------------------------- */
 
-ReferenceCalcAmoebaMultipoleForceKernel::ReferenceCalcAmoebaMultipoleForceKernel(std::string name, const Platform& platform, const System& system) : 
+ReferenceCalcAmoebaMultipoleForceKernel::ReferenceCalcAmoebaMultipoleForceKernel(const std::string& name, const Platform& platform, const System& system) :
          CalcAmoebaMultipoleForceKernel(name, platform), system(system), numMultipoles(0), mutualInducedMaxIterations(60), mutualInducedTargetEpsilon(1.0e-03),
                                                          usePme(false),alphaEwald(0.0), cutoffDistance(1.0) {  
 
@@ -869,7 +519,7 @@ void ReferenceCalcAmoebaMultipoleForceKernel::getPMEParameters(double& alpha, in
  *                       AmoebaGeneralizedKirkwood                            *
  * -------------------------------------------------------------------------- */
 
-ReferenceCalcAmoebaGeneralizedKirkwoodForceKernel::ReferenceCalcAmoebaGeneralizedKirkwoodForceKernel(std::string name, const Platform& platform, const System& system) : 
+ReferenceCalcAmoebaGeneralizedKirkwoodForceKernel::ReferenceCalcAmoebaGeneralizedKirkwoodForceKernel(const std::string& name, const Platform& platform, const System& system) :
            CalcAmoebaGeneralizedKirkwoodForceKernel(name, platform), system(system) {
 }
 
@@ -990,7 +640,7 @@ void ReferenceCalcAmoebaGeneralizedKirkwoodForceKernel::copyParametersToContext(
     }
 }
 
-ReferenceCalcAmoebaVdwForceKernel::ReferenceCalcAmoebaVdwForceKernel(std::string name, const Platform& platform, const System& system) :
+ReferenceCalcAmoebaVdwForceKernel::ReferenceCalcAmoebaVdwForceKernel(const std::string& name, const Platform& platform, const System& system) :
        CalcAmoebaVdwForceKernel(name, platform), system(system) {
     useCutoff = 0;
     usePBC = 0;
@@ -999,9 +649,8 @@ ReferenceCalcAmoebaVdwForceKernel::ReferenceCalcAmoebaVdwForceKernel(std::string
 }
 
 ReferenceCalcAmoebaVdwForceKernel::~ReferenceCalcAmoebaVdwForceKernel() {
-    if (neighborList) {
+    if (neighborList)
         delete neighborList;
-    } 
 }
 
 void ReferenceCalcAmoebaVdwForceKernel::initialize(const System& system, const AmoebaVdwForce& force) {
@@ -1009,91 +658,48 @@ void ReferenceCalcAmoebaVdwForceKernel::initialize(const System& system, const A
     // per-particle parameters
 
     numParticles = system.getNumParticles();
-
-    indexIVs.resize(numParticles);
-    allExclusions.resize(numParticles);
-    sigmas.resize(numParticles);
-    epsilons.resize(numParticles);
-    reductions.resize(numParticles);
-
-    for (int ii = 0; ii < numParticles; ii++) {
-
-        int indexIV;
-        double sigma, epsilon, reduction;
-        std::vector<int> exclusions;
-
-        force.getParticleParameters(ii, indexIV, sigma, epsilon, reduction);
-        force.getParticleExclusions(ii, exclusions);
-        for (unsigned int jj = 0; jj < exclusions.size(); jj++) {
-           allExclusions[ii].insert(exclusions[jj]);
-        }
-
-        indexIVs[ii]      = indexIV;
-        sigmas[ii]        = sigma;
-        epsilons[ii]      = epsilon;
-        reductions[ii]    = reduction;
-    }   
-    sigmaCombiningRule     = force.getSigmaCombiningRule();
-    epsilonCombiningRule   = force.getEpsilonCombiningRule();
     useCutoff              = (force.getNonbondedMethod() != AmoebaVdwForce::NoCutoff);
     usePBC                 = (force.getNonbondedMethod() == AmoebaVdwForce::CutoffPeriodic);
     cutoff                 = force.getCutoffDistance();
     neighborList           = useCutoff ? new NeighborList() : NULL;
     dispersionCoefficient  = force.getUseDispersionCorrection() ?  AmoebaVdwForceImpl::calcDispersionCorrection(system, force) : 0.0;
-
+    vdwForce.initialize(force);
 }
 
 double ReferenceCalcAmoebaVdwForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
 
     vector<Vec3>& posData   = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
-    AmoebaReferenceVdwForce vdwForce(sigmaCombiningRule, epsilonCombiningRule);
     double energy;
+    double lambda = context.getParameter(AmoebaVdwForce::Lambda());
     if (useCutoff) {
-        vdwForce.setCutoff(cutoff);
-        computeNeighborListVoxelHash(*neighborList, numParticles, posData, allExclusions, extractBoxVectors(context), usePBC, cutoff, 0.0);
+        computeNeighborListVoxelHash(*neighborList, numParticles, posData, vdwForce.getExclusions(), extractBoxVectors(context), usePBC, cutoff, 0.0);
         if (usePBC) {
-            vdwForce.setNonbondedMethod(AmoebaReferenceVdwForce::CutoffPeriodic);
             Vec3* boxVectors = extractBoxVectors(context);
             double minAllowedSize = 1.999999*cutoff;
-            if (boxVectors[0][0] < minAllowedSize || boxVectors[1][1] < minAllowedSize || boxVectors[2][2] < minAllowedSize) {
+            if (boxVectors[0][0] < minAllowedSize || boxVectors[1][1] < minAllowedSize || boxVectors[2][2] < minAllowedSize)
                 throw OpenMMException("The periodic box size has decreased to less than twice the cutoff.");
-            }
             vdwForce.setPeriodicBox(boxVectors);
-            energy  = vdwForce.calculateForceAndEnergy(numParticles, posData, indexIVs, sigmas, epsilons, reductions, *neighborList, forceData);
+            energy  = vdwForce.calculateForceAndEnergy(numParticles, lambda, posData, *neighborList, forceData);
             energy += dispersionCoefficient/(boxVectors[0][0]*boxVectors[1][1]*boxVectors[2][2]);
-        } else {
-            vdwForce.setNonbondedMethod(AmoebaReferenceVdwForce::CutoffNonPeriodic);
         }
-    } else {
-        vdwForce.setNonbondedMethod(AmoebaReferenceVdwForce::NoCutoff);
-        energy = vdwForce.calculateForceAndEnergy(numParticles, posData, indexIVs, sigmas, epsilons, reductions, allExclusions, forceData);
     }
+    else
+        energy = vdwForce.calculateForceAndEnergy(numParticles, lambda, posData, forceData);
     return static_cast<double>(energy);
 }
 
 void ReferenceCalcAmoebaVdwForceKernel::copyParametersToContext(ContextImpl& context, const AmoebaVdwForce& force) {
     if (numParticles != force.getNumParticles())
         throw OpenMMException("updateParametersInContext: The number of particles has changed");
-
-    // Record the values.
-
-    for (int i = 0; i < numParticles; ++i) {
-        int indexIV;
-        double sigma, epsilon, reduction;
-        force.getParticleParameters(i, indexIV, sigma, epsilon, reduction);
-        indexIVs[i] = indexIV;
-        sigmas[i] = sigma;
-        epsilons[i] = epsilon;
-        reductions[i]= reduction;
-    }
+    vdwForce.initialize(force);
 }
 
 /* -------------------------------------------------------------------------- *
  *                           AmoebaWcaDispersion                              *
  * -------------------------------------------------------------------------- */
 
-ReferenceCalcAmoebaWcaDispersionForceKernel::ReferenceCalcAmoebaWcaDispersionForceKernel(std::string name, const Platform& platform, const System& system) : 
+ReferenceCalcAmoebaWcaDispersionForceKernel::ReferenceCalcAmoebaWcaDispersionForceKernel(const std::string& name, const Platform& platform, const System& system) :
            CalcAmoebaWcaDispersionForceKernel(name, platform), system(system) {
 }
 
@@ -1149,4 +755,107 @@ void ReferenceCalcAmoebaWcaDispersionForceKernel::copyParametersToContext(Contex
         epsilons[i] = epsilon;
     }
     totalMaximumDispersionEnergy = AmoebaWcaDispersionForceImpl::getTotalMaximumDispersionEnergy(force);
+}
+
+
+/* -------------------------------------------------------------------------- *
+ *                              HippoNonbonded                                *
+ * -------------------------------------------------------------------------- */
+
+ReferenceCalcHippoNonbondedForceKernel::ReferenceCalcHippoNonbondedForceKernel(const std::string& name, const Platform& platform, const System& system) :
+         CalcHippoNonbondedForceKernel(name, platform), ixn(NULL) {
+}
+
+ReferenceCalcHippoNonbondedForceKernel::~ReferenceCalcHippoNonbondedForceKernel() {
+    if (ixn != NULL)
+        delete ixn;
+}
+
+void ReferenceCalcHippoNonbondedForceKernel::initialize(const System& system, const HippoNonbondedForce& force) {
+    numParticles = force.getNumParticles();
+    if (force.getNonbondedMethod() == HippoNonbondedForce::PME)
+        ixn = new AmoebaReferencePmeHippoNonbondedForce(force, system);
+    else
+        ixn = new AmoebaReferenceHippoNonbondedForce(force);
+}
+
+void ReferenceCalcHippoNonbondedForceKernel::setupAmoebaReferenceHippoNonbondedForce(ContextImpl& context) {
+    if (ixn->getNonbondedMethod() == HippoNonbondedForce::PME) {
+        AmoebaReferencePmeHippoNonbondedForce* force = dynamic_cast<AmoebaReferencePmeHippoNonbondedForce*>(ixn);
+        Vec3* boxVectors = extractBoxVectors(context);
+        double minAllowedSize = 1.999999*force->getCutoffDistance();
+        if (boxVectors[0][0] < minAllowedSize || boxVectors[1][1] < minAllowedSize || boxVectors[2][2] < minAllowedSize)
+            throw OpenMMException("The periodic box size has decreased to less than twice the nonbonded cutoff.");
+        force->setPeriodicBoxSize(boxVectors);
+    }
+}
+
+double ReferenceCalcHippoNonbondedForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
+
+    setupAmoebaReferenceHippoNonbondedForce(context);
+
+    vector<Vec3>& posData = extractPositions(context);
+    vector<Vec3>& forceData = extractForces(context);
+    return ixn->calculateForceAndEnergy(posData, forceData);
+}
+
+void ReferenceCalcHippoNonbondedForceKernel::getInducedDipoles(ContextImpl& context, vector<Vec3>& outputDipoles) {
+    outputDipoles.resize(numParticles);
+    setupAmoebaReferenceHippoNonbondedForce(context);
+    vector<Vec3>& posData = extractPositions(context);
+    
+    // Retrieve the induced dipoles.
+    
+    vector<Vec3> inducedDipoles;
+    ixn->calculateInducedDipoles(posData, inducedDipoles);
+    for (int i = 0; i < numParticles; i++)
+        outputDipoles[i] = inducedDipoles[i];
+}
+
+void ReferenceCalcHippoNonbondedForceKernel::getLabFramePermanentDipoles(ContextImpl& context, vector<Vec3>& outputDipoles) {
+    outputDipoles.resize(numParticles);
+    setupAmoebaReferenceHippoNonbondedForce(context);
+    vector<Vec3>& posData = extractPositions(context);
+    
+    // Retrieve the permanent dipoles in the lab frame.
+    
+    vector<Vec3> labFramePermanentDipoles;
+    ixn->calculateLabFramePermanentDipoles(posData, labFramePermanentDipoles);
+    for (int i = 0; i < numParticles; i++)
+        outputDipoles[i] = labFramePermanentDipoles[i];
+}
+
+void ReferenceCalcHippoNonbondedForceKernel::copyParametersToContext(ContextImpl& context, const HippoNonbondedForce& force) {
+    if (numParticles != force.getNumParticles())
+        throw OpenMMException("updateParametersInContext: The number of multipoles has changed");
+    delete ixn;
+    ixn = NULL;
+    if (force.getNonbondedMethod() == HippoNonbondedForce::PME)
+        ixn = new AmoebaReferencePmeHippoNonbondedForce(force, context.getSystem());
+    else
+        ixn = new AmoebaReferenceHippoNonbondedForce(force);
+}
+
+void ReferenceCalcHippoNonbondedForceKernel::getPMEParameters(double& alpha, int& nx, int& ny, int& nz) const {
+    if (ixn->getNonbondedMethod() != HippoNonbondedForce::PME)
+        throw OpenMMException("getPMEParametersInContext: This Context is not using PME");
+    AmoebaReferencePmeHippoNonbondedForce* force = dynamic_cast<AmoebaReferencePmeHippoNonbondedForce*>(ixn);
+    alpha = force->getAlphaEwald();
+    vector<int> dim;
+    force->getPmeGridDimensions(dim);
+    nx = dim[0];
+    ny = dim[1];
+    nz = dim[2];
+}
+
+void ReferenceCalcHippoNonbondedForceKernel::getDPMEParameters(double& alpha, int& nx, int& ny, int& nz) const {
+    if (ixn->getNonbondedMethod() != HippoNonbondedForce::PME)
+        throw OpenMMException("getDPMEParametersInContext: This Context is not using PME");
+    AmoebaReferencePmeHippoNonbondedForce* force = dynamic_cast<AmoebaReferencePmeHippoNonbondedForce*>(ixn);
+    alpha = force->getDispersionAlphaEwald();
+    vector<int> dim;
+    force->getDispersionPmeGridDimensions(dim);
+    nx = dim[0];
+    ny = dim[1];
+    nz = dim[2];
 }

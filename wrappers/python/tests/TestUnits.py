@@ -1,9 +1,9 @@
 """
-Tests the functionality in the simtk.unit package.
+Tests the functionality in the openmm.unit package.
 """
 from __future__ import division
 
-from simtk import unit as u
+from openmm import unit as u
 import copy
 import math
 import unittest
@@ -288,6 +288,10 @@ class TestUnits(QuantityTestCase):
         # Tests that __setitem__ converts to the unit of the container
         s[0] = 1 * u.nanometers
         self.assertEqual(s[0]._value, 10)
+        # Tests that __setitem__ handles slice assignment correctly
+        x = [0, 1, 2, 3, 4] * u.kelvin
+        x[2:4] = [-2, -3] * u.kelvin
+        self.assertEqual(x._value, [0, 1, -2, -3, 4])
         # Tests standard unit conversions
         x = [1, 2, 3] * u.centimeters
         self.assertEqual(x / u.millimeters, [10, 20, 30])
@@ -668,7 +672,7 @@ class TestNumpyUnits(QuantityTestCase):
 
     def testNumpyIsString(self):
         """ Tests the internal _is_string method with numpy Quantities """
-        from simtk.unit.quantity import _is_string
+        from openmm.unit.quantity import _is_string
         a = np.array([[1, 2, 3], [4, 5, 6]])
         self.assertIsInstance("", str)
         self.assertTrue(_is_string(""))

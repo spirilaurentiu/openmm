@@ -1,16 +1,17 @@
-os: Visual Studio 2015
+os: Visual Studio 2019
 platform: x64
 configuration: Release
 shallow_clone: true
 install:
 
 # Setup shell for VS2015, x64
-  - call "c:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
 # Set path to python, git-bash tools.
   - "set PATH=C:\\Python35-x64;C:\\Python35-x64\\Scripts;%PATH%"
   - "set PATH=C:\\Program Files (x86)\\Git\\bin;%PATH%"
   - pip install pytest
   - pip install numpy
+  - pip install cython
 
 # Use cclash for compiler caching (experimental)
   - ps: wget https://github.com/inorton/cclash/releases/download/0.3.14/cclash-0.3.14.zip -OutFile cclash-0.3.14.zip
@@ -19,7 +20,7 @@ install:
   - "set CCLASH_DIR=C:\\ProgramData\\cclash"
 
 # Download FFTW3 for PME plugin
-  - C:\MinGW\msys\1.0\bin\wget -q ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll64.zip
+  - ps: Invoke-WebRequest ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll64.zip -OutFile fftw-3.3.4-dll64.zip
   - 7z x fftw-3.3.4-dll64.zip -oC:\fftw > null
   - cd C:\fftw
   - lib /def:libfftw3f-3.def
@@ -27,9 +28,10 @@ install:
   - "set PATH=C:\\fftw;%PATH%"
 
 # Download and install some OpenMM build dependencies (doxygen, swig)
-  - choco install -y doxygen.portable swig > null
+  - choco install -y doxygen.install swig > null
 
 # Download OpenCL Headers and build the ICD loader
+  - ps: "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;"
   - ps: $opencl_registry = "https://www.khronos.org/registry/cl"
   - ps: $opencl_github = "KhronosGroup/OpenCL-Headers"
   - ps: mkdir C:/opencl > $null
@@ -39,7 +41,7 @@ install:
   - ps: 7z x opencl-icd-1.2.11.0.tar > $null
   - ps: mv .\icd\* .
   - ps: mkdir inc/CL > $null
-  - ps: wget https://github.com/$opencl_github/tree/master/opencl20/CL | select -ExpandProperty links | where {$_.href -like "*.h*"} | select -ExpandProperty outerText | foreach{ wget https://raw.githubusercontent.com/$opencl_github/master/opencl20/CL/$_ -OutFile inc/CL/$_ }
+  - ps: wget https://github.com/$opencl_github/tree/master/CL -UseBasicParsing | select -ExpandProperty links | where {$_.href -like "*.h*"} | select -ExpandProperty title | foreach{ wget https://raw.githubusercontent.com/$opencl_github/master/CL/$_ -OutFile inc/CL/$_ -UseBasicParsing}
   - ps: mkdir lib > $null
   - ps: cd lib
   - cmake -G "NMake Makefiles" ..

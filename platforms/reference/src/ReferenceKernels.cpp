@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2008-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -52,11 +52,16 @@
 #include "ReferenceCustomTorsionIxn.h"
 #include "ReferenceGayBerneForce.h"
 #include "ReferenceHarmonicBondIxn.h"
+#include "ReferenceLangevinMiddleDynamics.h"
 #include "ReferenceLJCoulomb14.h"
 #include "ReferenceLJCoulombIxn.h"
 #include "ReferenceMonteCarloBarostat.h"
+#include "ReferenceNoseHooverChain.h"
+#include "ReferenceNoseHooverDynamics.h"
+#include "ReferencePointFunctions.h"
 #include "ReferenceProperDihedralBond.h"
 #include "ReferenceRbDihedralBond.h"
+#include "ReferenceRMSDForce.h"
 #include "ReferenceStochasticDynamics.h"
 #include "ReferenceTabulatedFunction.h"
 #include "ReferenceVariableStochasticDynamics.h"
@@ -88,69 +93,39 @@
 using namespace OpenMM;
 using namespace std;
 
-static int** allocateIntArray(int length, int width) {
-    int** array = new int*[length];
-    for (int i = 0; i < length; ++i)
-        array[i] = new int[width];
-    return array;
-}
-
-static double** allocateRealArray(int length, int width) {
-    double** array = new double*[length];
-    for (int i = 0; i < length; ++i)
-        array[i] = new double[width];
-    return array;
-}
-
-static void disposeIntArray(int** array, int size) {
-    if (array) {
-        for (int i = 0; i < size; ++i)
-            delete[] array[i];
-        delete[] array;
-    }
-}
-
-static void disposeRealArray(double** array, int size) {
-    if (array) {
-        for (int i = 0; i < size; ++i)
-            delete[] array[i];
-        delete[] array;
-    }
-}
-
 static vector<Vec3>& extractPositions(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *((vector<Vec3>*) data->positions);
+    return *data->positions;
 }
 
 static vector<Vec3>& extractVelocities(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *((vector<Vec3>*) data->velocities);
+    return *data->velocities;
 }
 
 static vector<Vec3>& extractForces(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *((vector<Vec3>*) data->forces);
+    return *data->forces;
 }
 
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *(Vec3*) data->periodicBoxSize;
+    return *data->periodicBoxSize;
 }
 
 static Vec3* extractBoxVectors(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return (Vec3*) data->periodicBoxVectors;
+    return data->periodicBoxVectors;
 }
 
 static ReferenceConstraints& extractConstraints(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *(ReferenceConstraints*) data->constraints;
+    return *data->constraints;
 }
 
 static map<string, double>& extractEnergyParameterDerivatives(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *((map<string, double>*) data->energyParameterDerivatives);
+    return *data->energyParameterDerivatives;
 }
 
 /**
@@ -305,7 +280,7 @@ void ReferenceUpdateStateDataKernel::setPeriodicBoxVectors(ContextImpl& context,
 }
 
 void ReferenceUpdateStateDataKernel::createCheckpoint(ContextImpl& context, ostream& stream) {
-    int version = 2;
+    int version = 3;
     stream.write((char*) &version, sizeof(int));
     stream.write((char*) &data.time, sizeof(data.time));
     vector<Vec3>& posData = extractPositions(context);
@@ -320,7 +295,7 @@ void ReferenceUpdateStateDataKernel::createCheckpoint(ContextImpl& context, ostr
 void ReferenceUpdateStateDataKernel::loadCheckpoint(ContextImpl& context, istream& stream) {
     int version;
     stream.read((char*) &version, sizeof(int));
-    if (version != 2)
+    if (version != 3)
         throw OpenMMException("Checkpoint was created with a different version of OpenMM");
     stream.read((char*) &data.time, sizeof(data.time));
     vector<Vec3>& posData = extractPositions(context);
@@ -365,15 +340,10 @@ void ReferenceVirtualSitesKernel::computePositions(ContextImpl& context) {
     ReferenceVirtualSites::computePositions(context.getSystem(), positions);
 }
 
-ReferenceCalcHarmonicBondForceKernel::~ReferenceCalcHarmonicBondForceKernel() {
-    disposeIntArray(bondIndexArray, numBonds);
-    disposeRealArray(bondParamArray, numBonds);
-}
-
 void ReferenceCalcHarmonicBondForceKernel::initialize(const System& system, const HarmonicBondForce& force) {
     numBonds = force.getNumBonds();
-    bondIndexArray = allocateIntArray(numBonds, 2);
-    bondParamArray = allocateRealArray(numBonds, 2);
+    bondIndexArray.resize(numBonds, vector<int>(2));
+    bondParamArray.resize(numBonds, vector<double>(2));
     for (int i = 0; i < numBonds; ++i) {
         int particle1, particle2;
         double length, k;
@@ -418,8 +388,8 @@ void ReferenceCalcHarmonicBondForceKernel::copyParametersToContext(ContextImpl& 
 }
 
 ReferenceCalcCustomBondForceKernel::~ReferenceCalcCustomBondForceKernel() {
-    disposeIntArray(bondIndexArray, numBonds);
-    disposeRealArray(bondParamArray, numBonds);
+    if (ixn != NULL)
+        delete ixn;
 }
 
 void ReferenceCalcCustomBondForceKernel::initialize(const System& system, const CustomBondForce& force) {
@@ -429,8 +399,8 @@ void ReferenceCalcCustomBondForceKernel::initialize(const System& system, const 
 
     // Build the arrays.
 
-    bondIndexArray = allocateIntArray(numBonds, 2);
-    bondParamArray = allocateRealArray(numBonds, numParameters);
+    bondIndexArray.resize(numBonds, vector<int>(2));
+    bondParamArray.resize(numBonds, vector<double>(numParameters));
     vector<double> params;
     for (int i = 0; i < numBonds; ++i) {
         int particle1, particle2;
@@ -460,6 +430,7 @@ void ReferenceCalcCustomBondForceKernel::initialize(const System& system, const 
     variables.insert(parameterNames.begin(), parameterNames.end());
     variables.insert(globalParameterNames.begin(), globalParameterNames.end());
     validateVariables(expression.getRootNode(), variables);
+    ixn = new ReferenceCustomBondIxn(energyExpression, forceExpression, parameterNames, energyParamDerivExpressions);
 }
 
 double ReferenceCalcCustomBondForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
@@ -469,12 +440,12 @@ double ReferenceCalcCustomBondForceKernel::execute(ContextImpl& context, bool in
     map<string, double> globalParameters;
     for (auto& name : globalParameterNames)
         globalParameters[name] = context.getParameter(name);
-    ReferenceCustomBondIxn bond(energyExpression, forceExpression, parameterNames, globalParameters, energyParamDerivExpressions);
+    ixn->setGlobalParameters(globalParameters);
     if (usePeriodic)
-        bond.setPeriodic(extractBoxVectors(context));
+        ixn->setPeriodic(extractBoxVectors(context));
     vector<double> energyParamDerivValues(energyParamDerivNames.size()+1, 0.0);
     for (int i = 0; i < numBonds; i++)
-        bond.calculateBondIxn(bondIndexArray[i], posData, bondParamArray[i], forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
+        ixn->calculateBondIxn(bondIndexArray[i], posData, bondParamArray[i], forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
     map<string, double>& energyParamDerivs = extractEnergyParameterDerivatives(context);
     for (int i = 0; i < energyParamDerivNames.size(); i++)
         energyParamDerivs[energyParamDerivNames[i]] += energyParamDerivValues[i];
@@ -499,15 +470,10 @@ void ReferenceCalcCustomBondForceKernel::copyParametersToContext(ContextImpl& co
     }
 }
 
-ReferenceCalcHarmonicAngleForceKernel::~ReferenceCalcHarmonicAngleForceKernel() {
-    disposeIntArray(angleIndexArray, numAngles);
-    disposeRealArray(angleParamArray, numAngles);
-}
-
 void ReferenceCalcHarmonicAngleForceKernel::initialize(const System& system, const HarmonicAngleForce& force) {
     numAngles = force.getNumAngles();
-    angleIndexArray = allocateIntArray(numAngles, 3);
-    angleParamArray = allocateRealArray(numAngles, 2);
+    angleIndexArray.resize(numAngles, vector<int>(3));
+    angleParamArray.resize(numAngles, vector<double>(2));
     for (int i = 0; i < numAngles; ++i) {
         int particle1, particle2, particle3;
         double angle, k;
@@ -551,8 +517,8 @@ void ReferenceCalcHarmonicAngleForceKernel::copyParametersToContext(ContextImpl&
 }
 
 ReferenceCalcCustomAngleForceKernel::~ReferenceCalcCustomAngleForceKernel() {
-    disposeIntArray(angleIndexArray, numAngles);
-    disposeRealArray(angleParamArray, numAngles);
+    if (ixn != NULL)
+        delete ixn;
 }
 
 void ReferenceCalcCustomAngleForceKernel::initialize(const System& system, const CustomAngleForce& force) {
@@ -562,8 +528,8 @@ void ReferenceCalcCustomAngleForceKernel::initialize(const System& system, const
 
     // Build the arrays.
 
-    angleIndexArray = allocateIntArray(numAngles, 3);
-    angleParamArray = allocateRealArray(numAngles, numParameters);
+    angleIndexArray.resize(numAngles, vector<int>(3));
+    angleParamArray.resize(numAngles, vector<double>(numParameters));
     vector<double> params;
     for (int i = 0; i < numAngles; ++i) {
         int particle1, particle2, particle3;
@@ -594,6 +560,7 @@ void ReferenceCalcCustomAngleForceKernel::initialize(const System& system, const
     variables.insert(parameterNames.begin(), parameterNames.end());
     variables.insert(globalParameterNames.begin(), globalParameterNames.end());
     validateVariables(expression.getRootNode(), variables);
+    ixn = new ReferenceCustomAngleIxn(energyExpression, forceExpression, parameterNames, energyParamDerivExpressions);
 }
 
 double ReferenceCalcCustomAngleForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
@@ -603,12 +570,12 @@ double ReferenceCalcCustomAngleForceKernel::execute(ContextImpl& context, bool i
     map<string, double> globalParameters;
     for (auto& name : globalParameterNames)
         globalParameters[name] = context.getParameter(name);
-    ReferenceCustomAngleIxn customAngle(energyExpression, forceExpression, parameterNames, globalParameters, energyParamDerivExpressions);
+    ixn->setGlobalParameters(globalParameters);
     if (usePeriodic)
-        customAngle.setPeriodic(extractBoxVectors(context));
+        ixn->setPeriodic(extractBoxVectors(context));
     vector<double> energyParamDerivValues(energyParamDerivNames.size()+1, 0.0);
     for (int i = 0; i < numAngles; i++)
-        customAngle.calculateBondIxn(angleIndexArray[i], posData, angleParamArray[i], forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
+        ixn->calculateBondIxn(angleIndexArray[i], posData, angleParamArray[i], forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
     map<string, double>& energyParamDerivs = extractEnergyParameterDerivatives(context);
     for (int i = 0; i < energyParamDerivNames.size(); i++)
         energyParamDerivs[energyParamDerivNames[i]] += energyParamDerivValues[i];
@@ -633,15 +600,10 @@ void ReferenceCalcCustomAngleForceKernel::copyParametersToContext(ContextImpl& c
     }
 }
 
-ReferenceCalcPeriodicTorsionForceKernel::~ReferenceCalcPeriodicTorsionForceKernel() {
-    disposeIntArray(torsionIndexArray, numTorsions);
-    disposeRealArray(torsionParamArray, numTorsions);
-}
-
 void ReferenceCalcPeriodicTorsionForceKernel::initialize(const System& system, const PeriodicTorsionForce& force) {
     numTorsions = force.getNumTorsions();
-    torsionIndexArray = allocateIntArray(numTorsions, 4);
-    torsionParamArray = allocateRealArray(numTorsions, 3);
+    torsionIndexArray.resize(numTorsions, vector<int>(4));
+    torsionParamArray.resize(numTorsions, vector<double>(3));
     for (int i = 0; i < numTorsions; ++i) {
         int particle1, particle2, particle3, particle4, periodicity;
         double phase, k;
@@ -687,15 +649,10 @@ void ReferenceCalcPeriodicTorsionForceKernel::copyParametersToContext(ContextImp
     }
 }
 
-ReferenceCalcRBTorsionForceKernel::~ReferenceCalcRBTorsionForceKernel() {
-    disposeIntArray(torsionIndexArray, numTorsions);
-    disposeRealArray(torsionParamArray, numTorsions);
-}
-
 void ReferenceCalcRBTorsionForceKernel::initialize(const System& system, const RBTorsionForce& force) {
     numTorsions = force.getNumTorsions();
-    torsionIndexArray = allocateIntArray(numTorsions, 4);
-    torsionParamArray = allocateRealArray(numTorsions, 6);
+    torsionIndexArray.resize(numTorsions, vector<int>(4));
+    torsionParamArray.resize(numTorsions, vector<double>(6));
     for (int i = 0; i < numTorsions; ++i) {
         int particle1, particle2, particle3, particle4;
         double c0, c1, c2, c3, c4, c5;
@@ -820,8 +777,8 @@ void ReferenceCalcCMAPTorsionForceKernel::copyParametersToContext(ContextImpl& c
 }
 
 ReferenceCalcCustomTorsionForceKernel::~ReferenceCalcCustomTorsionForceKernel() {
-    disposeIntArray(torsionIndexArray, numTorsions);
-    disposeRealArray(torsionParamArray, numTorsions);
+    if (ixn != NULL)
+        delete ixn;
 }
 
 void ReferenceCalcCustomTorsionForceKernel::initialize(const System& system, const CustomTorsionForce& force) {
@@ -831,8 +788,8 @@ void ReferenceCalcCustomTorsionForceKernel::initialize(const System& system, con
 
     // Build the arrays.
 
-    torsionIndexArray = allocateIntArray(numTorsions, 4);
-    torsionParamArray = allocateRealArray(numTorsions, numParameters);
+    torsionIndexArray.resize(numTorsions, vector<int>(4));
+    torsionParamArray.resize(numTorsions, vector<double>(numParameters));
     vector<double> params;
     for (int i = 0; i < numTorsions; ++i) {
         int particle1, particle2, particle3, particle4;
@@ -864,6 +821,7 @@ void ReferenceCalcCustomTorsionForceKernel::initialize(const System& system, con
     variables.insert(parameterNames.begin(), parameterNames.end());
     variables.insert(globalParameterNames.begin(), globalParameterNames.end());
     validateVariables(expression.getRootNode(), variables);
+    ixn = new ReferenceCustomTorsionIxn(energyExpression, forceExpression, parameterNames, energyParamDerivExpressions);
 }
 
 double ReferenceCalcCustomTorsionForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
@@ -873,12 +831,12 @@ double ReferenceCalcCustomTorsionForceKernel::execute(ContextImpl& context, bool
     map<string, double> globalParameters;
     for (auto& name : globalParameterNames)
         globalParameters[name] = context.getParameter(name);
-    ReferenceCustomTorsionIxn customTorsion(energyExpression, forceExpression, parameterNames, globalParameters, energyParamDerivExpressions);
+    ixn->setGlobalParameters(globalParameters);
     if (usePeriodic)
-        customTorsion.setPeriodic(extractBoxVectors(context));
+        ixn->setPeriodic(extractBoxVectors(context));
     vector<double> energyParamDerivValues(energyParamDerivNames.size()+1, 0.0);
     for (int i = 0; i < numTorsions; i++)
-        customTorsion.calculateBondIxn(torsionIndexArray[i], posData, torsionParamArray[i], forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
+        ixn->calculateBondIxn(torsionIndexArray[i], posData, torsionParamArray[i], forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
     map<string, double>& energyParamDerivs = extractEnergyParameterDerivatives(context);
     for (int i = 0; i < energyParamDerivNames.size(); i++)
         energyParamDerivs[energyParamDerivNames[i]] += energyParamDerivValues[i];
@@ -904,9 +862,6 @@ void ReferenceCalcCustomTorsionForceKernel::copyParametersToContext(ContextImpl&
 }
 
 ReferenceCalcNonbondedForceKernel::~ReferenceCalcNonbondedForceKernel() {
-    disposeRealArray(particleParamArray, numParticles);
-    disposeIntArray(bonded14IndexArray, num14);
-    disposeRealArray(bonded14ParamArray, num14);
     if (neighborList != NULL)
         delete neighborList;
 }
@@ -915,42 +870,59 @@ void ReferenceCalcNonbondedForceKernel::initialize(const System& system, const N
 
     // Identify which exceptions are 1-4 interactions.
 
+    set<int> exceptionsWithOffsets;
+    for (int i = 0; i < force.getNumExceptionParameterOffsets(); i++) {
+        string param;
+        int exception;
+        double charge, sigma, epsilon;
+        force.getExceptionParameterOffset(i, param, exception, charge, sigma, epsilon);
+        exceptionsWithOffsets.insert(exception);
+    }
     numParticles = force.getNumParticles();
     exclusions.resize(numParticles);
     vector<int> nb14s;
+    map<int, int> nb14Index;
     for (int i = 0; i < force.getNumExceptions(); i++) {
         int particle1, particle2;
         double chargeProd, sigma, epsilon;
         force.getExceptionParameters(i, particle1, particle2, chargeProd, sigma, epsilon);
         exclusions[particle1].insert(particle2);
         exclusions[particle2].insert(particle1);
-        if (chargeProd != 0.0 || epsilon != 0.0)
+        if (chargeProd != 0.0 || epsilon != 0.0 || exceptionsWithOffsets.find(i) != exceptionsWithOffsets.end()) {
+            nb14Index[i] = nb14s.size();
             nb14s.push_back(i);
+        }
     }
 
     // Build the arrays.
 
     num14 = nb14s.size();
-    bonded14IndexArray = allocateIntArray(num14, 2);
-    bonded14ParamArray = allocateRealArray(num14, 3);
-    particleParamArray = allocateRealArray(numParticles, 3);
-    for (int i = 0; i < numParticles; ++i) {
-        double charge, radius, depth;
-        force.getParticleParameters(i, charge, radius, depth);
-        particleParamArray[i][0] = 0.5*radius;
-        particleParamArray[i][1] = 2.0*sqrt(depth);
-        particleParamArray[i][2] = charge;
-    }
-    this->exclusions = exclusions;
+    bonded14IndexArray.resize(num14, vector<int>(2));
+    bonded14ParamArray.resize(num14, vector<double>(3));
+    particleParamArray.resize(numParticles, vector<double>(3));
+    baseParticleParams.resize(numParticles);
+    baseExceptionParams.resize(num14);
+    for (int i = 0; i < numParticles; ++i)
+       force.getParticleParameters(i, baseParticleParams[i][0], baseParticleParams[i][1], baseParticleParams[i][2]);
     for (int i = 0; i < num14; ++i) {
         int particle1, particle2;
-        double charge, radius, depth;
-        force.getExceptionParameters(nb14s[i], particle1, particle2, charge, radius, depth);
+        force.getExceptionParameters(nb14s[i], particle1, particle2, baseExceptionParams[i][0], baseExceptionParams[i][1], baseExceptionParams[i][2]);
         bonded14IndexArray[i][0] = particle1;
         bonded14IndexArray[i][1] = particle2;
-        bonded14ParamArray[i][0] = radius;
-        bonded14ParamArray[i][1] = 4.0*depth;
-        bonded14ParamArray[i][2] = charge;
+    }
+    for (int i = 0; i < force.getNumParticleParameterOffsets(); i++) {
+        string param;
+        int particle;
+        double charge, sigma, epsilon;
+        force.getParticleParameterOffset(i, param, particle, charge, sigma, epsilon);
+        particleParamOffsets[make_pair(param, particle)] = {charge, sigma, epsilon};
+    }
+    for (int i = 0; i < force.getNumExceptionParameterOffsets(); i++) {
+        string param;
+        int exception;
+        double charge, sigma, epsilon;
+        force.getExceptionParameterOffset(i, param, exception, charge, sigma, epsilon);
+        exceptionParamOffsets[make_pair(param, nb14Index[exception])] = {charge, sigma, epsilon};
     }
     nonbondedMethod = CalcNonbondedForceKernel::NonbondedMethod(force.getNonbondedMethod());
     nonbondedCutoff = force.getCutoffDistance();
@@ -981,6 +953,10 @@ void ReferenceCalcNonbondedForceKernel::initialize(const System& system, const N
         ewaldDispersionAlpha = alpha;
         useSwitchingFunction = false;
     }
+    if (nonbondedMethod == NoCutoff || nonbondedMethod == CutoffNonPeriodic)
+        exceptionsArePeriodic = false;
+    else
+        exceptionsArePeriodic = force.getExceptionsUsePeriodicBoundaryConditions();
     rfDielectric = force.getReactionFieldDielectric();
     if (force.getUseDispersionCorrection())
         dispersionCoefficient = NonbondedForceImpl::calcDispersionCorrection(system, force);
@@ -989,6 +965,7 @@ void ReferenceCalcNonbondedForceKernel::initialize(const System& system, const N
 }
 
 double ReferenceCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy, bool includeDirect, bool includeReciprocal) {
+    computeParameters(context);
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
     double energy = 0;
@@ -1007,6 +984,7 @@ double ReferenceCalcNonbondedForceKernel::execute(ContextImpl& context, bool inc
         if (boxVectors[0][0] < minAllowedSize || boxVectors[1][1] < minAllowedSize || boxVectors[2][2] < minAllowedSize)
             throw OpenMMException("The periodic box size has decreased to less than twice the nonbonded cutoff.");
         clj.setPeriodic(boxVectors);
+        clj.setPeriodicExceptions(exceptionsArePeriodic);
     }
     if (ewald)
         clj.setUseEwald(ewaldAlpha, kmax[0], kmax[1], kmax[2]);
@@ -1018,10 +996,14 @@ double ReferenceCalcNonbondedForceKernel::execute(ContextImpl& context, bool inc
     }
     if (useSwitchingFunction)
         clj.setUseSwitchingFunction(switchingDistance);
-    clj.calculatePairIxn(numParticles, posData, particleParamArray, exclusions, 0, forceData, 0, includeEnergy ? &energy : NULL, includeDirect, includeReciprocal);
+    clj.calculatePairIxn(numParticles, posData, particleParamArray, exclusions, forceData, includeEnergy ? &energy : NULL, includeDirect, includeReciprocal);
     if (includeDirect) {
         ReferenceBondForce refBondForce;
         ReferenceLJCoulomb14 nonbonded14;
+        if (exceptionsArePeriodic) {
+            Vec3* boxVectors = extractBoxVectors(context);
+            nonbonded14.setPeriodic(boxVectors);
+        }
         refBondForce.calculateForce(num14, bonded14IndexArray, posData, bonded14ParamArray, forceData, includeEnergy ? &energy : NULL, nonbonded14);
         if (periodic || ewald || pme) {
             Vec3* boxVectors = extractBoxVectors(context);
@@ -1034,12 +1016,23 @@ double ReferenceCalcNonbondedForceKernel::execute(ContextImpl& context, bool inc
 void ReferenceCalcNonbondedForceKernel::copyParametersToContext(ContextImpl& context, const NonbondedForce& force) {
     if (force.getNumParticles() != numParticles)
         throw OpenMMException("updateParametersInContext: The number of particles has changed");
+
+    // Identify which exceptions are 1-4 interactions.
+
+    set<int> exceptionsWithOffsets;
+    for (int i = 0; i < force.getNumExceptionParameterOffsets(); i++) {
+        string param;
+        int exception;
+        double charge, sigma, epsilon;
+        force.getExceptionParameterOffset(i, param, exception, charge, sigma, epsilon);
+        exceptionsWithOffsets.insert(exception);
+    }
     vector<int> nb14s;
     for (int i = 0; i < force.getNumExceptions(); i++) {
         int particle1, particle2;
         double chargeProd, sigma, epsilon;
         force.getExceptionParameters(i, particle1, particle2, chargeProd, sigma, epsilon);
-        if (chargeProd != 0.0 || epsilon != 0.0)
+        if (chargeProd != 0.0 || epsilon != 0.0 || exceptionsWithOffsets.find(i) != exceptionsWithOffsets.end())
             nb14s.push_back(i);
     }
     if (nb14s.size() != num14)
@@ -1047,22 +1040,13 @@ void ReferenceCalcNonbondedForceKernel::copyParametersToContext(ContextImpl& con
 
     // Record the values.
 
-    for (int i = 0; i < numParticles; ++i) {
-        double charge, radius, depth;
-        force.getParticleParameters(i, charge, radius, depth);
-        particleParamArray[i][0] = 0.5*radius;
-        particleParamArray[i][1] = 2.0*sqrt(depth);
-        particleParamArray[i][2] = charge;
-    }
+    for (int i = 0; i < numParticles; ++i)
+        force.getParticleParameters(i, baseParticleParams[i][0], baseParticleParams[i][1], baseParticleParams[i][2]);
     for (int i = 0; i < num14; ++i) {
         int particle1, particle2;
-        double charge, radius, depth;
-        force.getExceptionParameters(nb14s[i], particle1, particle2, charge, radius, depth);
+        force.getExceptionParameters(nb14s[i], particle1, particle2, baseExceptionParams[i][0], baseExceptionParams[i][1], baseExceptionParams[i][2]);
         bonded14IndexArray[i][0] = particle1;
         bonded14IndexArray[i][1] = particle2;
-        bonded14ParamArray[i][0] = radius;
-        bonded14ParamArray[i][1] = 4.0*depth;
-        bonded14ParamArray[i][2] = charge;
     }
     
     // Recompute the coefficient for the dispersion correction.
@@ -1090,8 +1074,53 @@ void ReferenceCalcNonbondedForceKernel::getLJPMEParameters(double& alpha, int& n
     nz = dispersionGridSize[2];
 }
 
+void ReferenceCalcNonbondedForceKernel::computeParameters(ContextImpl& context) {
+    // Compute particle parameters.
+
+    vector<double> charges(numParticles), sigmas(numParticles), epsilons(numParticles);
+    for (int i = 0; i < numParticles; i++) {
+        charges[i] = baseParticleParams[i][0];
+        sigmas[i] = baseParticleParams[i][1];
+        epsilons[i] = baseParticleParams[i][2];
+    }
+    for (auto& offset : particleParamOffsets) {
+        double value = context.getParameter(offset.first.first);
+        int index = offset.first.second;
+        charges[index] += value*offset.second[0];
+        sigmas[index] += value*offset.second[1];
+        epsilons[index] += value*offset.second[2];
+    }
+    for (int i = 0; i < numParticles; i++) {
+        particleParamArray[i][0] = 0.5*sigmas[i];
+        particleParamArray[i][1] = 2.0*sqrt(epsilons[i]);
+        particleParamArray[i][2] = charges[i];
+    }
+
+    // Compute exception parameters.
+
+    charges.resize(num14);
+    sigmas.resize(num14);
+    epsilons.resize(num14);
+    for (int i = 0; i < num14; i++) {
+        charges[i] = baseExceptionParams[i][0];
+        sigmas[i] = baseExceptionParams[i][1];
+        epsilons[i] = baseExceptionParams[i][2];
+    }
+    for (auto& offset : exceptionParamOffsets) {
+        double value = context.getParameter(offset.first.first);
+        int index = offset.first.second;
+        charges[index] += value*offset.second[0];
+        sigmas[index] += value*offset.second[1];
+        epsilons[index] += value*offset.second[2];
+    }
+    for (int i = 0; i < num14; i++) {
+        bonded14ParamArray[i][0] = sigmas[i];
+        bonded14ParamArray[i][1] = 4.0*epsilons[i];
+        bonded14ParamArray[i][2] = charges[i];
+    }
+}
+
 ReferenceCalcCustomNonbondedForceKernel::~ReferenceCalcCustomNonbondedForceKernel() {
-    disposeRealArray(particleParamArray, numParticles);
     if (neighborList != NULL)
         delete neighborList;
     if (forceCopy != NULL)
@@ -1114,13 +1143,9 @@ void ReferenceCalcCustomNonbondedForceKernel::initialize(const System& system, c
     // Build the arrays.
 
     int numParameters = force.getNumPerParticleParameters();
-    particleParamArray = allocateRealArray(numParticles, numParameters);
-    for (int i = 0; i < numParticles; ++i) {
-        vector<double> parameters;
-        force.getParticleParameters(i, parameters);
-        for (int j = 0; j < numParameters; j++)
-            particleParamArray[i][j] = parameters[j];
-    }
+    particleParamArray.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        force.getParticleParameters(i, particleParamArray[i]);
     nonbondedMethod = CalcCustomNonbondedForceKernel::NonbondedMethod(force.getNonbondedMethod());
     nonbondedCutoff = force.getCutoffDistance();
     if (nonbondedMethod == NoCutoff) {
@@ -1218,7 +1243,7 @@ double ReferenceCalcCustomNonbondedForceKernel::execute(ContextImpl& context, bo
     if (useSwitchingFunction)
         ixn.setUseSwitchingFunction(switchingDistance);
     vector<double> energyParamDerivValues(energyParamDerivNames.size()+1, 0.0);
-    ixn.calculatePairIxn(numParticles, posData, particleParamArray, exclusions, 0, globalParamValues, forceData, 0, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
+    ixn.calculatePairIxn(numParticles, posData, particleParamArray, exclusions, globalParamValues, forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
     map<string, double>& energyParamDerivs = extractEnergyParameterDerivatives(context);
     for (int i = 0; i < energyParamDerivNames.size(); i++)
         energyParamDerivs[energyParamDerivNames[i]] += energyParamDerivValues[i];
@@ -1322,7 +1347,6 @@ void ReferenceCalcGBSAOBCForceKernel::copyParametersToContext(ContextImpl& conte
 }
 
 ReferenceCalcCustomGBForceKernel::~ReferenceCalcCustomGBForceKernel() {
-    disposeRealArray(particleParamArray, numParticles);
     if (neighborList != NULL)
         delete neighborList;
 }
@@ -1355,13 +1379,9 @@ void ReferenceCalcCustomGBForceKernel::initialize(const System& system, const Cu
     // Build the arrays.
 
     int numPerParticleParameters = force.getNumPerParticleParameters();
-    particleParamArray = allocateRealArray(numParticles, numPerParticleParameters);
-    for (int i = 0; i < numParticles; ++i) {
-        vector<double> parameters;
-        force.getParticleParameters(i, parameters);
-        for (int j = 0; j < numPerParticleParameters; j++)
-            particleParamArray[i][j] = parameters[j];
-    }
+    particleParamArray.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        force.getParticleParameters(i, particleParamArray[i]);
     for (int i = 0; i < numPerParticleParameters; i++)
         particleParameterNames.push_back(force.getPerParticleParameterName(i));
     for (int i = 0; i < force.getNumGlobalParameters(); i++)
@@ -1505,50 +1525,9 @@ void ReferenceCalcCustomGBForceKernel::copyParametersToContext(ContextImpl& cont
     }
 }
 
-ReferenceCalcCustomExternalForceKernel::PeriodicDistanceFunction::PeriodicDistanceFunction(Vec3** boxVectorHandle) : boxVectorHandle(boxVectorHandle) {
-}
-
-int ReferenceCalcCustomExternalForceKernel::PeriodicDistanceFunction::getNumArguments() const {
-    return 6;
-}
-
-double ReferenceCalcCustomExternalForceKernel::PeriodicDistanceFunction::evaluate(const double* arguments) const {
-    Vec3* boxVectors = *boxVectorHandle;
-    Vec3 delta = Vec3(arguments[0], arguments[1], arguments[2])-Vec3(arguments[3], arguments[4], arguments[5]);
-    delta -= boxVectors[2]*floor(delta[2]/boxVectors[2][2]+0.5);
-    delta -= boxVectors[1]*floor(delta[1]/boxVectors[1][1]+0.5);
-    delta -= boxVectors[0]*floor(delta[0]/boxVectors[0][0]+0.5);
-    return sqrt(delta.dot(delta));
-}
-
-double ReferenceCalcCustomExternalForceKernel::PeriodicDistanceFunction::evaluateDerivative(const double* arguments, const int* derivOrder) const {
-    int argIndex = -1;
-    for (int i = 0; i < 6; i++) {
-        if (derivOrder[i] > 0) {
-            if (derivOrder[i] > 1 || argIndex != -1)
-                throw OpenMMException("Unsupported derivative of periodicdistance"); // Should be impossible for this to happen.
-            argIndex = i;
-        }
-    }
-    Vec3* boxVectors = *boxVectorHandle;
-    Vec3 delta = Vec3(arguments[0], arguments[1], arguments[2])-Vec3(arguments[3], arguments[4], arguments[5]);
-    delta -= boxVectors[2]*floor(delta[2]/boxVectors[2][2]+0.5);
-    delta -= boxVectors[1]*floor(delta[1]/boxVectors[1][1]+0.5);
-    delta -= boxVectors[0]*floor(delta[0]/boxVectors[0][0]+0.5);
-    double r = sqrt(delta.dot(delta));
-    if (r == 0)
-        return 0.0;    
-    if (argIndex < 3)
-        return delta[argIndex]/r;
-    return -delta[argIndex-3]/r;
-}
-
-Lepton::CustomFunction* ReferenceCalcCustomExternalForceKernel::PeriodicDistanceFunction::clone() const {
-    return new PeriodicDistanceFunction(boxVectorHandle);
-}
-
 ReferenceCalcCustomExternalForceKernel::~ReferenceCalcCustomExternalForceKernel() {
-    disposeRealArray(particleParamArray, numParticles);
+    if (ixn != NULL)
+        delete ixn;
 }
 
 void ReferenceCalcCustomExternalForceKernel::initialize(const System& system, const CustomExternalForce& force) {
@@ -1558,18 +1537,14 @@ void ReferenceCalcCustomExternalForceKernel::initialize(const System& system, co
     // Build the arrays.
 
     particles.resize(numParticles);
-    particleParamArray = allocateRealArray(numParticles, numParameters);
-    vector<double> params;
-    for (int i = 0; i < numParticles; ++i) {
-        force.getParticleParameters(i, particles[i], params);
-        for (int j = 0; j < numParameters; j++)
-            particleParamArray[i][j] = params[j];
-    }
+    particleParamArray.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        force.getParticleParameters(i, particles[i], particleParamArray[i]);
 
     // Parse the expression used to calculate the force.
 
     map<string, Lepton::CustomFunction*> functions;
-    PeriodicDistanceFunction periodicDistance(&boxVectors);
+    ReferencePointDistanceFunction periodicDistance(true, &boxVectors);
     functions["periodicdistance"] = &periodicDistance;
     Lepton::ParsedExpression expression = Lepton::Parser::parse(force.getEnergyFunction(), functions).optimize();
     energyExpression = expression.createCompiledExpression();
@@ -1587,6 +1562,8 @@ void ReferenceCalcCustomExternalForceKernel::initialize(const System& system, co
     variables.insert(parameterNames.begin(), parameterNames.end());
     variables.insert(globalParameterNames.begin(), globalParameterNames.end());
     validateVariables(expression.getRootNode(), variables);
+    ixn = new ReferenceCustomExternalIxn(energyExpression, forceExpressionX, forceExpressionY, forceExpressionZ, parameterNames);
+
 }
 
 double ReferenceCalcCustomExternalForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
@@ -1597,9 +1574,9 @@ double ReferenceCalcCustomExternalForceKernel::execute(ContextImpl& context, boo
     map<string, double> globalParameters;
     for (auto& name : globalParameterNames)
         globalParameters[name] = context.getParameter(name);
-    ReferenceCustomExternalIxn force(energyExpression, forceExpressionX, forceExpressionY, forceExpressionZ, parameterNames, globalParameters);
+    ixn->setGlobalParameters(globalParameters);
     for (int i = 0; i < numParticles; ++i)
-        force.calculateForce(particles[i], posData, particleParamArray[i], forceData, includeEnergy ? &energy : NULL);
+        ixn->calculateForce(particles[i], posData, particleParamArray[i], forceData, includeEnergy ? &energy : NULL);
     return energy;
 }
 
@@ -1623,8 +1600,6 @@ void ReferenceCalcCustomExternalForceKernel::copyParametersToContext(ContextImpl
 }
 
 ReferenceCalcCustomHbondForceKernel::~ReferenceCalcCustomHbondForceKernel() {
-    disposeRealArray(donorParamArray, numDonors);
-    disposeRealArray(acceptorParamArray, numAcceptors);
     if (ixn != NULL)
         delete ixn;
 }
@@ -1647,29 +1622,23 @@ void ReferenceCalcCustomHbondForceKernel::initialize(const System& system, const
 
     vector<vector<int> > donorParticles(numDonors);
     int numDonorParameters = force.getNumPerDonorParameters();
-    donorParamArray = allocateRealArray(numDonors, numDonorParameters);
+    donorParamArray.resize(numDonors);
     for (int i = 0; i < numDonors; ++i) {
-        vector<double> parameters;
         int d1, d2, d3;
-        force.getDonorParameters(i, d1, d2, d3, parameters);
+        force.getDonorParameters(i, d1, d2, d3, donorParamArray[i]);
         donorParticles[i].push_back(d1);
         donorParticles[i].push_back(d2);
         donorParticles[i].push_back(d3);
-        for (int j = 0; j < numDonorParameters; j++)
-            donorParamArray[i][j] = parameters[j];
     }
     vector<vector<int> > acceptorParticles(numAcceptors);
     int numAcceptorParameters = force.getNumPerAcceptorParameters();
-    acceptorParamArray = allocateRealArray(numAcceptors, numAcceptorParameters);
+    acceptorParamArray.resize(numAcceptors);
     for (int i = 0; i < numAcceptors; ++i) {
-        vector<double> parameters;
         int a1, a2, a3;
-        force.getAcceptorParameters(i, a1, a2, a3, parameters);
+        force.getAcceptorParameters(i, a1, a2, a3, acceptorParamArray[i]);
         acceptorParticles[i].push_back(a1);
         acceptorParticles[i].push_back(a2);
         acceptorParticles[i].push_back(a3);
-        for (int j = 0; j < numAcceptorParameters; j++)
-            acceptorParamArray[i][j] = parameters[j];
     }
     NonbondedMethod nonbondedMethod = CalcCustomHbondForceKernel::NonbondedMethod(force.getNonbondedMethod());
     nonbondedCutoff = force.getCutoffDistance();
@@ -1750,7 +1719,6 @@ void ReferenceCalcCustomHbondForceKernel::copyParametersToContext(ContextImpl& c
 }
 
 ReferenceCalcCustomCentroidBondForceKernel::~ReferenceCalcCustomCentroidBondForceKernel() {
-    disposeRealArray(bondParamArray, numBonds);
     if (ixn != NULL)
         delete ixn;
 }
@@ -1770,13 +1738,9 @@ void ReferenceCalcCustomCentroidBondForceKernel::initialize(const System& system
     numBonds = force.getNumBonds();
     vector<vector<int> > bondGroups(numBonds);
     int numBondParameters = force.getNumPerBondParameters();
-    bondParamArray = allocateRealArray(numBonds, numBondParameters);
-    for (int i = 0; i < numBonds; ++i) {
-        vector<double> parameters;
-        force.getBondParameters(i, bondGroups[i], parameters);
-        for (int j = 0; j < numBondParameters; j++)
-            bondParamArray[i][j] = parameters[j];
-    }
+    bondParamArray.resize(numBonds);
+    for (int i = 0; i < numBonds; ++i)
+        force.getBondParameters(i, bondGroups[i], bondParamArray[i]);
 
     // Create custom functions for the tabulated functions.
 
@@ -1784,12 +1748,15 @@ void ReferenceCalcCustomCentroidBondForceKernel::initialize(const System& system
     for (int i = 0; i < force.getNumFunctions(); i++)
         functions[force.getTabulatedFunctionName(i)] = createReferenceTabulatedFunction(force.getTabulatedFunction(i));
 
+    // Create implementations of point functions.
+
+    functions["pointdistance"] = new ReferencePointDistanceFunction(usePeriodic, &boxVectors);
+    functions["pointangle"] = new ReferencePointAngleFunction(usePeriodic, &boxVectors);
+    functions["pointdihedral"] = new ReferencePointDihedralFunction(usePeriodic, &boxVectors);
+
     // Parse the expression and create the object used to calculate the interaction.
 
-    map<string, vector<int> > distances;
-    map<string, vector<int> > angles;
-    map<string, vector<int> > dihedrals;
-    Lepton::ParsedExpression energyExpression = CustomCentroidBondForceImpl::prepareExpression(force, functions, distances, angles, dihedrals);
+    Lepton::ParsedExpression energyExpression = CustomCentroidBondForceImpl::prepareExpression(force, functions);
     vector<string> bondParameterNames;
     for (int i = 0; i < numBondParameters; i++)
         bondParameterNames.push_back(force.getPerBondParameterName(i));
@@ -1801,7 +1768,7 @@ void ReferenceCalcCustomCentroidBondForceKernel::initialize(const System& system
         energyParamDerivNames.push_back(param);
         energyParamDerivExpressions.push_back(energyExpression.differentiate(param).createCompiledExpression());
     }
-    ixn = new ReferenceCustomCentroidBondIxn(force.getNumGroupsPerBond(), groupAtoms, normalizedWeights, bondGroups, energyExpression, bondParameterNames, distances, angles, dihedrals, energyParamDerivExpressions);
+    ixn = new ReferenceCustomCentroidBondIxn(force.getNumGroupsPerBond(), groupAtoms, normalizedWeights, bondGroups, energyExpression, bondParameterNames, energyParamDerivExpressions);
 
     // Delete the custom functions.
 
@@ -1816,8 +1783,10 @@ double ReferenceCalcCustomCentroidBondForceKernel::execute(ContextImpl& context,
     map<string, double> globalParameters;
     for (auto& name : globalParameterNames)
         globalParameters[name] = context.getParameter(name);
-    if (usePeriodic)
-        ixn->setPeriodic(extractBoxVectors(context));
+    if (usePeriodic) {
+        boxVectors = extractBoxVectors(context);
+        ixn->setPeriodic(boxVectors);
+    }
     vector<double> energyParamDerivValues(energyParamDerivNames.size()+1, 0.0);
     ixn->calculatePairIxn(posData, bondParamArray, globalParameters, forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
     map<string, double>& energyParamDerivs = extractEnergyParameterDerivatives(context);
@@ -1847,7 +1816,6 @@ void ReferenceCalcCustomCentroidBondForceKernel::copyParametersToContext(Context
 }
 
 ReferenceCalcCustomCompoundBondForceKernel::~ReferenceCalcCustomCompoundBondForceKernel() {
-    disposeRealArray(bondParamArray, numBonds);
     if (ixn != NULL)
         delete ixn;
 }
@@ -1860,13 +1828,9 @@ void ReferenceCalcCustomCompoundBondForceKernel::initialize(const System& system
     numBonds = force.getNumBonds();
     vector<vector<int> > bondParticles(numBonds);
     int numBondParameters = force.getNumPerBondParameters();
-    bondParamArray = allocateRealArray(numBonds, numBondParameters);
-    for (int i = 0; i < numBonds; ++i) {
-        vector<double> parameters;
-        force.getBondParameters(i, bondParticles[i], parameters);
-        for (int j = 0; j < numBondParameters; j++)
-            bondParamArray[i][j] = parameters[j];
-    }
+    bondParamArray.resize(numBonds);
+    for (int i = 0; i < numBonds; ++i)
+        force.getBondParameters(i, bondParticles[i], bondParamArray[i]);
 
     // Create custom functions for the tabulated functions.
 
@@ -1874,12 +1838,15 @@ void ReferenceCalcCustomCompoundBondForceKernel::initialize(const System& system
     for (int i = 0; i < force.getNumFunctions(); i++)
         functions[force.getTabulatedFunctionName(i)] = createReferenceTabulatedFunction(force.getTabulatedFunction(i));
 
+    // Create implementations of point functions.
+
+    functions["pointdistance"] = new ReferencePointDistanceFunction(usePeriodic, &boxVectors);
+    functions["pointangle"] = new ReferencePointAngleFunction(usePeriodic, &boxVectors);
+    functions["pointdihedral"] = new ReferencePointDihedralFunction(usePeriodic, &boxVectors);
+
     // Parse the expression and create the object used to calculate the interaction.
 
-    map<string, vector<int> > distances;
-    map<string, vector<int> > angles;
-    map<string, vector<int> > dihedrals;
-    Lepton::ParsedExpression energyExpression = CustomCompoundBondForceImpl::prepareExpression(force, functions, distances, angles, dihedrals);
+    Lepton::ParsedExpression energyExpression = CustomCompoundBondForceImpl::prepareExpression(force, functions);
     vector<string> bondParameterNames;
     for (int i = 0; i < numBondParameters; i++)
         bondParameterNames.push_back(force.getPerBondParameterName(i));
@@ -1891,7 +1858,7 @@ void ReferenceCalcCustomCompoundBondForceKernel::initialize(const System& system
         energyParamDerivNames.push_back(param);
         energyParamDerivExpressions.push_back(energyExpression.differentiate(param).createCompiledExpression());
     }
-    ixn = new ReferenceCustomCompoundBondIxn(force.getNumParticlesPerBond(), bondParticles, energyExpression, bondParameterNames, distances, angles, dihedrals, energyParamDerivExpressions);
+    ixn = new ReferenceCustomCompoundBondIxn(force.getNumParticlesPerBond(), bondParticles, energyExpression, bondParameterNames, energyParamDerivExpressions);
 
     // Delete the custom functions.
 
@@ -1906,8 +1873,10 @@ double ReferenceCalcCustomCompoundBondForceKernel::execute(ContextImpl& context,
     map<string, double> globalParameters;
     for (auto& name : globalParameterNames)
         globalParameters[name] = context.getParameter(name);
-    if (usePeriodic)
-        ixn->setPeriodic(extractBoxVectors(context));
+    if (usePeriodic) {
+        boxVectors = extractBoxVectors(context);
+        ixn->setPeriodic(boxVectors);
+    }
     vector<double> energyParamDerivValues(energyParamDerivNames.size()+1, 0.0);
     ixn->calculatePairIxn(posData, bondParamArray, globalParameters, forceData, includeEnergy ? &energy : NULL, &energyParamDerivValues[0]);
     map<string, double>& energyParamDerivs = extractEnergyParameterDerivatives(context);
@@ -1937,7 +1906,6 @@ void ReferenceCalcCustomCompoundBondForceKernel::copyParametersToContext(Context
 }
 
 ReferenceCalcCustomManyParticleForceKernel::~ReferenceCalcCustomManyParticleForceKernel() {
-    disposeRealArray(particleParamArray, numParticles);
     if (ixn != NULL)
         delete ixn;
 }
@@ -1947,14 +1915,10 @@ void ReferenceCalcCustomManyParticleForceKernel::initialize(const System& system
     // Build the arrays.
 
     numParticles = system.getNumParticles();
-    int numParticleParameters = force.getNumPerParticleParameters();
-    particleParamArray = allocateRealArray(numParticles, numParticleParameters);
+    particleParamArray.resize(numParticles);
     for (int i = 0; i < numParticles; ++i) {
-        vector<double> parameters;
         int type;
-        force.getParticleParameters(i, parameters, type);
-        for (int j = 0; j < numParticleParameters; j++)
-            particleParamArray[i][j] = parameters[j];
+        force.getParticleParameters(i, particleParamArray[i], type);
     }
     for (int i = 0; i < force.getNumGlobalParameters(); i++)
         globalParameterNames.push_back(force.getGlobalParameterName(i));
@@ -2055,6 +2019,47 @@ void ReferenceCalcCustomCVForceKernel::copyState(ContextImpl& context, ContextIm
         innerContext.setParameter(param.first, context.getParameter(param.first));
 }
 
+void ReferenceCalcCustomCVForceKernel::copyParametersToContext(ContextImpl& context, const CustomCVForce& force) {
+    ixn->updateTabulatedFunctions(force);
+}
+
+void ReferenceCalcRMSDForceKernel::initialize(const System& system, const RMSDForce& force) {
+    particles = force.getParticles();
+    if (particles.size() == 0)
+        for (int i = 0; i < system.getNumParticles(); i++)
+            particles.push_back(i);
+    referencePos = force.getReferencePositions();
+    Vec3 center;
+    for (int i : particles)
+        center += referencePos[i];
+    center /= particles.size();
+    for (Vec3& p : referencePos)
+        p -= center;
+}
+
+double ReferenceCalcRMSDForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
+    vector<Vec3>& posData = extractPositions(context);
+    vector<Vec3>& forceData = extractForces(context);
+    ReferenceRMSDForce rmsd(referencePos, particles);
+    return rmsd.calculateIxn(posData, forceData);
+}
+
+void ReferenceCalcRMSDForceKernel::copyParametersToContext(ContextImpl& context, const RMSDForce& force) {
+    if (referencePos.size() != force.getReferencePositions().size())
+        throw OpenMMException("updateParametersInContext: The number of reference positions has changed");
+    particles = force.getParticles();
+    if (particles.size() == 0)
+        for (int i = 0; i < referencePos.size(); i++)
+            particles.push_back(i);
+    referencePos = force.getReferencePositions();
+    Vec3 center;
+    for (int i : particles)
+        center += referencePos[i];
+    center /= particles.size();
+    for (Vec3& p : referencePos)
+        p -= center;
+}
+
 ReferenceIntegrateVerletStepKernel::~ReferenceIntegrateVerletStepKernel() {
     if (dynamics)
         delete dynamics;
@@ -2088,6 +2093,268 @@ void ReferenceIntegrateVerletStepKernel::execute(ContextImpl& context, const Ver
 
 double ReferenceIntegrateVerletStepKernel::computeKineticEnergy(ContextImpl& context, const VerletIntegrator& integrator) {
     return computeShiftedKineticEnergy(context, masses, 0.5*integrator.getStepSize());
+}
+
+ReferenceIntegrateNoseHooverStepKernel::~ReferenceIntegrateNoseHooverStepKernel() {
+    if (chainPropagator)
+        delete chainPropagator;
+    if (dynamics)
+        delete dynamics;
+}
+
+void ReferenceIntegrateNoseHooverStepKernel::initialize(const System& system, const NoseHooverIntegrator& integrator) {
+    int numParticles = system.getNumParticles();
+    masses.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        masses[i] = system.getParticleMass(i);
+    this->chainPropagator = new ReferenceNoseHooverChain();
+}
+
+void ReferenceIntegrateNoseHooverStepKernel::execute(ContextImpl& context, const NoseHooverIntegrator& integrator, bool &forcesAreValid) {
+    double stepSize = integrator.getStepSize();
+    vector<Vec3>& posData = extractPositions(context);
+    vector<Vec3>& velData = extractVelocities(context);
+    vector<Vec3>& forceData = extractForces(context);
+    if (dynamics == 0 || stepSize != prevStepSize) {
+        // Recreate the computation objects with the new parameters.
+        if (dynamics)
+            delete dynamics;
+        dynamics = new ReferenceNoseHooverDynamics(context.getSystem().getNumParticles(), stepSize);
+        dynamics->setReferenceConstraintAlgorithm(&extractConstraints(context));
+        prevStepSize = stepSize;
+    }
+    dynamics->step1(context, context.getSystem(), posData, velData, forceData, masses, integrator.getConstraintTolerance(), forcesAreValid,
+                     integrator.getAllThermostatedIndividualParticles(), integrator.getAllThermostatedPairs(), integrator.getMaximumPairDistance());
+    int numChains = integrator.getNumThermostats();
+    for(int chain = 0; chain < numChains; ++chain) {
+        const auto &thermostatChain = integrator.getThermostat(chain);
+        std::pair<double, double> KEs = computeMaskedKineticEnergy(context, thermostatChain, true);
+        std::pair<double, double> scaleFactors = propagateChain(context, thermostatChain, KEs, stepSize);
+        scaleVelocities(context, thermostatChain, scaleFactors);
+    }
+    dynamics->step2(context, context.getSystem(), posData, velData, forceData, masses, integrator.getConstraintTolerance(), forcesAreValid,
+                     integrator.getAllThermostatedIndividualParticles(), integrator.getAllThermostatedPairs(), integrator.getMaximumPairDistance());
+    data.time += stepSize;
+    data.stepCount++;
+}
+
+double ReferenceIntegrateNoseHooverStepKernel::computeKineticEnergy(ContextImpl& context, const NoseHooverIntegrator& integrator) {
+    return computeShiftedKineticEnergy(context, masses, 0);
+}
+
+std::pair<double, double> ReferenceIntegrateNoseHooverStepKernel::propagateChain(ContextImpl& context, const NoseHooverChain &nhc,
+                                                                                     std::pair<double, double> kineticEnergy, double timeStep) {
+    double absKE = kineticEnergy.first;
+    double relKE = kineticEnergy.second;
+    if (absKE < 1e-8) return {1.0, 1.0};  // (catches the problem of zero velocities in the first dynamics step, where we have nothing to scale)
+    // Get the variables describing the NHC
+    int chainLength = nhc.getChainLength();
+    int chainID = nhc.getChainID();
+    int numDOFs = nhc.getNumDegreesOfFreedom();
+    int numMTS = nhc.getNumMultiTimeSteps();
+
+    int nAtoms = nhc.getThermostatedAtoms().size();
+    double absScale = 0;
+    if (nAtoms) {
+        if (chainPositions.size() < 2*chainID+1){
+            chainPositions.resize(2*chainID+1);
+        }
+        if (chainVelocities.size() < 2*chainID+1){
+            chainVelocities.resize(2*chainID+1);
+        }
+        auto& positions = chainPositions.at(2*chainID);
+        auto& velocities = chainVelocities.at(2*chainID);
+        if (positions.size() < chainLength){
+            positions.resize(chainLength, 0);
+        }
+        if (velocities.size() < chainLength){
+            velocities.resize(chainLength, 0);
+        }
+        double temperature = nhc.getTemperature();
+        double collisionFrequency = nhc.getCollisionFrequency();
+        absScale = chainPropagator->propagate(absKE, velocities, positions, numDOFs,
+                                              temperature, collisionFrequency, timeStep,
+                                              numMTS, nhc.getYoshidaSuzukiWeights());
+    }
+    double relScale = 0;
+    int nPairs = nhc.getThermostatedPairs().size();
+    if (nPairs) {
+        if (chainPositions.size() < 2*chainID+2){
+            chainPositions.resize(2*chainID+2);
+        }
+        if (chainVelocities.size() < 2*chainID+2){
+            chainVelocities.resize(2*chainID+2);
+        }
+        auto& positions = chainPositions.at(2*chainID+1);
+        auto& velocities = chainVelocities.at(2*chainID+1);
+        if (positions.size() < chainLength){
+            positions.resize(chainLength, 0);
+        }
+        if (velocities.size() < chainLength){
+            velocities.resize(chainLength, 0);
+        }
+        double temperature = nhc.getRelativeTemperature();
+        double collisionFrequency = nhc.getRelativeCollisionFrequency();
+        relScale = chainPropagator->propagate(relKE, velocities, positions, 3*nPairs,
+                                              temperature, collisionFrequency, timeStep,
+                                              numMTS, nhc.getYoshidaSuzukiWeights());
+    }
+    return {absScale, relScale};
+}
+
+double ReferenceIntegrateNoseHooverStepKernel::computeHeatBathEnergy(ContextImpl& context, const NoseHooverChain &nhc) {
+    double potentialEnergy = 0;
+    double kineticEnergy = 0;
+    int chainLength = nhc.getChainLength();
+    int chainID = nhc.getChainID();
+    int nAtoms = nhc.getThermostatedAtoms().size();
+    int nPairs = nhc.getThermostatedPairs().size();
+    if (nAtoms) {
+        double temperature = nhc.getTemperature();
+        double collisionFrequency = nhc.getCollisionFrequency();
+        double kT = temperature * BOLTZ;
+        int numDOFs = nhc.getNumDegreesOfFreedom();
+        for(int i = 0; i < chainLength; ++i) {
+            double prefac = i ? 1 : numDOFs;
+            double mass = prefac * kT / (collisionFrequency * collisionFrequency);
+            double velocity = chainVelocities[2*chainID][i];
+            // The kinetic energy of this bead
+            kineticEnergy += 0.5 * mass * velocity * velocity;
+            // The potential energy of this bead
+            double position = chainPositions[2*chainID][i];
+            potentialEnergy += prefac * kT * position;
+        }
+    }
+    if (nPairs) {
+        double temperature = nhc.getRelativeTemperature();
+        double collisionFrequency = nhc.getRelativeCollisionFrequency();
+        double kT = temperature * BOLTZ;
+        int numDOFs = 3 * nPairs;
+        for(int i = 0; i < chainLength; ++i) {
+            double prefac = i ? 1 : numDOFs;
+            double mass = prefac * kT / (collisionFrequency * collisionFrequency);
+            double velocity = chainVelocities[2*chainID+1][i];
+            // The kinetic energy of this bead
+            kineticEnergy += 0.5 * mass * velocity * velocity;
+            // The potential energy of this bead
+            double position = chainPositions[2*chainID+1][i];
+            potentialEnergy += prefac * kT * position;
+        }
+    }
+    return kineticEnergy + potentialEnergy;
+}
+
+std::pair<double, double> ReferenceIntegrateNoseHooverStepKernel::computeMaskedKineticEnergy(ContextImpl& context,
+                                                                const NoseHooverChain &noseHooverChain, bool downloadValue) {
+    const std::vector<int>& atomsList = noseHooverChain.getThermostatedAtoms();
+    const std::vector<std::pair<int,int>>& pairsList = noseHooverChain.getThermostatedPairs();
+    std::vector<Vec3>& velocities = extractVelocities(context);
+    const System& system = context.getSystem();
+    int numParticles = system.getNumParticles();
+    std::vector<double> masses(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        masses[i] = system.getParticleMass(i);
+
+    double comKE = 0;
+    double relKE = 0;
+    // kinetic energy of individual atoms
+    for (const auto &m: atomsList){
+        comKE += 0.5 * masses[m] * velocities[m].dot(velocities[m]);
+    }
+    // center of mass kinetic energy of pairs
+    for (const auto &p: pairsList){
+        double m1 = masses[p.first];
+        double m2 = masses[p.second];
+        Vec3 v1 = velocities[p.first];
+        Vec3 v2 = velocities[p.second];
+        double invMass = 1.0 / (m1 + m2);
+        double redMass = m1 * m2 * invMass;
+        double fracM1 = m1 * invMass;
+        double fracM2 = m2 * invMass;
+        Vec3 comVelocity = fracM1 * v1 + fracM2 * v2;
+        Vec3 relVelocity = v2 - v1;
+
+        comKE += 0.5 * (m1 + m2) * comVelocity.dot(comVelocity);
+        relKE += 0.5 * redMass * relVelocity.dot(relVelocity);
+    }
+    // We ignore the downloadValue argument here and always return the correct value
+    return {comKE, relKE};
+}
+
+
+void ReferenceIntegrateNoseHooverStepKernel::scaleVelocities(ContextImpl& context, const NoseHooverChain &noseHooverChain, std::pair<double, double> scaleFactors) {
+    const auto& atoms = noseHooverChain.getThermostatedAtoms();
+    const auto& pairs = noseHooverChain.getThermostatedPairs();
+    std::vector<Vec3>& velocities = extractVelocities(context);
+    double absScale = scaleFactors.first;
+    double relScale = scaleFactors.second;
+
+    const System& system = context.getSystem();
+    int numParticles = system.getNumParticles();
+    std::vector<double> masses(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        masses[i] = system.getParticleMass(i);
+    // scale absolute velocities
+    for (const auto &a: atoms){
+        velocities[a] *= absScale;
+    }
+    // scale relative velocities and absolute center of mass velocities for each pair
+    for (const auto &p: pairs){
+        int p1 = p.first;
+        int p2 = p.second;
+        double m1 = masses[p.first];
+        double m2 = masses[p.second];
+        Vec3 v1 = velocities[p.first];
+        Vec3 v2 = velocities[p.second];
+        double invMass = 1.0 / (m1 + m2);
+        double fracM1 = m1 * invMass;
+        double fracM2 = m2 * invMass;
+        Vec3 comVelocity = fracM1 * v1 + fracM2 * v2;
+        Vec3 relVelocity = v2 - v1;
+        velocities[p1] = absScale * comVelocity - relScale * relVelocity * fracM2;
+        velocities[p2] = absScale * comVelocity + relScale * relVelocity * fracM1;
+    }
+}
+
+void ReferenceIntegrateNoseHooverStepKernel::createCheckpoint(ContextImpl& context, ostream& stream) const {
+    size_t numChains = chainPositions.size();
+    assert(numChains == chainVelocities.size());
+    stream.write((char*) &numChains, sizeof(size_t));
+    for (size_t i=0; i<numChains; i++){
+        auto & noseHooverPositions = chainPositions.at(i);
+        auto & noseHooverVelocities = chainVelocities.at(i);
+        size_t numBeads = noseHooverPositions.size();
+        assert(numBeads == noseHooverVelocities.size());
+        stream.write((char*) &numBeads, sizeof(size_t));
+        stream.write((char*) noseHooverPositions.data(), sizeof(double)*numBeads);
+        stream.write((char*) noseHooverVelocities.data(), sizeof(double)*numBeads);
+    }
+}
+
+void ReferenceIntegrateNoseHooverStepKernel::loadCheckpoint(ContextImpl& context, istream& stream) {
+    size_t numChains, numBeads;
+    stream.read((char*) &numChains, sizeof(size_t));
+    chainPositions.clear();
+    chainVelocities.clear();
+    for (size_t i=0; i<numChains; i++){
+        stream.read((char*) &numBeads, sizeof(size_t));
+        std::vector<double> noseHooverPositions(numBeads);
+        std::vector<double> noseHooverVelocities(numBeads);
+        stream.read((char*) &noseHooverPositions[0], sizeof(double)*numBeads);
+        stream.read((char*) &noseHooverVelocities[0], sizeof(double)*numBeads);
+        chainPositions.push_back(noseHooverPositions);
+        chainVelocities.push_back(noseHooverVelocities);
+    }
+}
+
+void ReferenceIntegrateNoseHooverStepKernel::getChainStates(ContextImpl& context, vector<vector<double> >& positions, vector<vector<double> >& velocities) const {
+    positions = chainPositions;
+    velocities = chainVelocities;
+}
+
+void ReferenceIntegrateNoseHooverStepKernel::setChainStates(ContextImpl& context, const vector<vector<double> >& positions, const vector<vector<double> >& velocities) {
+    chainPositions = positions;
+    chainVelocities = velocities;
 }
 
 ReferenceIntegrateLangevinStepKernel::~ReferenceIntegrateLangevinStepKernel() {
@@ -2132,6 +2399,49 @@ void ReferenceIntegrateLangevinStepKernel::execute(ContextImpl& context, const L
 
 double ReferenceIntegrateLangevinStepKernel::computeKineticEnergy(ContextImpl& context, const LangevinIntegrator& integrator) {
     return computeShiftedKineticEnergy(context, masses, 0.5*integrator.getStepSize());
+}
+
+ReferenceIntegrateLangevinMiddleStepKernel::~ReferenceIntegrateLangevinMiddleStepKernel() {
+    if (dynamics)
+        delete dynamics;
+}
+
+void ReferenceIntegrateLangevinMiddleStepKernel::initialize(const System& system, const LangevinMiddleIntegrator& integrator) {
+    int numParticles = system.getNumParticles();
+    masses.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        masses[i] = system.getParticleMass(i);
+    SimTKOpenMMUtilities::setRandomNumberSeed((unsigned int) integrator.getRandomNumberSeed());
+}
+
+void ReferenceIntegrateLangevinMiddleStepKernel::execute(ContextImpl& context, const LangevinMiddleIntegrator& integrator) {
+    double temperature = integrator.getTemperature();
+    double friction = integrator.getFriction();
+    double stepSize = integrator.getStepSize();
+    vector<Vec3>& posData = extractPositions(context);
+    vector<Vec3>& velData = extractVelocities(context);
+    if (dynamics == 0 || temperature != prevTemp || friction != prevFriction || stepSize != prevStepSize) {
+        // Recreate the computation objects with the new parameters.
+        
+        if (dynamics)
+            delete dynamics;
+        dynamics = new ReferenceLangevinMiddleDynamics(
+                context.getSystem().getNumParticles(), 
+                stepSize, 
+                friction, 
+                temperature);
+        dynamics->setReferenceConstraintAlgorithm(&extractConstraints(context));
+        prevTemp = temperature;
+        prevFriction = friction;
+        prevStepSize = stepSize;
+    }
+    dynamics->update(context, posData, velData, masses, integrator.getConstraintTolerance());
+    data.time += stepSize;
+    data.stepCount++;
+}
+
+double ReferenceIntegrateLangevinMiddleStepKernel::computeKineticEnergy(ContextImpl& context, const LangevinMiddleIntegrator& integrator) {
+    return computeShiftedKineticEnergy(context, masses, 0.0);
 }
 
 ReferenceIntegrateBrownianStepKernel::~ReferenceIntegrateBrownianStepKernel() {
@@ -2210,6 +2520,8 @@ double ReferenceIntegrateVariableLangevinStepKernel::execute(ContextImpl& contex
         prevErrorTol = errorTol;
     }
     double maxStepSize = maxTime-data.time;
+    if (integrator.getMaximumStepSize() > 0)
+        maxStepSize = min(integrator.getMaximumStepSize(), maxStepSize);
     dynamics->update(context.getSystem(), posData, velData, forceData, masses, maxStepSize, integrator.getConstraintTolerance());
     data.time += dynamics->getDeltaT();
     if (dynamics->getDeltaT() == maxStepSize)
@@ -2249,6 +2561,8 @@ double ReferenceIntegrateVariableVerletStepKernel::execute(ContextImpl& context,
         prevErrorTol = errorTol;
     }
     double maxStepSize = maxTime-data.time;
+    if (integrator.getMaximumStepSize() > 0)
+        maxStepSize = min(integrator.getMaximumStepSize(), maxStepSize);
     dynamics->update(context.getSystem(), posData, velData, forceData, masses, maxStepSize, integrator.getConstraintTolerance());
     data.time += dynamics->getDeltaT();
     if (dynamics->getDeltaT() == maxStepSize)

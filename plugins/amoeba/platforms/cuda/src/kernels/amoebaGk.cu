@@ -56,6 +56,10 @@ __device__ void computeBornSumOneInteraction(AtomData1& atom1, AtomData1& atom2)
     real r2 = dot(delta, delta);
     real r = SQRT(r2);
     float sk = atom2.scaledRadius;
+
+    if (atom1.radius > r + sk)
+        return; // No descreening due to atom1 engulfing atom2.
+
     real sk2 = sk*sk;
     if (atom1.radius+r < sk) {
         real lik = atom1.radius;
@@ -185,7 +189,7 @@ __device__ void computeOneInteractionT2(AtomData2& atom1, volatile AtomData2& at
 __device__ void computeOneInteractionB1B2(AtomData2& atom1, volatile AtomData2& atom2);
 
 inline __device__ void loadAtomData2(AtomData2& data, int atom, const real4* __restrict__ posq, const real* __restrict__ labFrameDipole,
-        const real* __restrict__ labFrameQuadrupole, const real* __restrict__ inducedDipole, const real* __restrict__ inducedDipolePolar, const real* __restrict__ bornRadius) {
+        const real* __restrict__ labFrameQuadrupole, const real3* __restrict__ inducedDipole, const real3* __restrict__ inducedDipolePolar, const real* __restrict__ bornRadius) {
     real4 atomPosq = posq[atom];
     data.pos = trimTo3(atomPosq);
     data.q = atomPosq.w;
@@ -198,12 +202,8 @@ inline __device__ void loadAtomData2(AtomData2& data, int atom, const real4* __r
     data.quadrupoleYY = labFrameQuadrupole[atom*5+3];
     data.quadrupoleYZ = labFrameQuadrupole[atom*5+4];
     data.quadrupoleZZ = -(data.quadrupoleXX+data.quadrupoleYY);
-    data.inducedDipole.x = inducedDipole[atom*3];
-    data.inducedDipole.y = inducedDipole[atom*3+1];
-    data.inducedDipole.z = inducedDipole[atom*3+2];
-    data.inducedDipolePolar.x = inducedDipolePolar[atom*3];
-    data.inducedDipolePolar.y = inducedDipolePolar[atom*3+1];
-    data.inducedDipolePolar.z = inducedDipolePolar[atom*3+2];
+    data.inducedDipole = inducedDipole[atom];
+    data.inducedDipolePolar = inducedDipolePolar[atom];
     data.bornRadius = bornRadius[atom];
 }
 
@@ -218,7 +218,7 @@ inline __device__ void zeroAtomData(AtomData2& data) {
 extern "C" __global__ void computeGKForces(
         unsigned long long* __restrict__ forceBuffers, unsigned long long* __restrict__ torqueBuffers, mixed* __restrict__ energyBuffer,
         const real4* __restrict__ posq, unsigned int startTileIndex, unsigned int numTileIndices, const real* __restrict__ labFrameDipole,
-        const real* __restrict__ labFrameQuadrupole, const real* __restrict__ inducedDipole, const real* __restrict__ inducedDipolePolar,
+        const real* __restrict__ labFrameQuadrupole, const real3* __restrict__ inducedDipole, const real3* __restrict__ inducedDipolePolar,
         const real* __restrict__ bornRadii, unsigned long long* __restrict__ bornForce) {
     unsigned int totalWarps = (blockDim.x*gridDim.x)/TILE_SIZE;
     unsigned int warp = (blockIdx.x*blockDim.x+threadIdx.x)/TILE_SIZE;
@@ -423,6 +423,9 @@ __device__ void computeBornChainRuleInteraction(AtomData3& atom1, AtomData3& ato
     real r = SQRT(r2);
     real de = 0;
 
+    if (atom1.radius > r + sk)
+        return; // No descreening due to atom1 engulfing atom2.
+
     if (atom1.radius+r < sk) {
         real uik = sk-r;
         real uik4 = uik*uik;
@@ -558,8 +561,8 @@ __device__ void computeOneEDiffInteractionT1(AtomData4& atom1, volatile AtomData
 __device__ void computeOneEDiffInteractionT3(AtomData4& atom1, volatile AtomData4& atom2, float dScale, float pScale, real3& outputForce);
 
 inline __device__ void loadAtomData4(AtomData4& data, int atom, const real4* __restrict__ posq, const real* __restrict__ labFrameDipole,
-        const real* __restrict__ labFrameQuadrupole, const real* __restrict__ inducedDipole, const real* __restrict__ inducedDipolePolar,
-        const real* __restrict__ inducedDipoleS, const real* __restrict__ inducedDipolePolarS, const float2* __restrict__ dampingAndThole) {
+        const real* __restrict__ labFrameQuadrupole, const real3* __restrict__ inducedDipole, const real3* __restrict__ inducedDipolePolar,
+        const real3* __restrict__ inducedDipoleS, const real3* __restrict__ inducedDipolePolarS, const float2* __restrict__ dampingAndThole) {
     real4 atomPosq = posq[atom];
     data.pos = make_real3(atomPosq.x, atomPosq.y, atomPosq.z);
     data.q = atomPosq.w;
@@ -572,18 +575,10 @@ inline __device__ void loadAtomData4(AtomData4& data, int atom, const real4* __r
     data.quadrupoleYY = labFrameQuadrupole[atom*5+3];
     data.quadrupoleYZ = labFrameQuadrupole[atom*5+4];
     data.quadrupoleZZ = -(data.quadrupoleXX+data.quadrupoleYY);
-    data.inducedDipole.x = inducedDipole[atom*3];
-    data.inducedDipole.y = inducedDipole[atom*3+1];
-    data.inducedDipole.z = inducedDipole[atom*3+2];
-    data.inducedDipolePolar.x = inducedDipolePolar[atom*3];
-    data.inducedDipolePolar.y = inducedDipolePolar[atom*3+1];
-    data.inducedDipolePolar.z = inducedDipolePolar[atom*3+2];
-    data.inducedDipoleS.x = inducedDipoleS[atom*3];
-    data.inducedDipoleS.y = inducedDipoleS[atom*3+1];
-    data.inducedDipoleS.z = inducedDipoleS[atom*3+2];
-    data.inducedDipolePolarS.x = inducedDipolePolarS[atom*3];
-    data.inducedDipolePolarS.y = inducedDipolePolarS[atom*3+1];
-    data.inducedDipolePolarS.z = inducedDipolePolarS[atom*3+2];
+    data.inducedDipole = inducedDipole[atom];
+    data.inducedDipolePolar = inducedDipolePolar[atom];
+    data.inducedDipoleS = inducedDipoleS[atom];
+    data.inducedDipolePolarS = inducedDipolePolarS[atom];
     float2 temp = dampingAndThole[atom];
     data.damp = temp.x;
     data.thole = temp.y;
@@ -607,9 +602,9 @@ __device__ float computePScaleFactor(uint2 covalent, unsigned int polarizationGr
 extern "C" __global__ void computeEDiffForce(
         unsigned long long* __restrict__ forceBuffers, unsigned long long* __restrict__ torqueBuffers, mixed* __restrict__ energyBuffer,
         const real4* __restrict__ posq, const uint2* __restrict__ covalentFlags, const unsigned int* __restrict__ polarizationGroupFlags,
-        const ushort2* __restrict__ exclusionTiles, unsigned int startTileIndex, unsigned int numTileIndices,
-        const real* __restrict__ labFrameDipole, const real* __restrict__ labFrameQuadrupole, const real* __restrict__ inducedDipole,
-        const real* __restrict__ inducedDipolePolar, const real* __restrict__ inducedDipoleS, const real* __restrict__ inducedDipolePolarS,
+        const int2* __restrict__ exclusionTiles, unsigned int startTileIndex, unsigned int numTileIndices,
+        const real* __restrict__ labFrameDipole, const real* __restrict__ labFrameQuadrupole, const real3* __restrict__ inducedDipole,
+        const real3* __restrict__ inducedDipolePolar, const real3* __restrict__ inducedDipoleS, const real3* __restrict__ inducedDipolePolarS,
         const float2* __restrict__ dampingAndThole) {
     const unsigned int totalWarps = (blockDim.x*gridDim.x)/TILE_SIZE;
     const unsigned int warp = (blockIdx.x*blockDim.x+threadIdx.x)/TILE_SIZE;
@@ -623,7 +618,7 @@ extern "C" __global__ void computeEDiffForce(
     const unsigned int firstExclusionTile = FIRST_EXCLUSION_TILE+warp*(LAST_EXCLUSION_TILE-FIRST_EXCLUSION_TILE)/totalWarps;
     const unsigned int lastExclusionTile = FIRST_EXCLUSION_TILE+(warp+1)*(LAST_EXCLUSION_TILE-FIRST_EXCLUSION_TILE)/totalWarps;
     for (int pos = firstExclusionTile; pos < lastExclusionTile; pos++) {
-        const ushort2 tileIndices = exclusionTiles[pos];
+        const int2 tileIndices = exclusionTiles[pos];
         const unsigned int x = tileIndices.x;
         const unsigned int y = tileIndices.y;
         AtomData4 data;
@@ -778,7 +773,7 @@ extern "C" __global__ void computeEDiffForce(
 
         while (skipTiles[tbx+TILE_SIZE-1] < pos) {
             if (skipBase+tgx < NUM_TILES_WITH_EXCLUSIONS) {
-                ushort2 tile = exclusionTiles[skipBase+tgx];
+                int2 tile = exclusionTiles[skipBase+tgx];
                 skipTiles[threadIdx.x] = tile.x + tile.y*NUM_BLOCKS - tile.y*(tile.y+1)/2;
             }
             else

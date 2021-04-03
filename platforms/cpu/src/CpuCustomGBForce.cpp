@@ -1,5 +1,5 @@
 
-/* Portions copyright (c) 2009-2017 Stanford University and Simbios.
+/* Portions copyright (c) 2009-2018 Stanford University and Simbios.
  * Contributors: Peter Eastman
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -28,7 +28,6 @@
 #include "SimTKOpenMMUtilities.h"
 #include "ReferenceForce.h"
 #include "CpuCustomGBForce.h"
-#include "openmm/internal/gmx_atomic.h"
 
 using namespace OpenMM;
 using namespace std;
@@ -178,26 +177,24 @@ void CpuCustomGBForce::setPeriodic(Vec3& boxSize) {
     periodicBoxSize[2] = boxSize[2];
   }
 
-void CpuCustomGBForce::calculateIxn(int numberOfAtoms, float* posq, double** atomParameters,
+void CpuCustomGBForce::calculateIxn(int numberOfAtoms, float* posq, vector<vector<double> >& atomParameters,
                                            map<string, double>& globalParameters, vector<AlignedArray<float> >& threadForce,
                                            bool includeForce, bool includeEnergy, double& totalEnergy, double* energyParamDerivs) {
     // Record the parameters for the threads.
     
     this->numberOfAtoms = numberOfAtoms;
     this->posq = posq;
-    this->atomParameters = atomParameters;
+    this->atomParameters = &atomParameters[0];
     this->globalParameters = &globalParameters;
     this->threadForce = &threadForce;
     this->includeForce = includeForce;
     this->includeEnergy = includeEnergy;
     threadEnergy.resize(threads.getNumThreads());
-    gmx_atomic_t counter;
-    this->atomicCounter = &counter;
 
     // Calculate the first computed value.
 
     auto task = [&] (ThreadPool& threads, int threadIndex) { threadComputeForce(threads, threadIndex); };
-    gmx_atomic_set(&counter, 0);
+    atomicCounter = 0;
     threads.execute(task);
     threads.waitForThreads();
 
@@ -217,7 +214,7 @@ void CpuCustomGBForce::calculateIxn(int numberOfAtoms, float* posq, double** ato
     // Calculate the energy terms.
 
     for (int i = 0; i < (int) threadData[0]->energyExpressions.size(); i++) {
-        gmx_atomic_set(&counter, 0);
+        atomicCounter = 0;
         threads.execute(task);
         threads.waitForThreads();
     }
@@ -229,7 +226,7 @@ void CpuCustomGBForce::calculateIxn(int numberOfAtoms, float* posq, double** ato
     
     // Apply the chain rule to evaluate forces.
 
-    gmx_atomic_set(&counter, 0);
+    atomicCounter = 0;
     threads.resumeThreads();
     threads.waitForThreads();
 
@@ -249,7 +246,6 @@ void CpuCustomGBForce::calculateIxn(int numberOfAtoms, float* posq, double** ato
 void CpuCustomGBForce::threadComputeForce(ThreadPool& threads, int threadIndex) {
     // Compute this thread's subset of interactions.
 
-    int numThreads = threads.getNumThreads();
     threadEnergy[threadIndex] = 0;
     double& energy = threadEnergy[threadIndex];
     float* forces = &(*threadForce)[threadIndex][0];
@@ -352,7 +348,7 @@ void CpuCustomGBForce::threadComputeForce(ThreadPool& threads, int threadIndex) 
     calculateChainRuleForces(data, numberOfAtoms, posq, atomParameters, forces, boxSize, invBoxSize);
 }
 
-void CpuCustomGBForce::calculateParticlePairValue(int index, ThreadData& data, int numAtoms, float* posq, double** atomParameters,
+void CpuCustomGBForce::calculateParticlePairValue(int index, ThreadData& data, int numAtoms, float* posq, vector<double>* atomParameters,
         bool useExclusions, const fvec4& boxSize, const fvec4& invBoxSize) {
     for (int i = 0; i < numAtoms; i++)
         values[index][i] = 0.0f;
@@ -361,13 +357,13 @@ void CpuCustomGBForce::calculateParticlePairValue(int index, ThreadData& data, i
         // Loop over all pairs in the neighbor list.
 
         while (true) {
-            int blockIndex = gmx_atomic_fetch_add(reinterpret_cast<gmx_atomic_t*>(atomicCounter), 1);
+            int blockIndex = atomicCounter++;
             if (blockIndex >= neighborList->getNumBlocks())
                 break;
             const int blockSize = neighborList->getBlockSize();
-            const int* blockAtom = &neighborList->getSortedAtoms()[blockSize*blockIndex];
+            const int32_t* blockAtom = &neighborList->getSortedAtoms()[blockSize*blockIndex];
             const vector<int>& neighbors = neighborList->getBlockNeighbors(blockIndex);
-            const vector<char>& blockExclusions = neighborList->getBlockExclusions(blockIndex);
+            const auto& blockExclusions = neighborList->getBlockExclusions(blockIndex);
             for (int i = 0; i < (int) neighbors.size(); i++) {
                 int first = neighbors[i];
                 for (int k = 0; k < blockSize; k++) {
@@ -386,7 +382,7 @@ void CpuCustomGBForce::calculateParticlePairValue(int index, ThreadData& data, i
         // Perform an O(N^2) loop over all atom pairs.
 
         while (true) {
-            int i = gmx_atomic_fetch_add(reinterpret_cast<gmx_atomic_t*>(atomicCounter), 1);
+            int i = atomicCounter++;
             if (i >= numAtoms)
                 break;
             for (int j = i+1; j < numAtoms; j++) {
@@ -399,7 +395,7 @@ void CpuCustomGBForce::calculateParticlePairValue(int index, ThreadData& data, i
     }
 }
 
-void CpuCustomGBForce::calculateOnePairValue(int index, int atom1, int atom2, ThreadData& data, float* posq, double** atomParameters,
+void CpuCustomGBForce::calculateOnePairValue(int index, int atom1, int atom2, ThreadData& data, float* posq, vector<double>* atomParameters,
         vector<float>& valueArray, const fvec4& boxSize, const fvec4& invBoxSize) {
     fvec4 deltaR;
     fvec4 pos1(posq+4*atom1);
@@ -426,7 +422,7 @@ void CpuCustomGBForce::calculateOnePairValue(int index, int atom1, int atom2, Th
 }
 
 void CpuCustomGBForce::calculateSingleParticleEnergyTerm(int index, ThreadData& data, int numAtoms, float* posq,
-        double** atomParameters, float* forces, double& totalEnergy) {
+        vector<double>* atomParameters, float* forces, double& totalEnergy) {
     for (int i = data.firstAtom; i < data.lastAtom; i++) {
         data.x = posq[4*i];
         data.y = posq[4*i+1];
@@ -450,19 +446,19 @@ void CpuCustomGBForce::calculateSingleParticleEnergyTerm(int index, ThreadData& 
     }
 }
 
-void CpuCustomGBForce::calculateParticlePairEnergyTerm(int index, ThreadData& data, int numAtoms, float* posq, double** atomParameters,
+void CpuCustomGBForce::calculateParticlePairEnergyTerm(int index, ThreadData& data, int numAtoms, float* posq, vector<double>* atomParameters,
         bool useExclusions, float* forces, double& totalEnergy, const fvec4& boxSize, const fvec4& invBoxSize) {
     if (cutoff) {
         // Loop over all pairs in the neighbor list.
 
         while (true) {
-            int blockIndex = gmx_atomic_fetch_add(reinterpret_cast<gmx_atomic_t*>(atomicCounter), 1);
+            int blockIndex = atomicCounter++;
             if (blockIndex >= neighborList->getNumBlocks())
                 break;
             const int blockSize = neighborList->getBlockSize();
-            const int* blockAtom = &neighborList->getSortedAtoms()[blockSize*blockIndex];
+            const int32_t* blockAtom = &neighborList->getSortedAtoms()[blockSize*blockIndex];
             const vector<int>& neighbors = neighborList->getBlockNeighbors(blockIndex);
-            const vector<char>& blockExclusions = neighborList->getBlockExclusions(blockIndex);
+            const auto& blockExclusions = neighborList->getBlockExclusions(blockIndex);
             for (int i = 0; i < (int) neighbors.size(); i++) {
                 int first = neighbors[i];
                 for (int k = 0; k < blockSize; k++) {
@@ -480,7 +476,7 @@ void CpuCustomGBForce::calculateParticlePairEnergyTerm(int index, ThreadData& da
         // Perform an O(N^2) loop over all atom pairs.
 
         while (true) {
-            int i = gmx_atomic_fetch_add(reinterpret_cast<gmx_atomic_t*>(atomicCounter), 1);
+            int i = atomicCounter++;
             if (i >= numAtoms)
                 break;
             for (int j = i+1; j < numAtoms; j++) {
@@ -492,7 +488,7 @@ void CpuCustomGBForce::calculateParticlePairEnergyTerm(int index, ThreadData& da
     }
 }
 
-void CpuCustomGBForce::calculateOnePairEnergyTerm(int index, int atom1, int atom2, ThreadData& data, float* posq, double** atomParameters,
+void CpuCustomGBForce::calculateOnePairEnergyTerm(int index, int atom1, int atom2, ThreadData& data, float* posq, vector<double>* atomParameters,
         float* forces, double& totalEnergy, const fvec4& boxSize, const fvec4& invBoxSize) {
     // Compute the displacement.
 
@@ -537,19 +533,19 @@ void CpuCustomGBForce::calculateOnePairEnergyTerm(int index, int atom1, int atom
         data.energyParamDerivs[i] += data.energyParamDerivExpressions[index][i].evaluate();
 }
 
-void CpuCustomGBForce::calculateChainRuleForces(ThreadData& data, int numAtoms, float* posq, double** atomParameters,
+void CpuCustomGBForce::calculateChainRuleForces(ThreadData& data, int numAtoms, float* posq, vector<double>* atomParameters,
         float* forces, const fvec4& boxSize, const fvec4& invBoxSize) {
     if (cutoff) {
         // Loop over all pairs in the neighbor list.
 
         while (true) {
-            int blockIndex = gmx_atomic_fetch_add(reinterpret_cast<gmx_atomic_t*>(atomicCounter), 1);
+            int blockIndex = atomicCounter++;
             if (blockIndex >= neighborList->getNumBlocks())
                 break;
             const int blockSize = neighborList->getBlockSize();
-            const int* blockAtom = &neighborList->getSortedAtoms()[blockSize*blockIndex];
+            const int32_t* blockAtom = &neighborList->getSortedAtoms()[blockSize*blockIndex];
             const vector<int>& neighbors = neighborList->getBlockNeighbors(blockIndex);
-            const vector<char>& blockExclusions = neighborList->getBlockExclusions(blockIndex);
+            const auto& blockExclusions = neighborList->getBlockExclusions(blockIndex);
             for (int i = 0; i < (int) neighbors.size(); i++) {
                 int first = neighbors[i];
                 for (int k = 0; k < blockSize; k++) {
@@ -567,7 +563,7 @@ void CpuCustomGBForce::calculateChainRuleForces(ThreadData& data, int numAtoms, 
         // Perform an O(N^2) loop over all atom pairs.
 
         while (true) {
-            int i = gmx_atomic_fetch_add(reinterpret_cast<gmx_atomic_t*>(atomicCounter), 1);
+            int i = atomicCounter++;
             if (i >= numAtoms)
                 break;
             for (int j = i+1; j < numAtoms; j++) {
@@ -614,7 +610,7 @@ void CpuCustomGBForce::calculateChainRuleForces(ThreadData& data, int numAtoms, 
                 data.energyParamDerivs[k] += dEdV[j][i]*dValuedParam[j][k][i];
 }
 
-void CpuCustomGBForce::calculateOnePairChainRule(int atom1, int atom2, ThreadData& data, float* posq, double** atomParameters,
+void CpuCustomGBForce::calculateOnePairChainRule(int atom1, int atom2, ThreadData& data, float* posq, vector<double>* atomParameters,
         float* forces, bool isExcluded, const fvec4& boxSize, const fvec4& invBoxSize) {
     // Compute the displacement.
 

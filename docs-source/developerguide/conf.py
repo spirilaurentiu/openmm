@@ -42,7 +42,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OpenMM Developer Guide'
-copyright = u'2011-2014, Stanford University'
+copyright = u'2011-2017, Stanford University'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -170,6 +170,8 @@ htmlhelp_basename = 'OpenMMDeveloperGuidedoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
+latex_engine = 'xelatex'
+latex_use_xindy = False
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
 'papersize': 'letterpaper,openany',

@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2017 Stanford University and the Authors.      *
+ * Portions copyright (c) 2008-2018 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -43,13 +43,13 @@
 using namespace OpenMM;
 using namespace std;
 
-#ifdef OPENMM_OPENCL_BUILDING_STATIC_LIBRARY
+#ifdef OPENMM_COMMON_BUILDING_STATIC_LIBRARY
 extern "C" void registerOpenCLPlatform() {
     if (OpenCLPlatform::isPlatformSupported())
         Platform::registerPlatform(new OpenCLPlatform());
 }
 #else
-extern "C" OPENMM_EXPORT_OPENCL void registerPlatforms() {
+extern "C" OPENMM_EXPORT_COMMON void registerPlatforms() {
     if (OpenCLPlatform::isPlatformSupported())
         Platform::registerPlatform(new OpenCLPlatform());
 }
@@ -83,10 +83,13 @@ OpenCLPlatform::OpenCLPlatform() {
     registerKernelFactory(CalcCustomCentroidBondForceKernel::Name(), factory);
     registerKernelFactory(CalcCustomCompoundBondForceKernel::Name(), factory);
     registerKernelFactory(CalcCustomCVForceKernel::Name(), factory);
+    registerKernelFactory(CalcRMSDForceKernel::Name(), factory);
     registerKernelFactory(CalcCustomManyParticleForceKernel::Name(), factory);
     registerKernelFactory(CalcGayBerneForceKernel::Name(), factory);
     registerKernelFactory(IntegrateVerletStepKernel::Name(), factory);
+    registerKernelFactory(IntegrateNoseHooverStepKernel::Name(), factory);
     registerKernelFactory(IntegrateLangevinStepKernel::Name(), factory);
+    registerKernelFactory(IntegrateLangevinMiddleStepKernel::Name(), factory);
     registerKernelFactory(IntegrateBrownianStepKernel::Name(), factory);
     registerKernelFactory(IntegrateVariableVerletStepKernel::Name(), factory);
     registerKernelFactory(IntegrateVariableLangevinStepKernel::Name(), factory);
@@ -140,6 +143,17 @@ bool OpenCLPlatform::isPlatformSupported() {
         return false;
 #endif
 
+    // Make sure at least one OpenCL implementation is installed.
+
+    std::vector<cl::Platform> platforms;
+    try {
+        cl::Platform::get(&platforms);
+        if (platforms.size() == 0)
+            return false;
+    }
+    catch (...) {
+        return false;
+    }
     return true;
 }
 

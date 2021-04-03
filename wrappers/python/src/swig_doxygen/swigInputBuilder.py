@@ -9,8 +9,6 @@ import time
 import getopt
 import re
 import xml.etree.ElementTree as etree
-from distutils.version import LooseVersion
-import copy
 
 try:
     from html.parser import HTMLParser
@@ -20,6 +18,9 @@ except ImportError:
 
 INDENT = "   "
 docTags = {'emphasis':'i', 'bold':'b', 'itemizedlist':'ul', 'listitem':'li', 'preformatted':'pre', 'computeroutput':'tt', 'subscript':'sub'}
+
+def is_method_abstract(argstring):
+    return argstring.split(")")[-1].find("=0") >= 0
 
 def striphtmltags(s):
     """Strip a couple html tags used inside docstrings in the C++ source
@@ -175,7 +176,6 @@ class SwigInputBuilder:
                  skipAdditionalMethods=[],
                  SWIG_VERSION='3.0.2'):
         self.nodeByID={}
-        self.SWIG_COMPACT_ARGUMENTS = LooseVersion(SWIG_VERSION) < LooseVersion('3.0.5')
 
         self.configModule = __import__(os.path.splitext(configFilename)[0])
 
@@ -315,6 +315,19 @@ class SwigInputBuilder:
             self.fOut.write(",\n         OpenMM::%s" % name)
         self.fOut.write(");\n\n")
 
+        for classNode in self._orderedClassNodes:
+            methodList=getClassMethodList(classNode, self.skipMethods)
+            for items in methodList:
+                (shortClassName, memberNode,
+                 shortMethDefinition, methName,
+                 isConstructors, isDestructor, templateType, templateName) = items
+                if shortMethDefinition == 'TabulatedFunction& getTabulatedFunction':
+                    self.fOut.write("%factory(OpenMM::TabulatedFunction& OpenMM::")
+                    self.fOut.write("%s::%s" % (shortClassName, methName))
+                    for name in sorted(tabulatedFunctionSubclassList):
+                        self.fOut.write(",\n         OpenMM::%s" % name)
+                    self.fOut.write(");\n\n")
+
         self.fOut.write("%factory(OpenMM::VirtualSite& OpenMM::System::getVirtualSite, OpenMM::TwoParticleAverageSite, OpenMM::ThreeParticleAverageSite, OpenMM::OutOfPlaneSite, OpenMM::LocalCoordinatesSite);\n\n")
         self.fOut.write("\n")
 
@@ -433,6 +446,7 @@ class SwigInputBuilder:
 
         #write only non Constructor and Destructor methods and python mods
         self.fOut.write("\n")
+        methodsWithOutputArgs = set()
         for items in methodList:
             clearOutput=""
             (shortClassName, memberNode,
@@ -466,6 +480,7 @@ class SwigInputBuilder:
                                         (INDENT, simpleType, pType, pName))
                         clearOutput = "%s%s%%clear %s %s;\n" \
                                      % (clearOutput, INDENT, pType, pName)
+                        methodsWithOutputArgs.add((shortClassName, methName))
 
             mArgsstring = getText("argsstring", memberNode)
             try:
@@ -490,31 +505,51 @@ class SwigInputBuilder:
             paramList = findNodes(memberNode, 'param')
 
             # write pythonprepend blocks
-            mArgsstring = getText("argsstring", memberNode)
+            if isConstructors:
+                mArgsstring = '' # specifying args to constructors seems to prevent append and prepend from working
+            else:
+                mArgsstring = getText("argsstring", memberNode)
             if self.fOutPythonprepend and \
                len(paramList) and \
-               mArgsstring.find('=0') < 0:
+               not is_method_abstract(mArgsstring):
                 text = '''
 %pythonprepend OpenMM::{shortClassName}::{methName}{mArgsstring} %{{{{{{0}}
 %}}}}'''.format(shortClassName=shortClassName, methName=methName, mArgsstring=mArgsstring)
                 textInside = ''
                 key = (shortClassName, methName)
                 for argNum in self.configModule.STEAL_OWNERSHIP.get(key, []):
-                    if self.SWIG_COMPACT_ARGUMENTS:
-                        argName = 'args[%s]' % argNum
-                    else:
-                        argName = getText('declname', paramList[argNum])
+                    argName = getText('declname', paramList[argNum])
 
                     textInside += '''
     if not {argName}.thisown:
         s = ("the %s object does not own its corresponding OpenMM object"
              % self.__class__.__name__)
         raise Exception(s)'''.format(argName=argName)
-                for argNum in self.configModule.REQUIRE_ORDERED_SET.get(key, []):
-                    if self.SWIG_COMPACT_ARGUMENTS:
-                        argName = 'args[%s]' % argNum
+
+
+                # Convert input arguments to the proper units, if specified.
+                if key not in methodsWithOutputArgs:
+                    if key in self.configModule.UNITS:
+                        argUnits=self.configModule.UNITS[key][1]
+                    elif ("*", methName) in self.configModule.UNITS:
+                        argUnits=self.configModule.UNITS[("*", methName)][1]
                     else:
-                        argName = getText('declname', paramList[argNum])
+                        argUnits = ()
+                    if len(argUnits) > 0 and isConstructors:
+                        textInside += '''
+    args = list(args)'''
+                    for i, units in enumerate(argUnits):
+                        if units is not None:
+                            if isConstructors:
+                                argName = 'args[%s]' % i
+                            else:
+                                argName = getText('declname', paramList[i])
+                            textInside += '''
+    if unit.is_quantity({argName}):
+        {argName} = {argName}.value_in_unit({units})'''.format(argName=argName, units=units)
+
+                for argNum in self.configModule.REQUIRE_ORDERED_SET.get(key, []):
+                    argName = getText('declname', paramList[argNum])
 
                     textInside += '''
     {argName} = list({argName})'''.format(argName=argName)
@@ -523,9 +558,10 @@ class SwigInputBuilder:
 
             # write pythonappend blocks
             if self.fOutPythonappend \
-               and mArgsstring.find('=0') < 0:
+               and not is_method_abstract(mArgsstring):
                 key = (shortClassName, methName)
-                #print "key %s %s \n" % (shortClassName, methName)
+                #sys.stdout.write("key %s %s \n" % (shortClassName, methName))
+
                 addText=''
                 returnType = getText("type", memberNode)
 
@@ -555,17 +591,14 @@ class SwigInputBuilder:
                                  % (addText, INDENT, valueUnits[0])
 
                 for vUnit in valueUnits[1]:
-                    if vUnit is not None:
+                    if vUnit is not None and key in methodsWithOutputArgs:
                         addText = "%s%sval[%s]=unit.Quantity(val[%s], %s)\n" \
                                      % (addText, INDENT, index, index, vUnit)
                     index+=1
 
                 if key in self.configModule.STEAL_OWNERSHIP:
                     for argNum in self.configModule.STEAL_OWNERSHIP[key]:
-                        if self.SWIG_COMPACT_ARGUMENTS:
-                            argName = 'args[%s]' % argNum
-                        else:
-                            argName = getText('declname', paramList[argNum])
+                        argName = getText('declname', paramList[argNum])
                         addText = "%s%s%s.thisown=0\n" \
                                 % (addText, INDENT, argName)
 
@@ -579,8 +612,15 @@ class SwigInputBuilder:
                             pType = getText('type', pNode)
                         except IndexError:
                             pType = getText('type/ref', pNode)
+                        # parse default arguments
+                        try:
+                            defaultValue = getText('defval', pNode)
+                        except:
+                            defaultValue = ""
+                        if defaultValue != "":
+                            defaultValue = "=%s" %defaultValue
                         pName = getText('declname', pNode)
-                        self.fOutPythonappend.write("%s%s %s" % (sepChar, pType, pName))
+                        self.fOutPythonappend.write("%s%s %s%s" % (sepChar, pType, pName, defaultValue))
                         sepChar=', '
 
                         if pType.find('&')>=0 and \

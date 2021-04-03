@@ -1,10 +1,10 @@
 import unittest
 from validateConstraints import *
-from simtk.openmm.app import *
-from simtk.openmm import *
-from simtk.unit import *
-from simtk.openmm.app.gromacstopfile import _defaultGromacsIncludeDir
-import simtk.openmm.app.element as elem
+from openmm.app import *
+from openmm import *
+from openmm.unit import *
+from openmm.app.gromacstopfile import _defaultGromacsIncludeDir
+import openmm.app.element as elem
 
 GROMACS_INCLUDE = _defaultGromacsIncludeDir()
 
@@ -63,6 +63,22 @@ class TestGromacsTopFile(unittest.TestCase):
         ene = context.getState(getEnergy=True).getPotentialEnergy()
         self.assertAlmostEqual(ene.value_in_unit(kilojoules_per_mole), -346.940915296)
 
+    def test_ionic(self):
+        """Test simulating an ionic liquid"""
+        gro = GromacsGroFile('systems/ionic.gro')
+        top = GromacsTopFile('systems/ionic.top', periodicBoxVectors=gro.getPeriodicBoxVectors())
+        system = top.createSystem(nonbondedMethod=PME, nonbondedCutoff=1.2)
+        for f in system.getForces():
+            if isinstance(f, CustomNonbondedForce):
+                f.setUseLongRangeCorrection(True)
+
+        context = Context(system, VerletIntegrator(1*femtosecond),
+                          Platform.getPlatformByName('Reference'))
+        context.setPositions(gro.positions)
+        energy = context.getState(getEnergy=True).getPotentialEnergy().value_in_unit(kilojoules_per_mole)
+        self.assertAlmostEqual(energy, 3135.33, delta=energy*0.005)
+        self.assertEqual(1400, system.getNumConstraints())
+
     def test_Cutoff(self):
         """Test to make sure the nonbondedCutoff parameter is passed correctly."""
 
@@ -76,6 +92,20 @@ class TestGromacsTopFile(unittest.TestCase):
                 if isinstance(force, NonbondedForce):
                     cutoff_distance = force.getCutoffDistance()
             self.assertEqual(cutoff_distance, cutoff_check)
+
+    def test_SwitchingFunction(self):
+        """Test using a switching function."""
+        for filename in ('systems/implicit.top', 'systems/ionic.top'):
+            top = GromacsTopFile(filename)
+            for distance in (None, 0.8*nanometers):
+                system = top.createSystem(nonbondedMethod=CutoffNonPeriodic, switchDistance=distance)
+                for f in system.getForces():
+                    if isinstance(f, NonbondedForce) or isinstance(f, CustomNonbondedForce):
+                        if distance is None:
+                            self.assertFalse(f.getUseSwitchingFunction())
+                        else:
+                            self.assertTrue(f.getUseSwitchingFunction())
+                            self.assertEqual(distance, f.getSwitchingDistance())
 
     def test_EwaldErrorTolerance(self):
         """Test to make sure the ewaldErrorTolerance parameter is passed correctly."""
@@ -146,10 +176,38 @@ class TestGromacsTopFile(unittest.TestCase):
         for atom in topology.atoms():
             if atom.element == elem.hydrogen:
                 self.assertNotEqual(hydrogenMass, system1.getParticleMass(atom.index))
-                self.assertEqual(hydrogenMass, system2.getParticleMass(atom.index))
+                if atom.residue.name == 'HOH':
+                    self.assertEqual(system1.getParticleMass(atom.index), system2.getParticleMass(atom.index))
+                else:
+                    self.assertEqual(hydrogenMass, system2.getParticleMass(atom.index))
         totalMass1 = sum([system1.getParticleMass(i) for i in range(system1.getNumParticles())]).value_in_unit(amu)
         totalMass2 = sum([system2.getParticleMass(i) for i in range(system2.getNumParticles())]).value_in_unit(amu)
         self.assertAlmostEqual(totalMass1, totalMass2)
+
+    def test_VirtualParticle(self):
+        """Test virtual particle works correctly."""
+
+        top = GromacsTopFile('systems/bnz.top')
+        gro = GromacsGroFile('systems/bnz.gro')
+        for atom in top.topology.atoms():
+            if atom.name.startswith('C'):
+                self.assertEqual(elem.carbon, atom.element)
+            elif atom.name.startswith('H'):
+                self.assertEqual(elem.hydrogen, atom.element)
+            else:
+                self.assertIsNone(atom.element)
+        system = top.createSystem()
+
+        self.assertEqual(26, system.getNumParticles())
+        self.assertEqual(1, len(top._moleculeTypes['BENX'].vsites2))
+
+        context = Context(system, VerletIntegrator(1*femtosecond),
+                          Platform.getPlatformByName('Reference'))
+        context.setPositions(gro.positions)
+        context.computeVirtualSites()
+        ene = context.getState(getEnergy=True).getPotentialEnergy()
+        # the energy output is from gromacs and it only prints out 6 sig digits.
+        self.assertAlmostEqual(ene.value_in_unit(kilojoules_per_mole), 1.88855e+02, places=3)
 
 if __name__ == '__main__':
     unittest.main()

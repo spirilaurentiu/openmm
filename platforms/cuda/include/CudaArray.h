@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009-2012 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -28,7 +28,8 @@
  * -------------------------------------------------------------------------- */
 
 #include "openmm/OpenMMException.h"
-#include "windowsExportCuda.h"
+#include "openmm/common/windowsExportCommon.h"
+#include "openmm/common/ArrayInterface.h"
 #include <cuda.h>
 #include <iostream>
 #include <sstream>
@@ -43,7 +44,7 @@ class CudaContext;
  * for working with it and for copying data to and from device memory.
  */
 
-class OPENMM_EXPORT_CUDA CudaArray {
+class OPENMM_EXPORT_COMMON CudaArray : public ArrayInterface {
 public:
     /**
      * Create a CudaArray object.  The object is allocated on the heap with the "new" operator.
@@ -58,6 +59,11 @@ public:
         return new CudaArray(context, size, sizeof(T), name);
     }
     /**
+     * Create an uninitialized CudaArray object.  It does not point to any device memory,
+     * and cannot be used until initialize() is called on it.
+     */
+    CudaArray();
+    /**
      * Create a CudaArray object.
      *
      * @param context           the context for which to create the array
@@ -67,6 +73,36 @@ public:
      */
     CudaArray(CudaContext& context, int size, int elementSize, const std::string& name);
     ~CudaArray();
+    /**
+     * Initialize this object.
+     *
+     * @param context           the context for which to create the array
+     * @param size              the number of elements in the array
+     * @param elementSize       the size of each element in bytes
+     * @param name              the name of the array
+     */
+    void initialize(ComputeContext& context, int size, int elementSize, const std::string& name);
+    /**
+     * Initialize this object.  The template argument is the data type of each array element.
+     *
+     * @param context           the context for which to create the array
+     * @param size              the number of elements in the array
+     * @param name              the name of the array
+     */
+    template <class T>
+    void initialize(ComputeContext& context, int size, const std::string& name) {
+        initialize(context, size, sizeof(T), name);
+    }
+    /**
+     * Recreate the internal storage to have a different size.
+     */
+    void resize(int size);
+    /**
+     * Get whether this array has been initialized.
+     */
+    bool isInitialized() const {
+        return (pointer != 0);
+    }
     /**
      * Get the number of elements in the array.
      */
@@ -86,6 +122,10 @@ public:
         return name;
     }
     /**
+     * Get the context this array belongs to.
+     */
+    ComputeContext& getContext();
+    /**
      * Get a pointer to the device memory.
      */
     CUdeviceptr& getDevicePointer() {
@@ -95,30 +135,36 @@ public:
      * Copy the values in a vector to the device memory.
      */
     template <class T>
-    void upload(const std::vector<T>& data) {
-        if (sizeof(T) != elementSize || data.size() != size)
-            throw OpenMMException("Error uploading array "+name+": The specified vector does not match the size of the array");
-        upload(&data[0], true);
+    void upload(const std::vector<T>& data, bool convert=false) {
+        ArrayInterface::upload(data, convert);
     }
     /**
      * Copy the values in the Buffer to a vector.
      */
     template <class T>
     void download(std::vector<T>& data) const {
-        if (sizeof(T) != elementSize)
-            throw OpenMMException("Error downloading array "+name+": The specified vector has the wrong element size");
-        if (data.size() != size)
-            data.resize(size);
-        download(&data[0], true);
+        ArrayInterface::download(data);
     }
     /**
-     * Copy the values in an array to the device memory.
+     * Copy the values from host memory to the array.
      * 
      * @param data     the data to copy
      * @param blocking if true, this call will block until the transfer is complete.  If false,
      *                 the source array  must be in page-locked memory.
      */
-    void upload(const void* data, bool blocking = true);
+    void upload(const void* data, bool blocking=true) {
+        uploadSubArray(data, 0, getSize(), blocking);
+    }
+    /**
+     * Copy values from host memory to a subset of the array.
+     * 
+     * @param data     the data to copy
+     * @param offset   the index of the element within the array at which the copy should begin
+     * @param elements the number of elements to copy
+     * @param blocking if true, this call will block until the transfer is complete.  If false,
+     *                 the source array  must be in page-locked memory.
+     */
+    void uploadSubArray(const void* data, int offset, int elements, bool blocking=true);
     /**
      * Copy the values in the device memory to an array.
      * 
@@ -126,15 +172,15 @@ public:
      * @param blocking if true, this call will block until the transfer is complete.  If false,
      *                 the destination array must be in page-locked memory.
      */
-    void download(void* data, bool blocking = true) const;
+    void download(void* data, bool blocking=true) const;
     /**
      * Copy the values in the device memory to a second array.
      * 
      * @param dest     the destination array to copy to
      */
-    void copyTo(CudaArray& dest) const;
+    void copyTo(ArrayInterface& dest) const;
 private:
-    CudaContext& context;
+    CudaContext* context;
     CUdeviceptr pointer;
     int size, elementSize;
     bool ownsMemory;

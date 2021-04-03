@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009-2017 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -28,7 +28,6 @@
  * -------------------------------------------------------------------------- */
 
 #include <map>
-#include <queue>
 #include <string>
 #include <utility>
 #define __CL_ENABLE_EXCEPTIONS
@@ -40,21 +39,20 @@
 #include <cuda.h>
 #include <builtin_types.h>
 #include <vector_functions.h>
-#include "windowsExportCuda.h"
+#include "openmm/common/windowsExportCommon.h"
+#include "CudaArray.h"
+#include "CudaBondedUtilities.h"
+#include "CudaExpressionUtilities.h"
+#include "CudaIntegrationUtilities.h"
+#include "CudaNonbondedUtilities.h"
 #include "CudaPlatform.h"
+#include "openmm/OpenMMException.h"
+#include "openmm/common/ComputeContext.h"
 #include "openmm/Kernel.h"
 
 typedef unsigned int tileflags;
 
 namespace OpenMM {
-
-class CudaArray;
-class CudaForceInfo;
-class CudaExpressionUtilities;
-class CudaIntegrationUtilities;
-class CudaBondedUtilities;
-class CudaNonbondedUtilities;
-class System;
 
 /**
  * This class contains the information associated with a Context by the CUDA Platform.  Each CudaContext is
@@ -67,7 +65,7 @@ class System;
  * thread is not used and calculations are performed on the main application thread.
  */
 
-class OPENMM_EXPORT_CUDA CudaContext {
+class OPENMM_EXPORT_COMMON CudaContext : public ComputeContext {
 public:
     class WorkTask;
     class WorkThread;
@@ -77,18 +75,14 @@ public:
     static const int ThreadBlockSize;
     static const int TileSize;
     CudaContext(const System& system, int deviceIndex, bool useBlockingSync, const std::string& precision,
-            const std::string& compiler, const std::string& tempDir, const std::string& hostCompiler, CudaPlatform::PlatformData& platformData,
-            CudaContext* originalContext);
+            const std::string& compiler, const std::string& tempDir, const std::string& hostCompiler, bool allowRuntimeCompiler,
+            CudaPlatform::PlatformData& platformData, CudaContext* originalContext);
     ~CudaContext();
     /**
      * This is called to initialize internal data structures after all Forces in the system
      * have been initialized.
      */
     void initialize();
-    /**
-     * Add a CudaForce to this context.
-     */
-    void addForce(CudaForceInfo* force);
     /**
      * Get the CUcontext associated with this object.
      */
@@ -131,6 +125,14 @@ public:
         return platformData;
     }
     /**
+     * Get the number of contexts being used for the current simulation.
+     * This is relevant when a simulation is parallelized across multiple devices.  In that case,
+     * one CudaContext is created for each device.
+     */
+    int getNumContexts() const {
+        return platformData.contexts.size();
+    }
+    /**
      * Get the index of this context in the list stored in the PlatformData.
      */
     int getContextIndex() const {
@@ -149,40 +151,81 @@ public:
      */
     void restoreDefaultStream();
     /**
+     * Construct an uninitialized array of the appropriate class for this platform.  The returned
+     * value should be created on the heap with the "new" operator.
+     */
+    CudaArray* createArray();
+    /**
+     * Construct a ComputeEvent object of the appropriate class for this platform.
+     */
+    ComputeEvent createEvent();
+    /**
+     * Compile source code to create a ComputeProgram.
+     *
+     * @param source             the source code of the program
+     * @param defines            a set of preprocessor definitions (name, value) to define when compiling the program
+     */
+    ComputeProgram compileProgram(const std::string source, const std::map<std::string, std::string>& defines=std::map<std::string, std::string>());
+    /**
+     * Convert an array to an CudaArray.  If the argument is already an CudaArray, this simply casts it.
+     * If the argument is a ComputeArray that wraps a CudaArray, this returns the wrapped array.  For any
+     * other argument, this throws an exception.
+     */
+    CudaArray& unwrap(ArrayInterface& array) const;
+    /**
      * Get the array which contains the position (the xyz components) and charge (the w component) of each atom.
      */
     CudaArray& getPosq() {
-        return *posq;
+        return posq;
     }
     /**
      * Get the array which contains a correction to the position of each atom.  This only exists if getUseMixedPrecision() returns true.
      */
     CudaArray& getPosqCorrection() {
-        return *posqCorrection;
+        return posqCorrection;
     }
     /**
      * Get the array which contains the velocity (the xyz components) and inverse mass (the w component) of each atom.
      */
     CudaArray& getVelm() {
-        return *velm;
+        return velm;
     }
     /**
      * Get the array which contains the force on each atom (represented as three long longs in 64 bit fixed point).
      */
     CudaArray& getForce() {
-        return *force;
+        return force;
+    }
+    /**
+     * The CUDA platform does not use floating point force buffers, so this throws an exception.
+     */
+    ArrayInterface& getFloatForceBuffer() {
+        throw OpenMMException("CUDA platform does not use floating point force buffers");
+    }
+    /**
+     * Get the array which contains a contribution to each force represented as 64 bit fixed point.
+     * This is a synonym for getForce().  It exists to satisfy the ComputeContext interface.
+     */
+    CudaArray& getLongForceBuffer() {
+        return force;
+    }
+    /**
+     * All CUDA devices support 64 bit atomics, so this throws an exception.
+     */
+    ArrayInterface& getForceBuffers() {
+        throw OpenMMException("CUDA platform does not use floating point force buffers");
     }
     /**
      * Get the array which contains the buffer in which energy is computed.
      */
     CudaArray& getEnergyBuffer() {
-        return *energyBuffer;
+        return energyBuffer;
     }
     /**
      * Get the array which contains the buffer in which derivatives of the energy with respect to parameters are computed.
      */
     CudaArray& getEnergyParamDerivBuffer() {
-        return *energyParamDerivBuffer;
+        return energyParamDerivBuffer;
     }
     /**
      * Get a pointer to a block of pinned memory that can be used for efficient transfers between host and device.
@@ -192,31 +235,21 @@ public:
         return pinnedBuffer;
     }
     /**
-     * Get the host-side vector which contains the index of each atom.
+     * Get a shared ThreadPool that code can use to parallelize operations.
+     * 
+     * Because this object is freely available to all code, care is needed to avoid conflicts.  Only use it
+     * from the main thread, and make sure all operations are complete before you invoke any other code that
+     * might make use of it
      */
-    const std::vector<int>& getAtomIndex() const {
-        return atomIndex;
+    ThreadPool& getThreadPool() {
+        return getPlatformData().threads;
     }
     /**
      * Get the array which contains the index of each atom.
      */
     CudaArray& getAtomIndexArray() {
-        return *atomIndexDevice;
+        return atomIndexDevice;
     }
-    /**
-     * Get the number of cells by which the positions are offset.
-     */
-    std::vector<int4>& getPosCellOffsets() {
-        return posCellOffsets;
-    }
-    /**
-     * Replace all occurrences of a list of substrings.
-     *
-     * @param input   a string to process
-     * @param replacements a set of strings that should be replaced with new strings wherever they appear in the input string
-     * @return a new string produced by performing the replacements
-     */
-    std::string replaceStrings(const std::string& input, const std::map<std::string, std::string>& replacements) const;
     /**
      * Create a CUDA module from source code.
      *
@@ -262,7 +295,7 @@ public:
     /**
      * Set all elements of an array to 0.
      */
-    void clearBuffer(CudaArray& array);
+    void clearBuffer(ArrayInterface& array);
     /**
      * Set all elements of an array to 0.
      *
@@ -273,7 +306,7 @@ public:
     /**
      * Register a buffer that should be automatically cleared (all elements set to 0) at the start of each force or energy computation.
      */
-    void addAutoclearBuffer(CudaArray& array);
+    void addAutoclearBuffer(ArrayInterface& array);
     /**
      * Register a buffer that should be automatically cleared (all elements set to 0) at the start of each force or energy computation.
      *
@@ -290,79 +323,6 @@ public:
      */
     double reduceEnergy();
     /**
-     * Get the current simulation time.
-     */
-    double getTime() {
-        return time;
-    }
-    /**
-     * Set the current simulation time.
-     */
-    void setTime(double t) {
-        time = t;
-    }
-    /**
-     * Get the number of integration steps that have been taken.
-     */
-    int getStepCount() {
-        return stepCount;
-    }
-    /**
-     * Set the number of integration steps that have been taken.
-     */
-    void setStepCount(int steps) {
-        stepCount = steps;
-    }
-    /**
-     * Get the number of times forces or energy has been computed.
-     */
-    int getComputeForceCount() {
-        return computeForceCount;
-    }
-    /**
-     * Set the number of times forces or energy has been computed.
-     */
-    void setComputeForceCount(int count) {
-        computeForceCount = count;
-    }
-    /**
-     * Get the number of time steps since the atoms were reordered.
-     */
-    int getStepsSinceReorder() const {
-        return stepsSinceReorder;
-    }
-    /**
-     * Set the number of time steps since the atoms were reordered.
-     */
-    void setStepsSinceReorder(int steps) {
-        stepsSinceReorder = steps;
-    }
-    /**
-     * Get the flag that marks whether the current force evaluation is valid.
-     */
-    bool getForcesValid() const {
-        return forcesValid;
-    }
-    /**
-     * Get the flag that marks whether the current force evaluation is valid.
-     */
-    void setForcesValid(bool valid) {
-        forcesValid = valid;
-    }
-    /**
-     * Get the number of atoms.
-     */
-    int getNumAtoms() const {
-        return numAtoms;
-    }
-    /**
-     * Get the number of atoms, rounded up to a multiple of TileSize.  This is the actual size of
-     * most arrays with one element per atom.
-     */
-    int getPaddedNumAtoms() const {
-        return paddedNumAtoms;
-    }
-    /**
      * Get the number of blocks of TileSize atoms.
      */
     int getNumAtomBlocks() const {
@@ -373,6 +333,37 @@ public:
      */
     int getNumThreadBlocks() const {
         return numThreadBlocks;
+    }
+    /**
+     * Get the maximum number of threads in a thread block supported by this device.
+     */
+    int getMaxThreadBlockSize() const {
+        return 1024;
+    }
+    /**
+     * Get whether the device being used is a CPU.  In some cases, different algorithms
+     * may be more efficient on CPUs and GPUs.
+     */
+    bool getIsCPU() const {
+        return false;
+    }
+    /**
+     * Get the SIMD width of the device being used.
+     */
+    int getSIMDWidth() const {
+        return 32;
+    }
+    /**
+     * Get whether the device being used supports 64 bit atomic operations on global memory.
+     */
+    bool getSupports64BitGlobalAtomics() const {
+        return true;
+    }
+    /**
+     * Get whether the device being used supports double precision math.
+     */
+    bool getSupportsDoublePrecision() const {
+        return true;
     }
     /**
      * Get whether double precision is being used.
@@ -392,15 +383,6 @@ public:
     bool getBoxIsTriclinic() const {
         return boxIsTriclinic;
     }
-    /**
-     * Convert a number to a string in a format suitable for including in a kernel.
-     * This takes into account whether the context uses single or double precision.
-     */
-    std::string doubleToString(double value) const;
-    /**
-     * Convert a number to a string in a format suitable for including in a kernel.
-     */
-    std::string intToString(int value) const;
     /**
      * Convert a CUDA result code to the corresponding string description.
      */
@@ -500,65 +482,19 @@ public:
         return *nonbonded;
     }
     /**
+     * This should be called by the Integrator from its own initialize() method.
+     * It ensures all contexts are fully initialized.
+     */
+    void initializeContexts();
+    /**
      * Set the particle charges.  These are packed into the fourth element of the posq array.
      */
     void setCharges(const std::vector<double>& charges);
     /**
-     * Get the thread used by this context for executing parallel computations.
+     * Request to use the fourth element of the posq array for storing charges.  Since only one force can
+     * do that, this returns true the first time it is called, and false on all subsequent calls.
      */
-    WorkThread& getWorkThread() {
-        return *thread;
-    }
-    /**
-     * Get whether atoms were reordered during the most recent force/energy computation.
-     */
-    bool getAtomsWereReordered() const {
-        return atomsWereReordered;
-    }
-    /**
-     * Set whether atoms were reordered during the most recent force/energy computation.
-     */
-    void setAtomsWereReordered(bool wereReordered) {
-        atomsWereReordered = wereReordered;
-    }
-    /**
-     * Reorder the internal arrays of atoms to try to keep spatially contiguous atoms close
-     * together in the arrays.
-     */
-    void reorderAtoms();
-    /**
-     * Add a listener that should be called whenever atoms get reordered.  The CudaContext
-     * assumes ownership of the object, and deletes it when the context itself is deleted.
-     */
-    void addReorderListener(ReorderListener* listener);
-    /**
-     * Get the list of ReorderListeners.
-     */
-    std::vector<ReorderListener*>& getReorderListeners() {
-        return reorderListeners;
-    }
-    /**
-     * Add a pre-computation that should be called at the very start of force and energy evaluations.
-     * The CudaContext assumes ownership of the object, and deletes it when the context itself is deleted.
-     */
-    void addPreComputation(ForcePreComputation* computation);
-    /**
-     * Get the list of ForcePreComputations.
-     */
-    std::vector<ForcePreComputation*>& getPreComputations() {
-        return preComputations;
-    }
-    /**
-     * Add a post-computation that should be called at the very end of force and energy evaluations.
-     * The CudaContext assumes ownership of the object, and deletes it when the context itself is deleted.
-     */
-    void addPostComputation(ForcePostComputation* computation);
-    /**
-     * Get the list of ForcePostComputations.
-     */
-    std::vector<ForcePostComputation*>& getPostComputations() {
-        return postComputations;
-    }
+    bool requestPosqCharges();
     /**
      * Get the names of all parameters with respect to which energy derivatives are computed.
      */
@@ -581,54 +517,28 @@ public:
      */
     void addEnergyParameterDerivative(const std::string& param);
     /**
-     * Mark that the current molecule definitions (and hence the atom order) may be invalid.
-     * This should be called whenever force field parameters change.  It will cause the definitions
-     * and order to be revalidated.
+     * Wait until all work that has been queued (kernel executions, asynchronous data transfers, etc.)
+     * has been submitted to the device.  This does not mean it has necessarily been completed.
+     * Calling this periodically may improve the responsiveness of the computer's GUI, but at the
+     * expense of reduced simulation performance.
      */
-    void invalidateMolecules();
-    /**
-     * Mark that the current molecule definitions from one particular force (and hence the atom order)
-     * may be invalid.  This should be called whenever force field parameters change.  It will cause the
-     * definitions and order to be revalidated.
-     */
-    bool invalidateMolecules(CudaForceInfo* force);
+    void flushQueue();
 private:
     /**
      * Compute a sorted list of device indices in decreasing order of desirability
      */
     std::vector<int> getDevicePrecedence();
-
-    struct Molecule;
-    struct MoleculeGroup;
-    class VirtualSiteInfo;
-    void findMoleculeGroups();
-    /**
-     * Ensure that all molecules marked as "identical" really are identical.  This should be
-     * called whenever force field parameters change.  If necessary, it will rebuild the list
-     * of molecules and resort the atoms.
-     */
-    void validateMolecules();
-    /**
-     * This is the internal implementation of reorderAtoms(), templatized by the numerical precision in use.
-     */
-    template <class Real, class Real4, class Mixed, class Mixed4>
-    void reorderAtomsImpl();
     static bool hasInitializedCuda;
-    const System& system;
-    double time, computeCapability;
+    double computeCapability;
     CudaPlatform::PlatformData& platformData;
     int deviceIndex;
     int contextIndex;
-    int stepCount;
-    int computeForceCount;
-    int stepsSinceReorder;
-    int numAtoms;
-    int paddedNumAtoms;
     int numAtomBlocks;
     int numThreadBlocks;
-    bool useBlockingSync, useDoublePrecision, useMixedPrecision, contextIsValid, atomsWereReordered, boxIsTriclinic, hasCompilerKernel, isNvccAvailable, forcesValid;
+    int gpuArchitecture;
+    bool useBlockingSync, useDoublePrecision, useMixedPrecision, contextIsValid, boxIsTriclinic, hasCompilerKernel, isNvccAvailable, hasAssignedPosqCharges;
     bool isLinkedContext;
-    std::string compiler, tempDir, cacheDir, gpuArchitecture;
+    std::string compiler, tempDir, cacheDir;
     float4 periodicBoxVecXFloat, periodicBoxVecYFloat, periodicBoxVecZFloat, periodicBoxSizeFloat, invPeriodicBoxSizeFloat;
     double4 periodicBoxVecX, periodicBoxVecY, periodicBoxVecZ, periodicBoxSize, invPeriodicBoxSize;
     std::string defaultOptimizationOptions;
@@ -644,135 +554,49 @@ private:
     CUfunction clearSixBuffersKernel;
     CUfunction reduceEnergyKernel;
     CUfunction setChargesKernel;
-    std::vector<CudaForceInfo*> forces;
-    std::vector<Molecule> molecules;
-    std::vector<MoleculeGroup> moleculeGroups;
-    std::vector<int4> posCellOffsets;
     void* pinnedBuffer;
-    CudaArray* posq;
-    CudaArray* posqCorrection;
-    CudaArray* velm;
-    CudaArray* force;
-    CudaArray* energyBuffer;
-    CudaArray* energySum;
-    CudaArray* energyParamDerivBuffer;
-    CudaArray* atomIndexDevice;
-    CudaArray* chargeBuffer;
+    CudaArray posq;
+    CudaArray posqCorrection;
+    CudaArray velm;
+    CudaArray force;
+    CudaArray energyBuffer;
+    CudaArray energySum;
+    CudaArray energyParamDerivBuffer;
+    CudaArray atomIndexDevice;
+    CudaArray chargeBuffer;
     std::vector<std::string> energyParamDerivNames;
     std::map<std::string, double> energyParamDerivWorkspace;
-    std::vector<int> atomIndex;
     std::vector<CUdeviceptr> autoclearBuffers;
     std::vector<int> autoclearBufferSizes;
-    std::vector<ReorderListener*> reorderListeners;
-    std::vector<ForcePreComputation*> preComputations;
-    std::vector<ForcePostComputation*> postComputations;
     CudaIntegrationUtilities* integration;
     CudaExpressionUtilities* expression;
     CudaBondedUtilities* bonded;
     CudaNonbondedUtilities* nonbonded;
-    WorkThread* thread;
     Kernel compilerKernel;
 };
 
-struct CudaContext::Molecule {
-    std::vector<int> atoms;
-    std::vector<int> constraints;
-    std::vector<std::vector<int> > groups;
-};
-
-struct CudaContext::MoleculeGroup {
-    std::vector<int> atoms;
-    std::vector<int> instances;
-    std::vector<int> offsets;
+/**
+ * This class exists only for backward compatibility.  Use ComputeContext::WorkTask instead.
+ */
+class OPENMM_EXPORT_COMMON CudaContext::WorkTask : public ComputeContext::WorkTask {
 };
 
 /**
- * This abstract class defines a task to be executed on the worker thread.
+ * This class exists only for backward compatibility.  Use ComputeContext::ReorderListener instead.
  */
-class CudaContext::WorkTask {
-public:
-    virtual void execute() = 0;
-    virtual ~WorkTask() {
-    }
-};
-
-class CudaContext::WorkThread {
-public:
-    struct ThreadData;
-    WorkThread();
-    ~WorkThread();
-    /**
-     * Request that a task be executed on the worker thread.  The argument should have been allocated on the
-     * heap with the "new" operator.  After its execute() method finishes, the object will be deleted automatically.
-     */
-    void addTask(CudaContext::WorkTask* task);
-    /**
-     * Get whether the worker thread is idle, waiting for a task to be added.
-     */
-    bool isWaiting();
-    /**
-     * Get whether the worker thread has exited.
-     */
-    bool isFinished();
-    /**
-     * Block until all tasks have finished executing and the worker thread is idle.
-     */
-    void flush();
-private:
-    std::queue<CudaContext::WorkTask*> tasks;
-    bool waiting, finished;
-    pthread_mutex_t queueLock;
-    pthread_cond_t waitForTaskCondition, queueEmptyCondition;
-    pthread_t thread;
+class OPENMM_EXPORT_COMMON CudaContext::ReorderListener : public ComputeContext::ReorderListener {
 };
 
 /**
- * This abstract class defines a function to be executed whenever atoms get reordered.
- * Objects that need to know when reordering happens should create a ReorderListener
- * and register it by calling addReorderListener().
+ * This class exists only for backward compatibility.  Use ComputeContext::ForcePreComputation instead.
  */
-class CudaContext::ReorderListener {
-public:
-    virtual void execute() = 0;
-    virtual ~ReorderListener() {
-    }
+class OPENMM_EXPORT_COMMON CudaContext::ForcePreComputation : public ComputeContext::ForcePreComputation {
 };
 
 /**
- * This abstract class defines a function to be executed at the very beginning of force and
- * energy evaluation, before any other calculation has been done.  It is useful for operations
- * that need to be performed at a nonstandard point in the process.  After creating a
- * ForcePreComputation, register it by calling addForcePreComputation().
+ * This class exists only for backward compatibility.  Use ComputeContext::ForcePostComputation instead.
  */
-class CudaContext::ForcePreComputation {
-public:
-    virtual ~ForcePreComputation() {
-    }
-    /**
-     * @param includeForce  true if forces should be computed
-     * @param includeEnergy true if potential energy should be computed
-     * @param groups        a set of bit flags for which force groups to include
-     */
-    virtual void computeForceAndEnergy(bool includeForces, bool includeEnergy, int groups) = 0;
-};
-
-/**
- * This abstract class defines a function to be executed at the very end of force and
- * energy evaluation, after all other calculations have been done.  It is useful for operations
- * that need to be performed at a nonstandard point in the process.  After creating a
- * ForcePostComputation, register it by calling addForcePostComputation().
- */
-class CudaContext::ForcePostComputation {
-public:
-    virtual ~ForcePostComputation() {
-    }
-    /**
-     * @param includeForce  true if forces should be computed
-     * @param includeEnergy true if potential energy should be computed
-     * @param groups        a set of bit flags for which force groups to include
-     * @return an optional contribution to add to the potential energy.
-     */
-    virtual double computeForceAndEnergy(bool includeForces, bool includeEnergy, int groups) = 0;
+class OPENMM_EXPORT_COMMON CudaContext::ForcePostComputation : public ComputeContext::ForcePostComputation {
 };
 
 } // namespace OpenMM

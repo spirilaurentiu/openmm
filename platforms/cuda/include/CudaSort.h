@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2010-2012 Stanford University and the Authors.      *
+ * Portions copyright (c) 2010-2018 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -28,7 +28,7 @@
  * -------------------------------------------------------------------------- */
 
 #include "CudaArray.h"
-#include "windowsExportCuda.h"
+#include "openmm/common/windowsExportCommon.h"
 #include "CudaContext.h"
 
 namespace OpenMM {
@@ -66,7 +66,7 @@ namespace OpenMM {
  * elements).
  */
     
-class OPENMM_EXPORT_CUDA CudaSort {
+class OPENMM_EXPORT_COMMON CudaSort {
 public:
     class SortTrait;
     /**
@@ -87,12 +87,12 @@ public:
 private:
     CudaContext& context;
     SortTrait* trait;
-    CudaArray* dataRange;
-    CudaArray* bucketOfElement;
-    CudaArray* offsetInBucket;
-    CudaArray* bucketOffset;
-    CudaArray* buckets;
-    CUfunction shortListKernel, computeRangeKernel, assignElementsKernel, computeBucketPositionsKernel, copyToBucketsKernel, sortBucketsKernel;
+    CudaArray dataRange;
+    CudaArray bucketOfElement;
+    CudaArray offsetInBucket;
+    CudaArray bucketOffset;
+    CudaArray buckets;
+    CUfunction shortListKernel, shortList2Kernel, computeRangeKernel, assignElementsKernel, computeBucketPositionsKernel, copyToBucketsKernel, sortBucketsKernel;
     unsigned int dataLength, rangeKernelSize, positionsKernelSize, sortKernelSize;
     bool isShortList;
 };

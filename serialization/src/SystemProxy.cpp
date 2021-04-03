@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2010-2017 Stanford University and the Authors.      *
+ * Portions copyright (c) 2010-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -57,20 +57,21 @@ void SystemProxy::serialize(const void* object, SerializationNode& node) const {
     for (int i = 0; i < system.getNumParticles(); i++) {
         SerializationNode& particle = particles.createChildNode("Particle").setDoubleProperty("mass", system.getParticleMass(i));
         if (system.isVirtualSite(i)) {
-            if (typeid(system.getVirtualSite(i)) == typeid(TwoParticleAverageSite)) {
-                const TwoParticleAverageSite& site = dynamic_cast<const TwoParticleAverageSite&>(system.getVirtualSite(i));
+            const VirtualSite& vsite = system.getVirtualSite(i);
+            if (typeid(vsite) == typeid(TwoParticleAverageSite)) {
+                const TwoParticleAverageSite& site = dynamic_cast<const TwoParticleAverageSite&>(vsite);
                 particle.createChildNode("TwoParticleAverageSite").setIntProperty("p1", site.getParticle(0)).setIntProperty("p2", site.getParticle(1)).setDoubleProperty("w1", site.getWeight(0)).setDoubleProperty("w2", site.getWeight(1));
             }
-            else if (typeid(system.getVirtualSite(i)) == typeid(ThreeParticleAverageSite)) {
-                const ThreeParticleAverageSite& site = dynamic_cast<const ThreeParticleAverageSite&>(system.getVirtualSite(i));
+            else if (typeid(vsite) == typeid(ThreeParticleAverageSite)) {
+                const ThreeParticleAverageSite& site = dynamic_cast<const ThreeParticleAverageSite&>(vsite);
                 particle.createChildNode("ThreeParticleAverageSite").setIntProperty("p1", site.getParticle(0)).setIntProperty("p2", site.getParticle(1)).setIntProperty("p3", site.getParticle(2)).setDoubleProperty("w1", site.getWeight(0)).setDoubleProperty("w2", site.getWeight(1)).setDoubleProperty("w3", site.getWeight(2));
             }
-            else if (typeid(system.getVirtualSite(i)) == typeid(OutOfPlaneSite)) {
-                const OutOfPlaneSite& site = dynamic_cast<const OutOfPlaneSite&>(system.getVirtualSite(i));
+            else if (typeid(vsite) == typeid(OutOfPlaneSite)) {
+                const OutOfPlaneSite& site = dynamic_cast<const OutOfPlaneSite&>(vsite);
                 particle.createChildNode("OutOfPlaneSite").setIntProperty("p1", site.getParticle(0)).setIntProperty("p2", site.getParticle(1)).setIntProperty("p3", site.getParticle(2)).setDoubleProperty("w12", site.getWeight12()).setDoubleProperty("w13", site.getWeight13()).setDoubleProperty("wc", site.getWeightCross());
             }
-            else if (typeid(system.getVirtualSite(i)) == typeid(LocalCoordinatesSite)) {
-                const LocalCoordinatesSite& site = dynamic_cast<const LocalCoordinatesSite&>(system.getVirtualSite(i));
+            else if (typeid(vsite) == typeid(LocalCoordinatesSite)) {
+                const LocalCoordinatesSite& site = dynamic_cast<const LocalCoordinatesSite&>(vsite);
                 int numParticles = site.getNumParticles();
                 vector<double> wo, wx, wy;
                 site.getOriginWeights(wo);
@@ -128,7 +129,7 @@ void* SystemProxy::deserialize(const SerializationNode& node) const {
                 else if (vsite.getName() == "OutOfPlaneSite")
                     system->setVirtualSite(i, new OutOfPlaneSite(vsite.getIntProperty("p1"), vsite.getIntProperty("p2"), vsite.getIntProperty("p3"), vsite.getDoubleProperty("w12"), vsite.getDoubleProperty("w13"), vsite.getDoubleProperty("wc")));
                 else if (vsite.getName() == "LocalCoordinatesSite") {
-                    vector<int> particles;
+                    vector<int> particleIndices;
                     vector<double> wo, wx, wy;
                     for (int j = 0; ; j++) {
                         stringstream ss;
@@ -136,13 +137,13 @@ void* SystemProxy::deserialize(const SerializationNode& node) const {
                         string index = ss.str();
                         if (!vsite.hasProperty("p"+index))
                             break;
-                        particles.push_back(vsite.getIntProperty("p"+index));
+                        particleIndices.push_back(vsite.getIntProperty("p"+index));
                         wo.push_back(vsite.getDoubleProperty("wo"+index));
                         wx.push_back(vsite.getDoubleProperty("wx"+index));
                         wy.push_back(vsite.getDoubleProperty("wy"+index));
                     }
                     Vec3 p(vsite.getDoubleProperty("pos1"), vsite.getDoubleProperty("pos2"), vsite.getDoubleProperty("pos3"));
-                    system->setVirtualSite(i, new LocalCoordinatesSite(particles, wo, wx, wy, p));
+                    system->setVirtualSite(i, new LocalCoordinatesSite(particleIndices, wo, wx, wy, p));
                 }
             }
         }

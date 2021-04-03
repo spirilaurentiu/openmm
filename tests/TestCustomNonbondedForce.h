@@ -7,7 +7,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2008-2018 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -329,7 +329,8 @@ void testContinuous1DFunction() {
     vector<double> table;
     for (int i = 0; i < 21; i++)
         table.push_back(sin(0.25*i));
-    forceField->addTabulatedFunction("fn", new Continuous1DFunction(table, 1.0, 6.0));
+    Continuous1DFunction* continuous1DFunction = new Continuous1DFunction(table, 1.0, 6.0);
+    forceField->addTabulatedFunction("fn", continuous1DFunction);
     system.addForce(forceField);
     Context context(system, integrator, platform);
     vector<Vec3> positions(2);
@@ -352,6 +353,46 @@ void testContinuous1DFunction() {
         context.setPositions(positions);
         State state = context.getState(State::Energy);
         double energy = (x < 1.0 || x > 6.0 ? 0.0 : sin(x-1.0))+1.0;
+        ASSERT_EQUAL_TOL(energy, state.getPotentialEnergy(), 1e-4);
+    }
+}
+
+void testPeriodicContinuous1DFunction() {
+    System system;
+    system.addParticle(1.0);
+    system.addParticle(1.0);
+    VerletIntegrator integrator(0.01);
+    CustomNonbondedForce* forceField = new CustomNonbondedForce("fn(r)+1");
+    forceField->addParticle(vector<double>());
+    forceField->addParticle(vector<double>());
+    int xsize = 20;
+    vector<double> table(xsize);
+    for (int i = 0; i < xsize; i++)
+        table[i] = sin(2.0*M_PI*i/(xsize-1));
+    Continuous1DFunction* continuous1DFunction = new Continuous1DFunction(table, 1.0, 2.0*M_PI+1.0, true);
+    forceField->addTabulatedFunction("fn", continuous1DFunction);
+    system.addForce(forceField);
+    Context context(system, integrator, platform);
+    vector<Vec3> positions(2);
+    positions[0] = Vec3(0, 0, 0);
+    for (int i = 1; i < 30; i++) {
+        double x = (7.0/30.0)*i;
+        positions[1] = Vec3(x, 0, 0);
+        context.setPositions(positions);
+        State state = context.getState(State::Forces | State::Energy);
+        const vector<Vec3>& forces = state.getForces();
+        double force = -cos(x-1.0);
+        double energy = sin(x-1.0)+1.0;
+        ASSERT_EQUAL_VEC(Vec3(-force, 0, 0), forces[0], 0.1);
+        ASSERT_EQUAL_VEC(Vec3(force, 0, 0), forces[1], 0.1);
+        ASSERT_EQUAL_TOL(energy, state.getPotentialEnergy(), 0.02);
+    }
+    for (int i = 1; i < xsize; i++) {
+        double x = 2.0*M_PI*i/(xsize-1)+1.0;
+        positions[1] = Vec3(x, 0, 0);
+        context.setPositions(positions);
+        State state = context.getState(State::Energy);
+        double energy = sin(x-1.0)+1.0;
         ASSERT_EQUAL_TOL(energy, state.getPotentialEnergy(), 1e-4);
     }
 }
@@ -397,6 +438,50 @@ void testContinuous2DFunction() {
                 energy = sin(0.25*x)*cos(0.33*y)+1.0;
                 force = -0.25*cos(0.25*x)*cos(0.33*y);
             }
+            ASSERT_EQUAL_VEC(Vec3(-force, 0, 0), forces[0], 0.1);
+            ASSERT_EQUAL_VEC(Vec3(force, 0, 0), forces[1], 0.1);
+            ASSERT_EQUAL_TOL(energy, state.getPotentialEnergy(), 0.02);
+        }
+    }
+}
+
+void testPeriodicContinuous2DFunction() {
+    const int xsize = 20;
+    const int ysize = 21;
+    const double xmin = 1.0;
+    const double xmax = 1.0+8.0*M_PI;
+    const double ymin = 0.0;
+    const double ymax = 2.0*M_PI;
+    System system;
+    system.addParticle(1.0);
+    system.addParticle(1.0);
+    VerletIntegrator integrator(0.01);
+    CustomNonbondedForce* forceField = new CustomNonbondedForce("fn(r,a)+1");
+    forceField->addGlobalParameter("a", 0.0);
+    forceField->addParticle(vector<double>());
+    forceField->addParticle(vector<double>());
+    vector<double> table(xsize*ysize);
+    for (int i = 0; i < xsize; i++) {
+        for (int j = 0; j < ysize; j++) {
+            double x = xmin + i*(xmax-xmin)/(xsize-1);
+            double y = ymin + j*(ymax-ymin)/(ysize-1);
+            table[i+xsize*j] = sin(0.25*x)*cos(y);
+        }
+    }
+    forceField->addTabulatedFunction("fn", new Continuous2DFunction(xsize, ysize, table, xmin, xmax, ymin, ymax, true));
+    system.addForce(forceField);
+    Context context(system, integrator, platform);
+    vector<Vec3> positions(2);
+    positions[0] = Vec3(0, 0, 0);
+    for (double x = xmin-0.15; x < xmax+0.2; x += 1.0) {
+        for (double y = ymin-0.15; y < ymax+0.2; y += 0.5) {
+            positions[1] = Vec3(x, 0, 0);
+            context.setParameter("a", y);
+            context.setPositions(positions);
+            State state = context.getState(State::Forces | State::Energy);
+            const vector<Vec3>& forces = state.getForces();
+            double energy = sin(0.25*x)*cos(y)+1.0;
+            double force = -0.25*cos(0.25*x)*cos(y);
             ASSERT_EQUAL_VEC(Vec3(-force, 0, 0), forces[0], 0.1);
             ASSERT_EQUAL_VEC(Vec3(force, 0, 0), forces[1], 0.1);
             ASSERT_EQUAL_TOL(energy, state.getPotentialEnergy(), 0.02);
@@ -454,6 +539,60 @@ void testContinuous3DFunction() {
                     energy = sin(0.25*x)*cos(0.33*y)*(1.0+z)+1.0;
                     force = -0.25*cos(0.25*x)*cos(0.33*y)*(1.0+z);
                 }
+                ASSERT_EQUAL_VEC(Vec3(-force, 0, 0), forces[0], 0.1);
+                ASSERT_EQUAL_VEC(Vec3(force, 0, 0), forces[1], 0.1);
+                ASSERT_EQUAL_TOL(energy, state.getPotentialEnergy(), 0.05);
+            }
+        }
+    }
+}
+
+void testPeriodicContinuous3DFunction() {
+    const int xsize = 10;
+    const int ysize = 11;
+    const int zsize = 12;
+    const double xmin = 1.0;
+    const double xmax = 1.0+8.0*M_PI;
+    const double ymin = 0.0;
+    const double ymax = 2.0*M_PI;
+    const double zmin = 0.0;
+    const double zmax = 2.0*M_PI;
+    System system;
+    system.addParticle(1.0);
+    system.addParticle(1.0);
+    VerletIntegrator integrator(0.01);
+    CustomNonbondedForce* forceField = new CustomNonbondedForce("fn(r,a,b)+1");
+    forceField->addGlobalParameter("a", 0.0);
+    forceField->addGlobalParameter("b", 0.0);
+    forceField->addParticle(vector<double>());
+    forceField->addParticle(vector<double>());
+    vector<double> table(xsize*ysize*zsize);
+    for (int i = 0; i < xsize; i++) {
+        for (int j = 0; j < ysize; j++) {
+            for (int k = 0; k < zsize; k++) {
+                double x = xmin + i*(xmax-xmin)/(xsize-1);
+                double y = ymin + j*(ymax-ymin)/(ysize-1);
+                double z = zmin + k*(zmax-zmin)/(zsize-1);
+                table[i+xsize*j+xsize*ysize*k] = sin(0.25*x)*cos(y)*(1.0-sin(z));
+            }
+        }
+    }
+    forceField->addTabulatedFunction("fn", new Continuous3DFunction(xsize, ysize, zsize, table, xmin, xmax, ymin, ymax, zmin, zmax, true));
+    system.addForce(forceField);
+    Context context(system, integrator, platform);
+    vector<Vec3> positions(2);
+    positions[0] = Vec3(0, 0, 0);
+    for (double x = xmin; x < xmax+0.2; x += 1.0) {
+        for (double y = ymin-0.15; y < ymax+0.2; y += 0.5) {
+            for (double z = zmin-0.15; z < zmax+0.2; z += 0.5) {
+                positions[1] = Vec3(x, 0, 0);
+                context.setParameter("a", y);
+                context.setParameter("b", z);
+                context.setPositions(positions);
+                State state = context.getState(State::Forces | State::Energy);
+                const vector<Vec3>& forces = state.getForces();
+                double energy = sin(0.25*x)*cos(y)*(1.0-sin(z))+1.0;
+                double force = -0.25*cos(0.25*x)*cos(y)*(1.0-sin(z));
                 ASSERT_EQUAL_VEC(Vec3(-force, 0, 0), forces[0], 0.1);
                 ASSERT_EQUAL_VEC(Vec3(force, 0, 0), forces[1], 0.1);
                 ASSERT_EQUAL_TOL(energy, state.getPotentialEnergy(), 0.05);
@@ -978,6 +1117,68 @@ void testInteractionGroupTabulatedFunction() {
     }
 }
 
+void testInteractionGroupWithCutoff() {
+    const int numParticles = 1000;
+    const double boxSize = 10.0;
+    System system;
+    system.setDefaultPeriodicBoxVectors(Vec3(boxSize, 0, 0), Vec3(0, boxSize, 0), Vec3(0, 0, boxSize));
+    NonbondedForce* standard = new NonbondedForce();
+    CustomNonbondedForce* custom = new CustomNonbondedForce("100/(r+0.1)");
+    system.addForce(standard);
+    system.addForce(custom);
+    standard->setNonbondedMethod(NonbondedForce::CutoffPeriodic);
+    custom->setNonbondedMethod(CustomNonbondedForce::CutoffPeriodic);
+    standard->setCutoffDistance(1.0);
+    custom->setCutoffDistance(1.0);
+    standard->setUseSwitchingFunction(true);
+    custom->setUseSwitchingFunction(true);
+    standard->setSwitchingDistance(0.9);
+    custom->setSwitchingDistance(0.8);
+    vector<Vec3> positions(numParticles);
+    OpenMM_SFMT::SFMT sfmt;
+    init_gen_rand(0, sfmt);
+    for (int i = 0; i < numParticles; i++) {
+        system.addParticle(10.0);
+        standard->addParticle(0.0, 0.2, 0.1);
+        custom->addParticle();
+        while (true) {
+            positions[i] = Vec3(genrand_real2(sfmt), genrand_real2(sfmt), genrand_real2(sfmt))*boxSize;
+            bool tooClose = false;
+            for (int j = 0; j < i; j++) {
+                Vec3 delta = positions[i]-positions[j];
+                if (delta.dot(delta) < 0.5*0.5)
+                    tooClose = true;
+            }
+            if (!tooClose)
+                break;
+        }
+    }
+    set<int> set1, set2;
+    for (int i = 0; i < 10; i++)
+        set1.insert(2*i);
+    for (int i = 0; i < numParticles; i++)
+        set2.insert(i);
+    custom->addInteractionGroup(set1, set2);
+    custom->setForceGroup(1);
+    
+    // Try simulating it and see if energy is conserved (indicating that any optimizations
+    // for combining the cutoff with the interaction group are behaving consistently).
+
+    VerletIntegrator integrator(0.001);
+    Context context(system, integrator, platform);
+    context.setPositions(positions);
+    context.setVelocitiesToTemperature(100);
+    ASSERT(context.getState(State::Energy, false, 1<<1).getPotentialEnergy() != 0.0);
+    State initialState = context.getState(State::Energy);
+    double initialEnergy = initialState.getPotentialEnergy()+initialState.getKineticEnergy();
+    for (int i = 0; i < 100; i++) {
+        integrator.step(10);
+        State state = context.getState(State::Energy);
+        double energy = state.getPotentialEnergy()+state.getKineticEnergy();
+        ASSERT_EQUAL_TOL(initialEnergy, energy, 0.001);
+    }
+}
+
 void testMultipleCutoffs() {
     System system;
     system.addParticle(1.0);
@@ -1188,6 +1389,47 @@ void testEnergyParameterDerivatives2() {
     ASSERT_EQUAL_TOL((energy1-energy2)/(2*delta), derivs["a"], 1e-4);
 }
 
+void testEnergyParameterDerivativesWithGroups() {
+    System system;
+    system.addParticle(1.0);
+    system.addParticle(1.0);
+    system.addParticle(1.0);
+    VerletIntegrator integrator(0.01);
+    CustomNonbondedForce* nonbonded = new CustomNonbondedForce("k*(r-r0)^2");
+    nonbonded->addGlobalParameter("r0", 0.0);
+    nonbonded->addGlobalParameter("k", 0.0);
+    nonbonded->addEnergyParameterDerivative("k");
+    nonbonded->addEnergyParameterDerivative("r0");
+    vector<double> parameters;
+    nonbonded->addParticle(parameters);
+    nonbonded->addParticle(parameters);
+    nonbonded->addParticle(parameters);
+    set<int> set1, set2;
+    set1.insert(1);
+    set2.insert(0);
+    set2.insert(2);
+    nonbonded->addInteractionGroup(set1, set2);
+    system.addForce(nonbonded);
+    Context context(system, integrator, platform);
+    vector<Vec3> positions(3);
+    positions[0] = Vec3(0, 2, 0);
+    positions[1] = Vec3(0, 0, 0);
+    positions[2] = Vec3(1, 0, 0);
+    context.setPositions(positions);
+    for (int i = 0; i < 10; i++) {
+        double r0 = 0.1*i;
+        double k = 10-i;
+        context.setParameter("r0", r0);
+        context.setParameter("k", k);
+        State state = context.getState(State::ParameterDerivatives);
+        map<string, double> derivs = state.getEnergyParameterDerivatives();
+        double dEdr0 = -2*k*((2-r0)+(1-r0));
+        double dEdk = (2-r0)*(2-r0) + (1-r0)*(1-r0);
+        ASSERT_EQUAL_TOL(dEdr0, derivs["r0"], 1e-5);
+        ASSERT_EQUAL_TOL(dEdk, derivs["k"], 1e-5);
+    }
+}
+
 void runPlatformTests();
 
 int main(int argc, char* argv[]) {
@@ -1200,8 +1442,11 @@ int main(int argc, char* argv[]) {
         testPeriodic();
         testTriclinic();
         testContinuous1DFunction();
+        testPeriodicContinuous1DFunction();
         testContinuous2DFunction();
+        testPeriodicContinuous2DFunction();
         testContinuous3DFunction();
+        testPeriodicContinuous3DFunction();
         testDiscrete1DFunction();
         testDiscrete2DFunction();
         testDiscrete3DFunction();
@@ -1212,11 +1457,13 @@ int main(int argc, char* argv[]) {
         testLargeInteractionGroup();
         testInteractionGroupLongRangeCorrection();
         testInteractionGroupTabulatedFunction();
+        testInteractionGroupWithCutoff();
         testMultipleCutoffs();
         testMultipleSwitches();
         testIllegalVariable();
         testEnergyParameterDerivatives();
         testEnergyParameterDerivatives2();
+        testEnergyParameterDerivativesWithGroups();
         runPlatformTests();
     }
     catch(const exception& e) {

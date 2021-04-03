@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2011-2017 Stanford University and the Authors.      *
+ * Portions copyright (c) 2011-2020 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -50,8 +50,8 @@ namespace OpenMM {
  * with the particle positions and momenta.
  *
  * To create an integration algorithm, you first define a set of variables the
- * integrator will compute.  Variables come in two types: <i>global</i> variables
- * have a single value, while <i>per-DOF</i> variables have a value for every
+ * integrator will compute.  Variables come in two types: global variables
+ * have a single value, while per-DOF variables have a value for every
  * degree of freedom (x, y, or z coordinate of a particle).  You can define as
  * many variables as you want of each type.  The value of any variable can be
  * computed by the integration algorithm, or set directly by calling a method on
@@ -112,14 +112,14 @@ namespace OpenMM {
  * evaluated, a different value will be used.  When used in a per-DOF
  * expression, a different value will be used for every degree of freedom.
  * Note, however, that if this variable appears multiple times in a single
- * expression, the <i>same</i> value is used everywhere it appears in that
+ * expression, the same value is used everywhere it appears in that
  * expression.</li>
  * <li>gaussian: (either global or per-DOF, read-only) This is a Gaussian
  * distributed random number with mean 0 and variance 1.  Every time an expression
  * is evaluated, a different value will be used.  When used in a per-DOF
  * expression, a different value will be used for every degree of freedom.
  * Note, however, that if this variable appears multiple times in a single
- * expression, the <i>same</i> value is used everywhere it appears in that
+ * expression, the same value is used everywhere it appears in that
  * expression.</li>
  * <li>A global variable is created for every adjustable parameter defined
  * in the integrator's Context.</li>
@@ -194,7 +194,7 @@ namespace OpenMM {
  *
  * <tt><pre>
  * integrator.beginIfBlock("uniform < acceptanceProbability");
- * integrator.computePerDof("x", "xnew");
+ * integrator.addComputePerDof("x", "xnew");
  * integrator.endBlock();
  * </pre></tt>
  *
@@ -202,6 +202,58 @@ namespace OpenMM {
  * only involve global variables, not per-DOF ones.  It may use any of the
  * following comparison operators: =, <. >, !=, <=, >=.  Blocks may be nested
  * inside each other.
+ * 
+ * "Per-DOF" computations can also be thought of as per-particle computations
+ * that operate on three component vectors.  For example, "x+dt*v" means to take
+ * the particle's velocity (a vector), multiply it by the step size, and add the
+ * position (also a vector).  The result is a new vector that can be stored into
+ * a per-DOF variable with addComputePerDof(), or it can be summed over all
+ * components of all particles with addComputeSum().  Because the calculation is
+ * done on vectors, you can use functions that operate explicitly on vectors
+ * rather than just computing each component independently.  For example, the
+ * following line uses a cross product to compute the angular momentum of each
+ * particle and stores it into a per-DOF variable.
+ * 
+ * <tt><pre>
+ * integrator.addComputePerDof("angularMomentum", "m*cross(x, v)");
+ * </pre></tt>
+ * 
+ * Here are two more examples that may be useful as starting points for writing
+ * your own integrators.  The first one implements the algorithm used by the
+ * standard VerletIntegrator class.  This is a leapfrog algorithm, in contrast
+ * to the velocity Verlet algorithm shown above, so it only requires applying
+ * constraints once in each time step.
+ * 
+ * <tt><pre>
+ * CustomIntegrator integrator(dt);
+ * integrator.addPerDofVariable("x0", 0);
+ * integrator.addUpdateContextState();
+ * integrator.addComputePerDof("x0", "x");
+ * integrator.addComputePerDof("v", "v+dt*f/m");
+ * integrator.addComputePerDof("x", "x+dt*v");
+ * integrator.addConstrainPositions();
+ * integrator.addComputePerDof("v", "(x-x0)/dt");
+ * </pre></tt>
+ * 
+ * The second one implements the algorithm used by the standard
+ * LangevinMiddleIntegrator class.  kB is Boltzmann's constant.
+ * 
+ * <tt><pre>
+ * CustomIntegrator integrator(dt);
+ * integrator.addGlobalVariable("a", exp(-friction*dt));
+ * integrator.addGlobalVariable("b", sqrt(1-exp(-2*friction*dt)));
+ * integrator.addGlobalVariable("kT", kB*temperature);
+ * integrator.addPerDofVariable("x1", 0);
+ * integrator.addUpdateContextState();
+ * integrator.addComputePerDof("v", "v + dt*f/m");
+ * integrator.addConstrainVelocities();
+ * integrator.addComputePerDof("x", "x + 0.5*dt*v");
+ * integrator.addComputePerDof("v", "a*v + b*sqrt(kT/m)*gaussian");
+ * integrator.addComputePerDof("x", "x + 0.5*dt*v");
+ * integrator.addComputePerDof("x1", "x");
+ * integrator.addConstrainPositions();
+ * integrator.addComputePerDof("v", "v + (x-x1)/dt");
+ * </pre></tt>
  * 
  * Another feature of CustomIntegrator is that it can use derivatives of the
  * potential energy with respect to context parameters.  These derivatives are
@@ -215,7 +267,7 @@ namespace OpenMM {
  *
  * An Integrator has one other job in addition to evolving the equations of motion:
  * it defines how to compute the kinetic energy of the system.  Depending on the
- * integration method used, simply summing mv<sup>2</sup>/2 over all degrees of
+ * integration method used, simply summing (mv^2)/2 over all degrees of
  * freedom may not give the correct answer.  For example, in a leapfrog integrator
  * the velocities are "delayed" by half a time step, so the above formula would
  * give the kinetic energy half a time step ago, not at the current time.
@@ -235,13 +287,25 @@ namespace OpenMM {
  * The kinetic energy expression may depend on the following pre-defined variables:
  * x, v, f, m, dt.  It also may depend on user-defined global and per-DOF variables,
  * and on the values of adjustable parameters defined  in the integrator's Context.
- * It may <i>not</i> depend on any other variable, such as the potential energy,
+ * It may not depend on any other variable, such as the potential energy,
  * the force from a single force group, or a random number.
  *
  * Expressions may involve the operators + (add), - (subtract), * (multiply), / (divide), and ^ (power), and the following
- * functions: sqrt, exp, log, sin, cos, sec, csc, tan, cot, asin, acos, atan, sinh, cosh, tanh, erf, erfc, min, max, abs, floor, ceil, step, delta, select.  All trigonometric functions
+ * functions: sqrt, exp, log, sin, cos, sec, csc, tan, cot, asin, acos, atan, atan2, sinh, cosh, tanh, erf, erfc, min, max, abs, floor, ceil, step, delta, select.  All trigonometric functions
  * are defined in radians, and log is the natural logarithm.  step(x) = 0 if x is less than 0, 1 otherwise.  delta(x) = 1 if x is 0, 0 otherwise.
  * select(x,y,z) = z if x = 0, y otherwise.  An expression may also involve intermediate quantities that are defined following the main expression, using ";" as a separator.
+ * 
+ * Expressions used in ComputePerDof and ComputeSum steps can also use the following
+ * functions that operate on vectors: cross(a, b) is the cross product of two
+ * vectors; dot(a, b) is the dot product of two vectors; _x(a), _y(a), and _z(a)
+ * extract a single component from a vector; and vector(a, b, c) creates a new
+ * vector with the x component of the first argument, the y component of the
+ * second argument, and the z component of the third argument.  Remember that every
+ * quantity appearing in a vector expression is a vector.  Functions that appear
+ * to return a scalar really return a vector whose components are all the same.
+ * For example, _z(a) returns the vector (a.z, a.z, a.z).  Likewise, wherever a
+ * constant appears in the expression, it really means a vector whose components
+ * all have the same value.
  *
  * In addition, you can call addTabulatedFunction() to define a new function based on tabulated values.  You specify the function by
  * creating a TabulatedFunction object.  That function can then appear in expressions.
@@ -600,6 +664,33 @@ protected:
      * Compute the kinetic energy of the system at the current time.
      */
     double computeKineticEnergy();
+    /**
+     * Get whether computeKineticEnergy() expects forces to have been computed.
+     */
+    bool kineticEnergyRequiresForce() const;
+    /**
+     * This is called while writing checkpoints.  It gives the integrator a chance to write
+     * its own data.
+     */
+    void createCheckpoint(std::ostream& stream) const;
+    /**
+     * This is called while loading a checkpoint.  The integrator should read in whatever
+     * data it wrote in createCheckpoint() and update its internal state accordingly.
+     */
+    void loadCheckpoint(std::istream& stream);
+    /**
+     * This is called while creating a State.  The Integrator should store the values
+     * of all time-varying parameters into the SerializationNode so they can be saved
+     * as part of the state.
+     */
+    void serializeParameters(SerializationNode& node) const;
+    /**
+     * This is called when loading a previously saved State.  The Integrator should
+     * load the values of all time-varying parameters from the SerializationNode.  If
+     * the node contains parameters that are not defined for this Integrator, it should
+     * throw an exception.
+     */
+    void deserializeParameters(const SerializationNode& node);
 private:
     class ComputationInfo;
     class FunctionInfo;
@@ -612,7 +703,7 @@ private:
     std::string kineticEnergy;
     mutable bool globalsAreCurrent;
     int randomNumberSeed;
-    bool forcesAreValid;
+    bool forcesAreValid, keNeedsForce;
     Kernel kernel;
 };
 

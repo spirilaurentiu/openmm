@@ -1,8 +1,8 @@
 import unittest
-from simtk.openmm.app import *
-from simtk.openmm import *
-from simtk.unit import *
-import simtk.openmm.app.element as elem
+from openmm.app import *
+from openmm import *
+from openmm.unit import *
+import openmm.app.element as elem
 import os
 if sys.version_info >= (3, 0):
     from io import StringIO
@@ -11,7 +11,29 @@ else:
 
 class TestPdbxFile(unittest.TestCase):
     """Test the PDBx/mmCIF file parser"""
- 
+
+    def test_FormatConversion(self):
+        """Test conversion from PDB to PDBx"""
+
+        mol = PDBFile('systems/ala_ala_ala.pdb')
+
+        # Write to 'file'
+        output = StringIO()
+        PDBxFile.writeFile(mol.topology, mol.positions, output,
+                           keepIds=True)
+
+        # Read from 'file'
+        input = StringIO(output.getvalue())
+        try:
+            pdbx = PDBxFile(input)
+        except Exception:
+            self.fail('Parser failed to read PDBx/mmCIF file')
+
+        # Close file handles
+        output.close()
+        input.close()
+
+
     def test_Triclinic(self):
         """Test parsing a file that describes a triclinic box."""
         pdb = PDBxFile('systems/triclinic.pdbx')
@@ -132,6 +154,35 @@ class TestPdbxFile(unittest.TestCase):
         for bond1, bond2 in zip(pdb.topology.bonds(), pdbx.topology.bonds()):
             self.assertEqual(bond1[0].name, bond2[0].name)
             self.assertEqual(bond1[1].name, bond2[1].name)
+
+    def testMultiChain(self):
+        """Test reading and writing a file that includes multiple chains"""
+        cif_ori = PDBxFile('systems/multichain.pdbx')
+
+        output = StringIO()
+        PDBxFile.writeFile(cif_ori.topology, cif_ori.positions, output, keepIds=True)
+        input = StringIO(output.getvalue())
+        cif_new = PDBxFile(input)
+        output.close()
+        input.close()
+
+        self.assertEqual(cif_ori.topology.getNumChains(), cif_new.topology.getNumChains())
+
+        for chain1, chain2 in zip(cif_ori.topology.chains(), cif_new.topology.chains()):
+            self.assertEqual(chain1.id, chain2.id)
+
+    def testInsertionCodes(self):
+        """Test reading a file that uses insertion codes."""
+        pdbx = PDBxFile('systems/insertions.pdbx')
+        residues = list(pdbx.topology.residues())
+        self.assertEqual(7, len(residues))
+        names = ['PHE', 'ASP', 'LYS', 'ILE', 'LYS', 'ASN', 'TRP']
+        ids = ['59', '60', '60', '60', '60', '60', '61']
+        codes = ['', '', 'A', 'B', 'C', 'D', '']
+        for res, name, id, code in zip(residues, names, ids, codes):
+            self.assertEqual(name, res.name)
+            self.assertEqual(id, res.id)
+            self.assertEqual(code, res.insertionCode)
 
 if __name__ == '__main__':
     unittest.main()

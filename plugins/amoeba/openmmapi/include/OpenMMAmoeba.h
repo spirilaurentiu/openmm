@@ -32,16 +32,11 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "openmm/AmoebaBondForce.h"
-#include "openmm/AmoebaAngleForce.h"
-#include "openmm/AmoebaInPlaneAngleForce.h"
-#include "openmm/AmoebaPiTorsionForce.h"
-#include "openmm/AmoebaStretchBendForce.h"
-#include "openmm/AmoebaOutOfPlaneBendForce.h"
 #include "openmm/AmoebaTorsionTorsionForce.h"
 #include "openmm/AmoebaMultipoleForce.h"
 #include "openmm/AmoebaGeneralizedKirkwoodForce.h"
 #include "openmm/AmoebaVdwForce.h"
 #include "openmm/AmoebaWcaDispersionForce.h"
+#include "openmm/HippoNonbondedForce.h"
 
 #endif /*AMOEBA_OPENMM_H_*/

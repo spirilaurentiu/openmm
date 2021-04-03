@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2008-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2008-2019 Stanford University and the Authors.      *
  * Authors: Mark Friedrichs, Peter Eastman                                    *
  * Contributors:                                                              *
  *                                                                            *
@@ -48,17 +48,12 @@ extern "C" OPENMM_EXPORT void registerKernelFactories() {
     try {
         Platform& platform = Platform::getPlatformByName("CUDA");
         AmoebaCudaKernelFactory* factory = new AmoebaCudaKernelFactory();
-        platform.registerKernelFactory(CalcAmoebaBondForceKernel::Name(), factory);
-        platform.registerKernelFactory(CalcAmoebaAngleForceKernel::Name(), factory);
-        platform.registerKernelFactory(CalcAmoebaInPlaneAngleForceKernel::Name(), factory);
-        platform.registerKernelFactory(CalcAmoebaPiTorsionForceKernel::Name(), factory);
-        platform.registerKernelFactory(CalcAmoebaStretchBendForceKernel::Name(), factory);
-        platform.registerKernelFactory(CalcAmoebaOutOfPlaneBendForceKernel::Name(), factory);
         platform.registerKernelFactory(CalcAmoebaTorsionTorsionForceKernel::Name(), factory);
         platform.registerKernelFactory(CalcAmoebaMultipoleForceKernel::Name(), factory);
         platform.registerKernelFactory(CalcAmoebaGeneralizedKirkwoodForceKernel::Name(), factory);
         platform.registerKernelFactory(CalcAmoebaVdwForceKernel::Name(), factory);
         platform.registerKernelFactory(CalcAmoebaWcaDispersionForceKernel::Name(), factory);
+        platform.registerKernelFactory(CalcHippoNonbondedForceKernel::Name(), factory);
     }
     catch (...) {
         // Ignore.  The CUDA platform isn't available.
@@ -79,24 +74,6 @@ KernelImpl* AmoebaCudaKernelFactory::createKernelImpl(std::string name, const Pl
     CudaPlatform::PlatformData& data = *static_cast<CudaPlatform::PlatformData*>(context.getPlatformData());
     CudaContext& cu = *data.contexts[0];
 
-    if (name == CalcAmoebaBondForceKernel::Name())
-        return new CudaCalcAmoebaBondForceKernel(name, platform, cu, context.getSystem());
-
-    if (name == CalcAmoebaAngleForceKernel::Name())
-        return new CudaCalcAmoebaAngleForceKernel(name, platform, cu, context.getSystem());
-
-    if (name == CalcAmoebaInPlaneAngleForceKernel::Name())
-        return new CudaCalcAmoebaInPlaneAngleForceKernel(name, platform, cu, context.getSystem());
-
-    if (name == CalcAmoebaPiTorsionForceKernel::Name())
-        return new CudaCalcAmoebaPiTorsionForceKernel(name, platform, cu, context.getSystem());
-
-    if (name == CalcAmoebaStretchBendForceKernel::Name())
-        return new CudaCalcAmoebaStretchBendForceKernel(name, platform, cu, context.getSystem());
-
-    if (name == CalcAmoebaOutOfPlaneBendForceKernel::Name())
-        return new CudaCalcAmoebaOutOfPlaneBendForceKernel(name, platform, cu, context.getSystem());
-
     if (name == CalcAmoebaTorsionTorsionForceKernel::Name())
         return new CudaCalcAmoebaTorsionTorsionForceKernel(name, platform, cu, context.getSystem());
 
@@ -111,6 +88,9 @@ KernelImpl* AmoebaCudaKernelFactory::createKernelImpl(std::string name, const Pl
 
     if (name == CalcAmoebaWcaDispersionForceKernel::Name())
         return new CudaCalcAmoebaWcaDispersionForceKernel(name, platform, cu, context.getSystem());
+
+    if (name == CalcHippoNonbondedForceKernel::Name())
+        return new CudaCalcHippoNonbondedForceKernel(name, platform, cu, context.getSystem());
 
     throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }

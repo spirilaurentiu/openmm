@@ -10,7 +10,7 @@ typedef struct {
 } AtomData;
 
 inline __device__ void loadAtomData(AtomData& data, int atom, const real4* __restrict__ posq, const real* __restrict__ sphericalDipole,
-            const real* __restrict__ sphericalQuadrupole, const real* __restrict__ inducedDipole, const real* __restrict__ inducedDipolePolar,
+            const real* __restrict__ sphericalQuadrupole, const real3* __restrict__ inducedDipole, const real3* __restrict__ inducedDipolePolar,
             const float2* __restrict__ dampingAndThole) {
     real4 atomPosq = posq[atom];
     data.pos = make_real3(atomPosq.x, atomPosq.y, atomPosq.z);
@@ -25,12 +25,8 @@ inline __device__ void loadAtomData(AtomData& data, int atom, const real4* __res
     data.sphericalQuadrupole[3] = sphericalQuadrupole[atom*5+3];
     data.sphericalQuadrupole[4] = sphericalQuadrupole[atom*5+4];
 #endif
-    data.inducedDipole.x = inducedDipole[atom*3];
-    data.inducedDipole.y = inducedDipole[atom*3+1];
-    data.inducedDipole.z = inducedDipole[atom*3+2];
-    data.inducedDipolePolar.x = inducedDipolePolar[atom*3];
-    data.inducedDipolePolar.y = inducedDipolePolar[atom*3+1];
-    data.inducedDipolePolar.z = inducedDipolePolar[atom*3+2];
+    data.inducedDipole = inducedDipole[atom];
+    data.inducedDipolePolar = inducedDipolePolar[atom];
     float2 temp = dampingAndThole[atom];
     data.damp = temp.x;
     data.thole = temp.y;
@@ -141,9 +137,9 @@ __device__ void computeOneInteraction(AtomData& atom1, AtomData& atom2, bool has
 
     real dmp = atom1.damp*atom2.damp;
     real a = min(atom1.thole, atom2.thole);
-    real u = fabs(dmp) > 1.0e-5f ? r/dmp : 1e10f;
-    real au3 = a*u*u*u;
-    real expau3 = au3 < 50 ? EXP(-au3) : 0;
+    real u = r/dmp;
+    real au3 = fabs(dmp) > 1.0e-5f ? a*u*u*u : 0;
+    real expau3 = fabs(dmp) > 1.0e-5f ? EXP(-au3) : 0;
     real a2u6 = au3*au3;
     real a3u9 = a2u6*au3;
     // Thole damping factors for energies
@@ -441,14 +437,14 @@ __device__ void computeSelfEnergyAndTorque(AtomData& atom1, mixed& energy) {
 extern "C" __global__ void computeElectrostatics(
         unsigned long long* __restrict__ forceBuffers, unsigned long long* __restrict__ torqueBuffers, mixed* __restrict__ energyBuffer,
         const real4* __restrict__ posq, const uint2* __restrict__ covalentFlags, const unsigned int* __restrict__ polarizationGroupFlags,
-        const ushort2* __restrict__ exclusionTiles, unsigned int startTileIndex, unsigned int numTileIndices,
+        const int2* __restrict__ exclusionTiles, unsigned int startTileIndex, unsigned int numTileIndices,
 #ifdef USE_CUTOFF
         const int* __restrict__ tiles, const unsigned int* __restrict__ interactionCount, real4 periodicBoxSize, real4 invPeriodicBoxSize,
         real4 periodicBoxVecX, real4 periodicBoxVecY, real4 periodicBoxVecZ, unsigned int maxTiles, const real4* __restrict__ blockCenter,
         const unsigned int* __restrict__ interactingAtoms,
 #endif
-        const real* __restrict__ sphericalDipole, const real* __restrict__ sphericalQuadrupole, const real* __restrict__ inducedDipole,
-        const real* __restrict__ inducedDipolePolar, const float2* __restrict__ dampingAndThole) {
+        const real* __restrict__ sphericalDipole, const real* __restrict__ sphericalQuadrupole, const real3* __restrict__ inducedDipole,
+        const real3* __restrict__ inducedDipolePolar, const float2* __restrict__ dampingAndThole) {
     const unsigned int totalWarps = (blockDim.x*gridDim.x)/TILE_SIZE;
     const unsigned int warp = (blockIdx.x*blockDim.x+threadIdx.x)/TILE_SIZE;
     const unsigned int tgx = threadIdx.x & (TILE_SIZE-1);
@@ -461,7 +457,7 @@ extern "C" __global__ void computeElectrostatics(
     const unsigned int firstExclusionTile = FIRST_EXCLUSION_TILE+warp*(LAST_EXCLUSION_TILE-FIRST_EXCLUSION_TILE)/totalWarps;
     const unsigned int lastExclusionTile = FIRST_EXCLUSION_TILE+(warp+1)*(LAST_EXCLUSION_TILE-FIRST_EXCLUSION_TILE)/totalWarps;
     for (int pos = firstExclusionTile; pos < lastExclusionTile; pos++) {
-        const ushort2 tileIndices = exclusionTiles[pos];
+        const int2 tileIndices = exclusionTiles[pos];
         const unsigned int x = tileIndices.x;
         const unsigned int y = tileIndices.y;
         AtomData data;
@@ -590,7 +586,7 @@ extern "C" __global__ void computeElectrostatics(
 
         while (skipTiles[tbx+TILE_SIZE-1] < pos) {
             if (skipBase+tgx < NUM_TILES_WITH_EXCLUSIONS) {
-                ushort2 tile = exclusionTiles[skipBase+tgx];
+                int2 tile = exclusionTiles[skipBase+tgx];
                 skipTiles[threadIdx.x] = tile.x + tile.y*NUM_BLOCKS - tile.y*(tile.y+1)/2;
             }
             else

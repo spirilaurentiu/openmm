@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2011-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2011-2018 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -28,13 +28,15 @@
  * -------------------------------------------------------------------------- */
 
 #include "CudaArray.h"
-#include "CudaContext.h"
 #include "openmm/System.h"
+#include "openmm/common/BondedUtilities.h"
 #include <string>
 #include <vector>
 
 namespace OpenMM {
 
+class CudaContext;
+    
 /**
  * This class provides a generic mechanism for evaluating bonded interactions.  You write only
  * the source code needed to compute one interaction, and this class takes care of creating
@@ -78,10 +80,9 @@ namespace OpenMM {
  * from your interaction code.
  */
 
-class OPENMM_EXPORT_CUDA CudaBondedUtilities {
+class OPENMM_EXPORT_COMMON CudaBondedUtilities : public BondedUtilities {
 public:
     CudaBondedUtilities(CudaContext& context);
-    ~CudaBondedUtilities();
     /**
      * Add a bonded interaction.
      *
@@ -100,6 +101,15 @@ public:
      * refer to it by this name.
      */
     std::string addArgument(CUdeviceptr data, const std::string& type);
+    /**
+     * Add an argument that should be passed to the interaction kernel.
+     * 
+     * @param data    the array containing the data to pass
+     * @param type    the data type contained in the memory (e.g. "float4")
+     * @return the name that will be used for the argument.  Any code you pass to addInteraction() should
+     * refer to it by this name.
+     */
+    std::string addArgument(ArrayInterface& data, const std::string& type);
     /**
      * Register that the interaction kernel will be computing the derivative of the potential energy
      * with respect to a parameter.
@@ -136,7 +146,7 @@ private:
     std::vector<int> forceGroup;
     std::vector<CUdeviceptr> arguments;
     std::vector<std::string> argTypes;
-    std::vector<std::vector<CudaArray*> > atomIndices;
+    std::vector<std::vector<CudaArray> > atomIndices;
     std::vector<std::string> prefixCode;
     std::vector<std::string> energyParameterDerivatives;
     std::vector<void*> kernelArgs;

@@ -33,6 +33,25 @@ MARK_AS_ADVANCED(DART_ROOT)
 # We have custom cmake modules for FindOpenMM and running python tests
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
+# Determine what architecture we are compiling for.
+INCLUDE(TargetArch)
+target_architecture(TARGET_ARCH)
+if ("${TARGET_ARCH}" MATCHES "x86_64|i386")
+    set(X86 ON)
+endif()
+if ("${TARGET_ARCH}" MATCHES "arm")
+    set(ARM ON)
+    if ("${TARGET_ARCH}" MATCHES "armv8")
+        add_definitions(-D__ARM64__=1)
+    else()
+        add_definitions(-D__ARM__=1)
+    endif()
+endif()
+if ("${TARGET_ARCH}" MATCHES "ppc")
+    set(PPC ON)
+    add_definitions(-D__PPC__=1)
+endif()
+
 # Where to install
 IF(WIN32)
     IF(NOT OPENMM_INSTALL_PREFIX)
@@ -69,7 +88,10 @@ ENDIF(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
 
 # The source is organized into subdirectories, but we handle them all from
 # this CMakeLists file rather than letting CMake visit them as SUBDIRS.
-SET(OPENMM_SOURCE_SUBDIRS . openmmapi olla libraries/jama libraries/quern libraries/lepton libraries/sfmt libraries/lbfgs libraries/hilbert libraries/csha1 platforms/reference serialization libraries/irrxml libraries/vecmath)
+SET(OPENMM_SOURCE_SUBDIRS . openmmapi olla libraries/jama libraries/quern libraries/lepton libraries/sfmt libraries/lbfgs libraries/hilbert libraries/csha1 platforms/reference serialization libraries/irrxml)
+IF(X86 OR ARM)
+    SET(OPENMM_SOURCE_SUBDIRS ${OPENMM_SOURCE_SUBDIRS} libraries/vecmath)
+ENDIF()
 IF(WIN32)
     SET(OPENMM_SOURCE_SUBDIRS ${OPENMM_SOURCE_SUBDIRS} libraries/pthreads)
 ELSE(WIN32)
@@ -82,13 +104,13 @@ ENDIF(WIN32)
 
 SET (CMAKE_CXX_STANDARD 11)
 
-IF (APPLE AND (NOT PNACL))
+IF(APPLE)
     # Build 64 bit binaries compatible with OS X 10.7
     IF (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
         SET (CMAKE_OSX_DEPLOYMENT_TARGET "10.7" CACHE STRING "The minimum version of OS X to support" FORCE)
     ENDIF (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     IF (NOT CMAKE_OSX_ARCHITECTURES)
-        SET (CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "The processor architectures to build for" FORCE)
+        SET (CMAKE_OSX_ARCHITECTURES "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "The processor architectures to build for" FORCE)
     ENDIF (NOT CMAKE_OSX_ARCHITECTURES)
     IF (NOT CMAKE_OSX_SYSROOT)
         EXECUTE_PROCESS(COMMAND "xcrun" "--show-sdk-path" OUTPUT_VARIABLE XCRUN_OSX_SYSROOT RESULT_VARIABLE XCRUN_OSX_SYSROOT_STATUS OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -101,20 +123,21 @@ IF (APPLE AND (NOT PNACL))
 
     # Improve the linking behavior of Mac libraries
     SET (CMAKE_INSTALL_NAME_DIR "@rpath")
-    SET(EXTRA_COMPILE_FLAGS "-msse2 -stdlib=libc++")
-ELSE (APPLE AND (NOT PNACL))
-    IF (MSVC OR ANDROID OR PNACL)
-        SET(EXTRA_COMPILE_FLAGS)
-        IF (MSVC)
-            # Use warning level 2, not whatever warning level CMake picked.
-            STRING(REGEX REPLACE "/W[0-4]" "/W2" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-            # Explicitly suppress warnings 4305 and 4244.
-            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4305 /wd4244")
-        ENDIF (MSVC)
-    ELSE (MSVC OR ANDROID OR PNACL)
-        SET(EXTRA_COMPILE_FLAGS "-msse2")
-    ENDIF (MSVC OR ANDROID OR PNACL)
-ENDIF (APPLE AND (NOT PNACL))
+    IF (X86)
+      SET(EXTRA_COMPILE_FLAGS "-msse2")
+    ENDIF()
+    SET(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -stdlib=libc++")
+ELSEIF(MSVC)
+    SET(EXTRA_COMPILE_FLAGS)
+    # Use warning level 2, not whatever warning level CMake picked.
+    STRING(REGEX REPLACE "/W[0-4]" "/W2" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    # Explicitly suppress warnings 4305 and 4244.
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4305 /wd4244")
+ELSEIF(X86)
+    SET(EXTRA_COMPILE_FLAGS "-msse2")
+ELSE()
+    SET(EXTRA_COMPILE_FLAGS)
+ENDIF()
 
 IF(UNIX AND NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release CACHE STRING "Debug or Release build" FORCE)
@@ -141,7 +164,7 @@ ENDIF (NOT CMAKE_CXX_FLAGS_RELEASE)
 
 SET(OPENMM_LIBRARY_NAME OpenMM)
 SET(OPENMM_MAJOR_VERSION 7)
-SET(OPENMM_MINOR_VERSION 2)
+SET(OPENMM_MINOR_VERSION 5)
 SET(OPENMM_BUILD_VERSION 0)
 
 ADD_DEFINITIONS(-DOPENMM_LIBRARY_NAME=${OPENMM_LIBRARY_NAME}
@@ -219,19 +242,19 @@ FOREACH(subdir ${OPENMM_SOURCE_SUBDIRS})
     ## OpenMM was previously installed there.
     INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
 ENDFOREACH(subdir)
-IF (ANDROID OR PNACL)
-    SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/libraries/sfmt/src/SFMT.cpp PROPERTIES COMPILE_FLAGS "-UHAVE_SSE2")
-ELSE (ANDROID OR PNACL)
+IF(X86)
     SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/libraries/sfmt/src/SFMT.cpp PROPERTIES COMPILE_FLAGS "-DHAVE_SSE2=1")
-ENDIF(ANDROID OR PNACL)
-IF (NOT (ANDROID OR PNACL OR (WIN32 AND OPENMM_BUILD_STATIC_LIB)))
+ELSE()
+    SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/libraries/sfmt/src/SFMT.cpp PROPERTIES COMPILE_FLAGS "-UHAVE_SSE2")
+ENDIF()
+IF(X86 AND NOT (WIN32 AND OPENMM_BUILD_STATIC_LIB))
     FILE(GLOB src_files ${CMAKE_CURRENT_SOURCE_DIR}/libraries/asmjit/*/*.cpp)
     FILE(GLOB incl_files ${CMAKE_CURRENT_SOURCE_DIR}/libraries/asmjit/*.h)
     SET(SOURCE_FILES ${SOURCE_FILES} ${src_files})
     SET(SOURCE_INCLUDE_FILES ${SOURCE_INCLUDE_FILES} ${incl_files})
     INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/libraries/asmjit")
     SET(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DLEPTON_USE_JIT")
-ENDIF (NOT (ANDROID OR PNACL OR (WIN32 AND OPENMM_BUILD_STATIC_LIB)))
+ENDIF()
 
 # If API wrappers are being generated, and add them to the build.
 SET(OPENMM_BUILD_C_AND_FORTRAN_WRAPPERS ON CACHE BOOL "Build wrappers for C and Fortran")
@@ -255,7 +278,7 @@ ENDIF (MSVC)
 
 IF(OPENMM_BUILD_SHARED_LIB)
     ADD_LIBRARY(${SHARED_TARGET} SHARED ${SOURCE_FILES} ${SOURCE_INCLUDE_FILES} ${API_ABS_INCLUDE_FILES})
-    SET_TARGET_PROPERTIES(${SHARED_TARGET} PROPERTIES LINK_FLAGS "${EXTRA_LINK_FLAGS}" COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DOPENMM_BUILDING_SHARED_LIBRARY -DLEPTON_BUILDING_SHARED_LIBRARY -DPTHREAD_BUILDING_SHARED_LIBRARY")
+    SET_TARGET_PROPERTIES(${SHARED_TARGET} PROPERTIES LINK_FLAGS "${EXTRA_LINK_FLAGS}" COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DOPENMM_BUILDING_SHARED_LIBRARY -DLEPTON_BUILDING_SHARED_LIBRARY -DPTHREAD_BUILDING_SHARED_LIBRARY" SOVERSION "${OPENMM_MAJOR_VERSION}.${OPENMM_MINOR_VERSION}")
 ENDIF(OPENMM_BUILD_SHARED_LIB)
 
 IF(OPENMM_BUILD_STATIC_LIB)
@@ -324,6 +347,12 @@ ENDIF(OPENCL_FOUND)
 IF(OPENMM_BUILD_OPENCL_LIB)
     ADD_SUBDIRECTORY(platforms/opencl)
 ENDIF(OPENMM_BUILD_OPENCL_LIB)
+
+# Common compute files
+
+IF(CUDA_FOUND OR OPENCL_FOUND)
+    ADD_SUBDIRECTORY(platforms/common)
+ENDIF()
 
 # Optimized CPU platform
 

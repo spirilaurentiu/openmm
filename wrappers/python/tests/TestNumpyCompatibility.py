@@ -1,7 +1,7 @@
 import unittest
-from simtk.openmm import app
-import simtk.openmm as mm
-from simtk import unit
+from openmm import app
+import openmm as mm
+from openmm import unit
 try:
     import numpy as np
     NUMPY_IMPORT_FAILED = False
@@ -16,9 +16,9 @@ class TestNumpyCompatibility(unittest.TestCase):
         prmtop = app.AmberPrmtopFile('systems/water-box-216.prmtop')
 
         system = prmtop.createSystem(nonbondedMethod=app.PME,
-                                         nonbondedCutoff=0.9*unit.nanometers,
-                                         constraints=app.HBonds, rigidWater=True,
-                                         ewaldErrorTolerance=0.0005)
+                                     nonbondedCutoff=0.9*unit.nanometers,
+                                     constraints=app.HBonds, rigidWater=True,
+                                     ewaldErrorTolerance=0.0005)
         integrator = mm.LangevinIntegrator(300*unit.kelvin, 1.0/unit.picoseconds,
                                            2.0*unit.femtoseconds)
         self.simulation = app.Simulation(prmtop.topology, system, integrator,
@@ -91,6 +91,12 @@ class TestNumpyCompatibility(unittest.TestCase):
         self.assertEqual(size, 10)
         np.testing.assert_array_almost_equal(energy, np.asarray(energy_out))
 
+    def test_int64(self):
+        indices = np.array([0,1,2])
+        sys = mm.System()
+        sys.addParticle(2.0)
+        assert sys.getParticleMass(indices[0]) == 2.0*unit.amu
+        
 
 @unittest.skipIf(NUMPY_IMPORT_FAILED, 'Numpy is not installed')
 class TestNumpyUnits(unittest.TestCase):

@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2019 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -27,15 +27,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  * -------------------------------------------------------------------------- */
 
-#include "OpenCLContext.h"
 #include "openmm/System.h"
+#include "OpenCLArray.h"
 #include "OpenCLExpressionUtilities.h"
+#include "openmm/common/NonbondedUtilities.h"
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace OpenMM {
     
+class OpenCLContext;
 class OpenCLSort;
 
 /**
@@ -63,7 +65,7 @@ class OpenCLSort;
  * by ForceImpls during calcForcesAndEnergy().
  */
 
-class OPENMM_EXPORT_OPENCL OpenCLNonbondedUtilities {
+class OPENMM_EXPORT_COMMON OpenCLNonbondedUtilities : public NonbondedUtilities {
 public:
     class ParameterInfo;
     OpenCLNonbondedUtilities(OpenCLContext& context);
@@ -83,9 +85,21 @@ public:
     /**
      * Add a per-atom parameter that the default interaction kernel may depend on.
      */
+    void addParameter(ComputeParameterInfo parameter);
+    /**
+     * Add a per-atom parameter that the default interaction kernel may depend on.
+     * 
+     * @deprecated Use the version that takes a ComputeParameterInfo instead.
+     */
     void addParameter(const ParameterInfo& parameter);
     /**
      * Add an array (other than a per-atom parameter) that should be passed as an argument to the default interaction kernel.
+     */
+    void addArgument(ComputeParameterInfo parameter);
+    /**
+     * Add an array (other than a per-atom parameter) that should be passed as an argument to the default interaction kernel.
+     * 
+     * @deprecated Use the version that takes a ComputeParameterInfo instead.
      */
     void addArgument(const ParameterInfo& parameter);
     /**
@@ -110,7 +124,7 @@ public:
     /**
      * Get the number of force buffers required for nonbonded forces.
      */
-    int getNumForceBuffers() {
+    int getNumForceBuffers() const {
         return numForceBuffers;
     }
     /**
@@ -154,6 +168,11 @@ public:
         return (groupCutoff.size() > 0);
     }
     /**
+     * Given a nonbonded cutoff, get the padded cutoff distance used in computing
+     * the neighbor list.
+     */
+    double padCutoff(double cutoff);
+    /**
      * Prepare to compute interactions.  This updates the neighbor list.
      */
     void prepareInteractions(int forceGroups);
@@ -175,55 +194,62 @@ public:
      * Get the array containing the center of each atom block.
      */
     OpenCLArray& getBlockCenters() {
-        return *blockCenter;
+        return blockCenter;
     }
     /**
      * Get the array containing the dimensions of each atom block.
      */
     OpenCLArray& getBlockBoundingBoxes() {
-        return *blockBoundingBox;
+        return blockBoundingBox;
     }
     /**
      * Get the array whose first element contains the number of tiles with interactions.
      */
     OpenCLArray& getInteractionCount() {
-        return *interactionCount;
+        return interactionCount;
     }
     /**
      * Get the array containing tiles with interactions.
      */
     OpenCLArray& getInteractingTiles() {
-        return *interactingTiles;
+        return interactingTiles;
     }
     /**
      * Get the array containing the atoms in each tile with interactions.
      */
     OpenCLArray& getInteractingAtoms() {
-        return *interactingAtoms;
+        return interactingAtoms;
     }
     /**
      * Get the array containing exclusion flags.
      */
     OpenCLArray& getExclusions() {
-        return *exclusions;
+        return exclusions;
     }
     /**
      * Get the array containing tiles with exclusions.
      */
     OpenCLArray& getExclusionTiles() {
-        return *exclusionTiles;
+        return exclusionTiles;
     }
     /**
      * Get the array containing the index into the exclusion array for each tile.
      */
     OpenCLArray& getExclusionIndices() {
-        return *exclusionIndices;
+        return exclusionIndices;
     }
     /**
      * Get the array listing where the exclusion data starts for each row.
      */
     OpenCLArray& getExclusionRowIndices() {
-        return *exclusionRowIndices;
+        return exclusionRowIndices;
+    }
+    /**
+     * Get the array containing a flag for whether the neighbor list was rebuilt
+     * on the most recent call to prepareInteractions().
+     */
+    OpenCLArray& getRebuildNeighborList() {
+        return rebuildNeighborList;
     }
     /**
      * Get the index of the first tile this context is responsible for processing.
@@ -275,20 +301,20 @@ private:
     class BlockSortTrait;
     OpenCLContext& context;
     std::map<int, KernelSet> groupKernels;
-    OpenCLArray* exclusionTiles;
-    OpenCLArray* exclusions;
-    OpenCLArray* exclusionIndices;
-    OpenCLArray* exclusionRowIndices;
-    OpenCLArray* interactingTiles;
-    OpenCLArray* interactingAtoms;
-    OpenCLArray* interactionCount;
-    OpenCLArray* blockCenter;
-    OpenCLArray* blockBoundingBox;
-    OpenCLArray* sortedBlocks;
-    OpenCLArray* sortedBlockCenter;
-    OpenCLArray* sortedBlockBoundingBox;
-    OpenCLArray* oldPositions;
-    OpenCLArray* rebuildNeighborList;
+    OpenCLArray exclusionTiles;
+    OpenCLArray exclusions;
+    OpenCLArray exclusionIndices;
+    OpenCLArray exclusionRowIndices;
+    OpenCLArray interactingTiles;
+    OpenCLArray interactingAtoms;
+    OpenCLArray interactionCount;
+    OpenCLArray blockCenter;
+    OpenCLArray blockBoundingBox;
+    OpenCLArray sortedBlocks;
+    OpenCLArray sortedBlockCenter;
+    OpenCLArray sortedBlockBoundingBox;
+    OpenCLArray oldPositions;
+    OpenCLArray rebuildNeighborList;
     OpenCLSort* blockSorter;
     cl::Event downloadCountEvent;
     cl::Buffer* pinnedCountBuffer;
@@ -301,8 +327,9 @@ private:
     std::map<int, std::string> groupKernelSource;
     double lastCutoff;
     bool useCutoff, usePeriodic, deviceIsCpu, anyExclusions, usePadding, forceRebuildNeighborList;
-    int numForceBuffers, startTileIndex, numTiles, startBlockIndex, numBlocks, maxExclusions, numForceThreadBlocks;
+    int numForceBuffers, startTileIndex, startBlockIndex, numBlocks, maxExclusions, numForceThreadBlocks;
     int forceThreadBlockSize, interactingBlocksThreadBlockSize, groupFlags;
+    long long numTiles;
 };
 
 /**

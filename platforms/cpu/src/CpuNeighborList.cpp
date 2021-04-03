@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2013-2017 Stanford University and the Authors.      *
+ * Portions copyright (c) 2013-2018 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -62,8 +62,12 @@ public:
     Voxels(int blockSize, float vsy, float vsz, float miny, float maxy, float minz, float maxz, const Vec3* boxVectors, bool usePeriodic) :
             blockSize(blockSize), voxelSizeY(vsy), voxelSizeZ(vsz), miny(miny), maxy(maxy), minz(minz), maxz(maxz), usePeriodic(usePeriodic) {
         for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                periodicBoxVectors[i][j] = (float) boxVectors[i][j];
+            for (int j = 0; j < 3; j++) {
+                // Copying to a volatile temporary variable is a workaround for
+                // a bug in GCC9 on PPC.
+                volatile float temp = (float) boxVectors[i][j];
+                periodicBoxVectors[i][j] = temp;
+            }
         periodicBoxSize[0] = (float) boxVectors[0][0];
         periodicBoxSize[1] = (float) boxVectors[1][1];
         periodicBoxSize[2] = (float) boxVectors[2][2];
@@ -80,8 +84,8 @@ public:
             voxelSizeZ = boxVectors[2][2]/nz;
         }
         else {
-            ny = max(1, (int) floorf((maxy-miny)/voxelSizeY+0.5f));
-            nz = max(1, (int) floorf((maxz-minz)/voxelSizeZ+0.5f));
+            ny = max(1, min(500, (int) floorf((maxy-miny)/voxelSizeY+0.5f)));
+            nz = max(1, min(500, (int) floorf((maxz-minz)/voxelSizeZ+0.5f)));
             if (maxy > miny)
                 voxelSizeY = (maxy-miny)/ny;
             if (maxz > minz)
@@ -164,7 +168,7 @@ public:
         return VoxelIndex(y, z);
     }
         
-    void getNeighbors(vector<int>& neighbors, int blockIndex, const fvec4& blockCenter, const fvec4& blockWidth, const vector<int>& sortedAtoms, vector<char>& exclusions, float maxDistance, const vector<int>& blockAtoms, const vector<float>& blockAtomX, const vector<float>& blockAtomY, const vector<float>& blockAtomZ, const vector<float>& sortedPositions, const vector<VoxelIndex>& atomVoxelIndex) const {
+    void getNeighbors(vector<int>& neighbors, int blockIndex, const fvec4& blockCenter, const fvec4& blockWidth, const vector<int>& sortedAtoms, vector<CpuNeighborList::BlockExclusionMask>& exclusions, float maxDistance, const vector<int>& blockAtoms, const vector<float>& blockAtomX, const vector<float>& blockAtomY, const vector<float>& blockAtomZ, const vector<float>& sortedPositions, const vector<VoxelIndex>& atomVoxelIndex) const {
         neighbors.resize(0);
         exclusions.resize(0);
         fvec4 boxSize(periodicBoxSize[0], periodicBoxSize[1], periodicBoxSize[2], 0);
@@ -476,7 +480,7 @@ void CpuNeighborList::computeNeighborList(int numAtoms, const AlignedArray<float
 
     // Signal the threads to start running and wait for them to finish.
     
-    gmx_atomic_set(&atomicCounter, 0);
+    atomicCounter = 0;
     threads.resumeThreads();
     threads.waitForThreads();
     
@@ -484,10 +488,10 @@ void CpuNeighborList::computeNeighborList(int numAtoms, const AlignedArray<float
     
     int numPadding = numBlocks*blockSize-numAtoms;
     if (numPadding > 0) {
-        char mask = ((0xFFFF-(1<<blockSize)+1) >> numPadding);
+        const BlockExclusionMask mask = (~0) << (blockSize - numPadding);
         for (int i = 0; i < numPadding; i++)
             sortedAtoms.push_back(0);
-        vector<char>& exc = blockExclusions[blockExclusions.size()-1];
+        auto& exc = blockExclusions[blockExclusions.size()-1];
         for (int i = 0; i < (int) exc.size(); i++)
             exc[i] |= mask;
     }
@@ -501,7 +505,7 @@ int CpuNeighborList::getBlockSize() const {
     return blockSize;
 }
 
-const std::vector<int>& CpuNeighborList::getSortedAtoms() const {
+const std::vector<int32_t>& CpuNeighborList::getSortedAtoms() const {
     return sortedAtoms;
 }
 
@@ -509,7 +513,7 @@ const std::vector<int>& CpuNeighborList::getBlockNeighbors(int blockIndex) const
     return blockNeighbors[blockIndex];
 }
 
-const std::vector<char>& CpuNeighborList::getBlockExclusions(int blockIndex) const {
+const std::vector<CpuNeighborList::BlockExclusionMask>& CpuNeighborList::getBlockExclusions(int blockIndex) const {
     return blockExclusions[blockIndex];
     
 }
@@ -538,7 +542,7 @@ void CpuNeighborList::threadComputeNeighborList(ThreadPool& threads, int threadI
     vector<float> blockAtomX(blockSize), blockAtomY(blockSize), blockAtomZ(blockSize);
     vector<VoxelIndex> atomVoxelIndex;
     while (true) {
-        int i = gmx_atomic_fetch_add(&atomicCounter, 1);
+        int i = atomicCounter++;
         if (i >= numBlocks)
             break;
 
@@ -573,12 +577,12 @@ void CpuNeighborList::threadComputeNeighborList(ThreadPool& threads, int threadI
 
         // Record the exclusions for this block.
 
-        map<int, char> atomFlags;
+        map<int, BlockExclusionMask> atomFlags;
         for (int j = 0; j < atomsInBlock; j++) {
             const set<int>& atomExclusions = (*exclusions)[sortedAtoms[firstIndex+j]];
-            char mask = 1<<j;
+            const BlockExclusionMask mask = 1<<j;
             for (int exclusion : atomExclusions) {
-                map<int, char>::iterator thisAtomFlags = atomFlags.find(exclusion);
+                const auto thisAtomFlags = atomFlags.find(exclusion);
                 if (thisAtomFlags == atomFlags.end())
                     atomFlags[exclusion] = mask;
                 else
@@ -588,7 +592,7 @@ void CpuNeighborList::threadComputeNeighborList(ThreadPool& threads, int threadI
         int numNeighbors = blockNeighbors[i].size();
         for (int k = 0; k < numNeighbors; k++) {
             int atomIndex = blockNeighbors[i][k];
-            map<int, char>::iterator thisAtomFlags = atomFlags.find(atomIndex);
+            auto thisAtomFlags = atomFlags.find(atomIndex);
             if (thisAtomFlags != atomFlags.end())
                 blockExclusions[i][k] |= thisAtomFlags->second;
         }

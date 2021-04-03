@@ -72,6 +72,23 @@ OpenMM::NmPerAngstrom before passing them to OpenMM, and positions calculated by
 OpenMM should be multiplied by OpenMM::AngstromsPerNm before passing them back
 to your application.
 
+.. _physical-constants:
+
+Physical Constants
+******************
+
+OpenMM uses the CODATA 2018 values for all physical constants.  Here are the
+specific values it uses for the constants that frequently come up in molecular
+simulations.
+
+========================================  =================================
+Quantity                                  Value
+========================================  =================================
+Elementary Charge (:math:`e`)             1.602176634·10\ :sup:`-19` C
+Boltzmann's Constant (:math:`k_B`)        1.380649·10\ :sup:`-23` J/K
+Avogadro's Number (:math:`N_A`)           6.02214076·10\ :sup:`23`
+Vacuum Permittivity (:math:`\epsilon_0`)  8.8541878128·10\ :sup:`-12` F/m
+========================================  =================================
 
 
 Standard Forces
@@ -762,6 +779,26 @@ where :math:`m_i` and :math:`\mathbf{v}_i` are the mass and velocity of particle
 \ *i*\ .  It then subtracts :math:`\mathbf{v}_\text{CM}` from the velocity of every
 particle.
 
+RMSDForce
+*********
+
+RMSDForce computes the root-mean-squared deviation (RMSD) between the current
+particle positions :math:`\mathbf{x}_i` and a set of reference positions
+:math:`\mathbf{x}_i^\text{ref}`:
+
+.. math::
+   \text{RMSD} = \sqrt{\frac{\sum_{i} \| \mathbf{x}_i - \mathbf{x}_i^\text{ref} \|^2}{N}}
+
+Before computing this, the reference positions are first translated and rotated
+so as to minimize the RMSD.  The computed value is therefore :math:`argmin(\text{RMSD})`,
+where the :math:`argmin` is taken over all possible translations and rotations.
+
+This force is normally used with a CustomCVForce (see Section :ref:`customcvforce`).
+One rarely wants a force whose energy exactly equals the RMSD, but there are many
+situations where it is useful to have a restraining or biasing force that depends
+on the RMSD in some way.
+
+
 Custom Forces
 #############
 
@@ -831,7 +868,7 @@ by the user.  That is, the interaction energy of each angle is given by
 
 
 where :math:`f(\theta)` is a user defined mathematical expression.  The angle
-:math:`\theta` is guaranteed to be in the range [-π, π].  Like PeriodicTorsionForce, it
+:math:`\theta` is guaranteed to be in the range :math:`[-\pi, +\pi]`\ .  Like PeriodicTorsionForce, it
 is defined to be zero when the first and last particles are on the same side of
 the bond formed by the middle two particles (the *cis* configuration).
 
@@ -953,7 +990,7 @@ of four particles.  That is, the interaction energy of each bond is given by
 where *f*\ (\ *...*\ ) is a user defined mathematical expression.  It may
 depend on an arbitrary set of positions {\ :math:`x_i`\ }, distances {\ :math:`r_i`\ },
 angles {\ :math:`\theta_i`\ }, and dihedral angles {\ :math:`\phi_i`\ }
-guaranteed to be in the range [-π, π]. 
+guaranteed to be in the range :math:`[-\pi, +\pi]`\ .
 
 Each distance, angle, or dihedral is defined by specifying a sequence of
 particles chosen from among the particles that make up the bond.  A distance
@@ -1158,6 +1195,8 @@ specified in three ways:
 * Per-donor parameters are defined by specifying a value for each donor group.
 * Per-acceptor parameters are defined by specifying a value for each acceptor group.
 
+.. _customcvforce:
+
 CustomCVForce
 *************
 
@@ -1187,7 +1226,7 @@ The following operators are supported: + (add), - (subtract), * (multiply), /
 (divide), and ^ (power).  Parentheses “(“ and “)” may be used for grouping.
 
 The following standard functions are supported: sqrt, exp, log, sin, cos, sec,
-csc, tan, cot, asin, acos, atan, sinh, cosh, tanh, erf, erfc, min, max, abs,
+csc, tan, cot, asin, acos, atan, atan2, sinh, cosh, tanh, erf, erfc, min, max, abs,
 floor, ceil, step, delta, select. step(x) = 0 if x < 0, 1 otherwise.
 delta(x) = 1 if x is 0, 0 otherwise.  select(x,y,z) = z if x = 0, y otherwise.
 Some custom forces allow additional functions to be defined from tabulated values.
@@ -1212,6 +1251,32 @@ is exactly equivalent to
 The definition of an intermediate value may itself involve other intermediate
 values.  All uses of a value must appear *before* that value’s definition.
 
+Setting Parameters
+******************
+
+Most custom forces have two types of parameters you can define.  The simplest type
+are global parameters, which represent a single number.  The value is stored in
+the :class:`Context`, and can be changed at any time by calling :meth:`setParameter`
+on it.  Global parameters are designed to be very inexpensive to change.  Even if
+you set a new value for a global parameter on every time step, the overhead will
+usually be quite small.  There can be exceptions to this rule, however.  For
+example, if a :class:`CustomNonbondedForce` uses a long range correction, changing
+a global parameter may require the correction coefficient to be recalculated,
+which is expensive.
+
+The other type of parameter is ones that record many values, one for each element
+of the force, such as per-particle or per-bond parameters.  These values are stored
+directly in the force object itself, and hence are part of the system definition.
+When a :class:`Context` is created, the values are copied over to it, and thereafter
+the two are disconnected.  Modifying the force will have no effect on any
+:class:`Context` that already exists.
+
+Some forces do provide a way to modify these parameters via an :meth:`updateParametersInContext`
+method.  These methods tend to be somewhat expensive, so it is best not to call
+them too often.  On the other hand, they are still much less expensive than calling
+:meth:`reinitialize` on the :class:`Context`, which is the other way of updating
+the system definition for a running simulation.
+
 Parameter Derivatives
 *********************
 
@@ -1229,6 +1294,8 @@ derivative can appear directly in expressions that define the integration
 algorithm.  This can be used to implement algorithms such as lambda-dynamics,
 where a global parameter is integrated as a dynamic variable.
 
+
+.. _integrators-theory:
 
 Integrators
 ###########
@@ -1286,9 +1353,106 @@ components are chosen from a normal distribution with mean zero and variance
 :math:`2m_i \gamma k_B T`\ , where *T* is the temperature of
 the heat bath.
 
-The integration is done using a leap-frog method similar to VerletIntegrator.
-:cite:`Izaguirre2010` The same comments about the offset between positions and
-velocities apply to this integrator as to that one.
+The integration is done using the Langevin leap-frog method. :cite:`Izaguirre2010`
+In each step, the positions and velocities are updated as follows:
+
+
+.. math::
+   \mathbf{v}_{i}(t+\Delta t/2)=\mathbf{v}_{i}(t-\Delta t/2)\alpha+\mathbf{f}_{i}(t)(1-\alpha)/\gamma{m}_{i} + \sqrt{kT(1-\alpha^2)/m}R
+
+
+.. math::
+   \mathbf{r}_{i}(t+\Delta t)=\mathbf{r}_{i}(t)+\mathbf{v}_{i}(t+\Delta t/2)\Delta t
+
+
+where :math:`k` is Boltzmann's constant, :math:`T` is the temperature,
+:math:`\gamma` is the friction coefficient, :math:`R` is a normally distributed
+random number, and :math:`\alpha=\exp(-\gamma\Delta t)`.
+
+The same comments about the offset between positions and velocities apply to
+this integrator as to VerletIntegrator.
+
+LangevinMiddleIntegrator
+************************
+
+This integrator is similar to LangevinIntegerator, but it instead uses the LFMiddle
+discretization. :cite:`Zhang2019` In each step, the positions and velocities
+are updated as follows:
+
+
+.. math::
+   \mathbf{v}_{i}(t+\Delta t/2) = \mathbf{v}_{i}(t-\Delta t/2) + \mathbf{f}_{i}(t)\Delta t/{m}_{i}
+
+
+.. math::
+   \mathbf{r}_{i}(t+\Delta t/2) = \mathbf{r}_{i}(t) + \mathbf{v}_{i}(t+\Delta t/2)\Delta t/2
+
+
+.. math::
+   \mathbf{v'}_{i}(t+\Delta t/2) = \mathbf{v}_{i}(t+\Delta t/2)\alpha + \sqrt{kT(1-\alpha^2)/m}R
+
+
+.. math::
+   \mathbf{r}_{i}(t+\Delta t) = \mathbf{r}_{i}(t+\Delta t/2) + \mathbf{v'}_{i}(t+\Delta t/2)\Delta t/2
+
+
+This tends to produce more accurate sampling of configurational properties (such
+as free energies), but less accurate sampling of kinetic properties.  Because
+configurational properties are much more important than kinetic ones in most
+simulations, this integrator is generally preferred over LangevinIntegrator.  It
+often allows one to use a larger time step while still maintaining similar or
+better accuracy.
+
+One disadvantage of this integrator is that it requires applying constraints
+twice per time step, compared to only once for LangevinIntegrator.  This
+can make it slightly slower for systems that involve constraints.  However, this
+usually is more than compensated by allowing you to use a larger time step.
+
+.. _nosehoover-integrators-theory:
+
+NoseHooverIntegrator
+********************
+
+Like LangevinMiddleIntegerator, this uses the LFMiddle discretization.
+:cite:`Zhang2019` In each step, the positions and velocities are updated as
+follows:
+
+
+.. math::
+   \mathbf{v}_{i}(t+\Delta t/2) = \mathbf{v}_{i}(t-\Delta t/2) + \mathbf{f}_{i}(t)\Delta t/{m}_{i}
+
+
+.. math::
+   \mathbf{r}_{i}(t+\Delta t/2) = \mathbf{r}_{i}(t) + \mathbf{v}_{i}(t+\Delta t/2)\Delta t/2
+
+
+.. math::
+   \mathbf{v'}_{i}(t+\Delta t/2) = \mathrm{scale}\times\mathbf{v}_{i}(t+\Delta t/2)
+
+
+.. math::
+   \mathbf{r}_{i}(t+\Delta t) = \mathbf{r}_{i}(t+\Delta t/2) + \mathbf{v'}_{i}(t+\Delta t/2)\Delta t/2
+
+
+The universal scale factor used in the third step is determined by propagating
+auxilliary degrees of freedom alongside the regular particles.  The original
+Nosé-Hoover formulation used a single harmonic oscillator for the heat bath,
+but this is problematic in small or stiff systems, which are non-ergodic, so
+the chain formulation extends this by replacing the single oscillator
+thermostat with a chain of connected oscillators.  :cite:`Martyna1992`  For
+large systems a single oscillator (*i.e.* a chain length of one) will suffice,
+but longer chains are necessary to properly thermostat non-ergodic systems.
+The OpenMM default is to use a chain length of three to cover the latter case,
+but this can be safely reduced to increase efficiency in large systems.
+
+The heat bath propagation is performed using a multi-timestep algorithm.  Each
+propagation step is discretized into substeps using a factorization from
+Yoshida and Suzuki; the default discretization uses a :math:`\mathcal{O}(\Delta
+t^6)` approach that uses 7 points, but 1, 3 or 5 points may also be used to
+increase performace, at the expense of accuracy.  Each step is further
+subdivided into multi-timesteps with a default of 3 multi time steps per
+propagation; as with the number of Yoshida-Suziki points this value may be
+increase to increase accuracy but with additional computational expense.
 
 BrownianIntegrator
 ******************
@@ -1522,7 +1686,8 @@ Force Groups
 ************
 
 It is possible to split the Force objects in a System into groups.  Those groups
-can then be evaluated independently of each other.  Some Force classes also
+can then be evaluated independently of each other.  This is done by calling
+:code:`setForceGroup()` on the Force.  Some Force classes also
 provide finer grained control over grouping.  For example, NonbondedForce allows
 direct space computations to be in one group and reciprocal space computations
 in a different group.
@@ -1530,8 +1695,15 @@ in a different group.
 The most important use of force groups is for implementing multiple time step
 algorithms with CustomIntegrator.  For example, you might evaluate the slowly
 changing nonbonded interactions less frequently than the quickly changing bonded
-ones.  It also is useful if you want the ability to query a subset of the forces
-acting on the system.
+ones.  This can be done by putting the slow and fast forces into separate
+groups, then using a :class:`MTSIntegrator` or :class:`MTSLangevinIntegrator`
+that evaluates the groups at different frequencies.
+
+Another important use is to define forces that are not used when integrating
+the equations of motion, but can still be queried efficiently.  To do this,
+call :code:`setIntegrationForceGroups()` on the :class:`Integrator`.  Any groups
+omitted will be ignored during simulation, but can be queried at any time by
+calling :code:`getState()`.
 
 Virtual Sites
 *************

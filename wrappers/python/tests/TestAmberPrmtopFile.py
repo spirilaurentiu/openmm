@@ -2,10 +2,10 @@ import unittest
 import os
 import tempfile
 from validateConstraints import *
-from simtk.openmm.app import *
-from simtk.openmm import *
-from simtk.unit import *
-import simtk.openmm.app.element as elem
+from openmm.app import *
+from openmm import *
+from openmm.unit import *
+import openmm.app.element as elem
 
 prmtop1 = AmberPrmtopFile('systems/alanine-dipeptide-explicit.prmtop')
 prmtop2 = AmberPrmtopFile('systems/alanine-dipeptide-implicit.prmtop')
@@ -127,6 +127,14 @@ class TestAmberPrmtopFile(unittest.TestCase):
                     self.assertTrue(found_matching_solvent_dielectric and
                                     found_matching_solute_dielectric)
 
+    def test_ImplicitSolventZeroSA(self):
+        """Test that requesting gbsaModel=None yields a surface area energy of 0 when 
+           prmtop.createSystem produces a GBSAOBCForce"""
+        system = prmtop2.createSystem(implicitSolvent=OBC2, gbsaModel=None)
+        for force in system.getForces():
+            if isinstance(force, GBSAOBCForce):
+                self.assertEqual(force.getSurfaceAreaEnergy(), 0*kilojoule/(nanometer**2*mole))
+
     def test_HydrogenMass(self):
         """Test that altering the mass of hydrogens works correctly."""
 
@@ -137,7 +145,10 @@ class TestAmberPrmtopFile(unittest.TestCase):
         for atom in topology.atoms():
             if atom.element == elem.hydrogen:
                 self.assertNotEqual(hydrogenMass, system1.getParticleMass(atom.index))
-                self.assertEqual(hydrogenMass, system2.getParticleMass(atom.index))
+                if atom.residue.name == 'HOH':
+                    self.assertEqual(system1.getParticleMass(atom.index), system2.getParticleMass(atom.index))
+                else:
+                    self.assertEqual(hydrogenMass, system2.getParticleMass(atom.index))
         totalMass1 = sum([system1.getParticleMass(i) for i in range(system1.getNumParticles())]).value_in_unit(amu)
         totalMass2 = sum([system2.getParticleMass(i) for i in range(system2.getNumParticles())]).value_in_unit(amu)
         self.assertAlmostEqual(totalMass1, totalMass2)
@@ -293,7 +304,8 @@ class TestAmberPrmtopFile(unittest.TestCase):
             context = Context(system, integrator, Platform.getPlatformByName("Reference"))
             context.setPositions(pdb.positions)
             state1 = context.getState(getForces=True)
-            state2 = XmlSerializer.deserialize(open('systems/alanine-dipeptide-implicit-forces/'+file[i]+'.xml').read())
+            with open('systems/alanine-dipeptide-implicit-forces/'+file[i]+'.xml') as infile:
+                state2 = XmlSerializer.deserialize(infile.read())
             for f1, f2, in zip(state1.getForces().value_in_unit(kilojoules_per_mole/nanometer), state2.getForces().value_in_unit(kilojoules_per_mole/nanometer)):
                 diff = norm(f1-f2)
                 self.assertTrue(diff < 0.1 or diff/norm(f1) < 1e-4)
@@ -365,7 +377,7 @@ class TestAmberPrmtopFile(unittest.TestCase):
 
     def testGBneckRadii(self):
         """ Tests that GBneck radii limits are correctly enforced """
-        from simtk.openmm.app.internal.customgbforces import GBSAGBnForce
+        from openmm.app.internal.customgbforces import GBSAGBnForce
         f = GBSAGBnForce()
         # Make sure legal parameters do not raise
         f.addParticle([0, 0.1, 0.5])
@@ -374,6 +386,22 @@ class TestAmberPrmtopFile(unittest.TestCase):
         # Now make sure that out-of-range parameters *do* raise
         self.assertRaises(ValueError, lambda: f.addParticle([0, 0.9, 0.5]))
         self.assertRaises(ValueError, lambda: f.addParticle([0, 0.21, 0.5]))
+
+    def testNucleicGBParametes(self):
+        """Test that correct GB parameters are used for nucleic acids."""
+        prmtop = AmberPrmtopFile('systems/DNA_mbondi3.prmtop')
+        inpcrd = AmberInpcrdFile('systems/DNA_mbondi3.inpcrd')
+        sanderEnergy = [-19223.87993545, -19527.40433175, -19788.1070698]
+        for solvent, expectedEnergy in zip([OBC2, GBn, GBn2], sanderEnergy):
+            system = prmtop.createSystem(implicitSolvent=solvent, gbsaModel=None)
+            for f in system.getForces():
+                if isinstance(f, CustomGBForce) or isinstance(f, GBSAOBCForce):
+                    f.setForceGroup(1)
+            integrator = VerletIntegrator(0.001)
+            context = Context(system, integrator, Platform.getPlatformByName('Reference'))
+            context.setPositions(inpcrd.positions)
+            energy = context.getState(getEnergy=True, groups={1}).getPotentialEnergy().value_in_unit(kilojoules_per_mole)
+            self.assertAlmostEqual(energy, expectedEnergy, delta=5e-4*abs(energy))
 
 if __name__ == '__main__':
     unittest.main()

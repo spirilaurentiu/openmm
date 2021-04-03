@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2013-2017 Stanford University and the Authors.      *
+ * Portions copyright (c) 2013-2018 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -35,8 +35,8 @@
 #include "AlignedArray.h"
 #include "openmm/Vec3.h"
 #include "windowsExportCpu.h"
-#include "openmm/internal/gmx_atomic.h"
 #include "openmm/internal/ThreadPool.h"
+#include <atomic>
 #include <set>
 #include <utility>
 #include <vector>
@@ -51,9 +51,17 @@ public:
             const Vec3* periodicBoxVectors, bool usePeriodic, float maxDistance, ThreadPool& threads);
     int getNumBlocks() const;
     int getBlockSize() const;
-    const std::vector<int>& getSortedAtoms() const;
+    const std::vector<int32_t>& getSortedAtoms() const;
     const std::vector<int>& getBlockNeighbors(int blockIndex) const;
-    const std::vector<char>& getBlockExclusions(int blockIndex) const;
+
+    /**
+     * Bitset for a single block, marking which indexes should be excluded. This data type needs to be big
+     * enough to store all the bits for any possible block size.
+     */
+    using BlockExclusionMask = int16_t;
+
+    const std::vector<BlockExclusionMask>& getBlockExclusions(int blockIndex) const;
+
     /**
      * This routine contains the code executed by each thread.
      */
@@ -64,7 +72,7 @@ private:
     std::vector<int> sortedAtoms;
     std::vector<float> sortedPositions;
     std::vector<std::vector<int> > blockNeighbors;
-    std::vector<std::vector<char> > blockExclusions;
+    std::vector<std::vector<BlockExclusionMask> > blockExclusions;
     // The following variables are used to make information accessible to the individual threads.
     float minx, maxx, miny, maxy, minz, maxz;
     std::vector<std::pair<int, int> > atomBins;
@@ -75,7 +83,7 @@ private:
     int numAtoms;
     bool usePeriodic;
     float maxDistance;
-    gmx_atomic_t atomicCounter;
+    std::atomic<int> atomicCounter;
 };
 
 } // namespace OpenMM

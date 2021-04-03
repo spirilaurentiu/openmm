@@ -26,10 +26,10 @@ fi
 
 # Make sure it's a supported Python version.
 
-pythonOk=$(${pythonBin} -c "import sys; v=sys.version_info; print((v[0]==2 and v[1]>5) or v[0]>2)")
+pythonOk=$(${pythonBin} -c "import sys; v=sys.version_info; print((v[0]==2 and v[1]>6) or v[0]>2)")
 if [ ${pythonOk} != "True" ]
 then
-  echo "Unsupported Python version.  Only versions 2.6 and higher are supported."
+  echo "Unsupported Python version.  Only versions 2.7 and higher are supported."
   exit
 fi
 
@@ -54,7 +54,7 @@ then
     echo "Installation is complete.  You should now test your installation to make sure"
     echo "it is working correctly by typing the following command:"
     echo
-    echo "python -m simtk.testInstallation"
+    echo "python -m openmm.testInstallation"
 else
     echo
     echo "INSTALLATION FAILED"

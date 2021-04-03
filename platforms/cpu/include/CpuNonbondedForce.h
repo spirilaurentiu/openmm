@@ -1,5 +1,5 @@
 
-/* Portions copyright (c) 2006-2017 Stanford University and Simbios.
+/* Portions copyright (c) 2006-2020 Stanford University and Simbios.
  * Contributors: Pande Group
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -30,6 +30,7 @@
 #include "ReferencePairIxn.h"
 #include "openmm/internal/ThreadPool.h"
 #include "openmm/internal/vectorize.h"
+#include <atomic>
 #include <set>
 #include <utility>
 #include <vector>
@@ -125,6 +126,14 @@ class CpuNonbondedForce {
       void setUseLJPME(float alpha, int meshSize[3]);
 
       /**---------------------------------------------------------------------------------------
+
+         Set whether exceptions use periodic boundary conditions.
+
+         --------------------------------------------------------------------------------------- */
+
+      void setPeriodicExceptions(bool periodic);
+
+      /**---------------------------------------------------------------------------------------
       
          Calculate Ewald ixn
       
@@ -171,7 +180,7 @@ class CpuNonbondedForce {
 protected:
         bool cutoff;
         bool useSwitch;
-        bool periodic;
+        bool periodic, periodicExceptions;
         bool triclinic;
         bool ewald;
         bool ljpme, pme;
@@ -200,11 +209,11 @@ protected:
         bool includeEnergy;
         float inverseRcut6;
         float inverseRcut6Expterm;
-        void* atomicCounter;
+        std::atomic<int> atomicCounter;
 
         static const float TWO_OVER_SQRT_PI;
         static const int NUM_TABLE_POINTS;
-            
+
       /**---------------------------------------------------------------------------------------
       
          Calculate LJ Coulomb pair ixn between two atoms
