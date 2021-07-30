@@ -149,10 +149,10 @@ ENDIF (NOT CMAKE_CXX_FLAGS_DEBUG)
 
 IF (NOT CMAKE_CXX_FLAGS_RELEASE)
     IF (ANDROID)
-        SET(CMAKE_CXX_FLAGS_RELEASE "-mfloat-abi=softfp -march=armv7-a -mfpu=neon -funsafe-math-optimizations -O3 -DNDEBUG" CACHE STRING
+        SET(CMAKE_CXX_FLAGS_RELEASE "-Wl,-q,-emit-relocs -mfloat-abi=softfp -march=armv7-a -mfpu=neon -funsafe-math-optimizations -O3 -DNDEBUG" CACHE STRING
         "To use when CMAKE_BUILD_TYPE=Release" FORCE)
     ELSE (ANDROID)
-        SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING
+        SET(CMAKE_CXX_FLAGS_RELEASE "--Wl,-q,-emit-relocs O3 -DNDEBUG" CACHE STRING
         "To use when CMAKE_BUILD_TYPE=Release" FORCE)
     ENDIF (ANDROID)
 ENDIF (NOT CMAKE_CXX_FLAGS_RELEASE)
