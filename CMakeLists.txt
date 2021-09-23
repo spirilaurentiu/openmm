@@ -18,10 +18,10 @@ mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
 # Don't create a new project name if this is part of a mega-build from the
 # parent directory
 IF( NOT PROJECT_NAME )
-    PROJECT (OpenMM)
+    PROJECT (OpenMM C CXX)
 ENDIF( NOT PROJECT_NAME )
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.9.4) # lto/ipo
 CMAKE_POLICY(SET CMP0042 OLD)
 CMAKE_POLICY(SET CMP0003 NEW)
 CMAKE_POLICY(SET CMP0005 NEW)
@@ -102,7 +102,7 @@ ELSE(WIN32)
     ENDIF (NOT ANDROID)
 ENDIF(WIN32)
 
-SET (CMAKE_CXX_STANDARD 11)
+# SET (CMAKE_CXX_STANDARD 11) # robosample override
 
 IF(APPLE)
     # Build 64 bit binaries compatible with OS X 10.7
@@ -124,7 +124,7 @@ IF(APPLE)
     # Improve the linking behavior of Mac libraries
     SET (CMAKE_INSTALL_NAME_DIR "@rpath")
     IF (X86)
-      SET(EXTRA_COMPILE_FLAGS "-msse2")
+    #   SET(EXTRA_COMPILE_FLAGS "-msse2") # let robosample override
     ENDIF()
     SET(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -stdlib=libc++")
 ELSEIF(MSVC)
@@ -134,7 +134,7 @@ ELSEIF(MSVC)
     # Explicitly suppress warnings 4305 and 4244.
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4305 /wd4244")
 ELSEIF(X86)
-    SET(EXTRA_COMPILE_FLAGS "-msse2")
+    # SET(EXTRA_COMPILE_FLAGS "-msse2") # let robosample override
 ELSE()
     SET(EXTRA_COMPILE_FLAGS)
 ENDIF()
@@ -149,14 +149,13 @@ ENDIF (NOT CMAKE_CXX_FLAGS_DEBUG)
 
 IF (NOT CMAKE_CXX_FLAGS_RELEASE)
     IF (ANDROID)
-        SET(CMAKE_CXX_FLAGS_RELEASE "-Wl,-q,-emit-relocs -mfloat-abi=softfp -march=armv7-a -mfpu=neon -funsafe-math-optimizations -O3 -DNDEBUG" CACHE STRING
+        SET(CMAKE_CXX_FLAGS_RELEASE "-mfloat-abi=softfp -march=armv7-a -mfpu=neon -funsafe-math-optimizations -O3 -DNDEBUG" CACHE STRING
         "To use when CMAKE_BUILD_TYPE=Release" FORCE)
     ELSE (ANDROID)
-        SET(CMAKE_CXX_FLAGS_RELEASE "--Wl,-q,-emit-relocs O3 -DNDEBUG" CACHE STRING
+        SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING
         "To use when CMAKE_BUILD_TYPE=Release" FORCE)
     ENDIF (ANDROID)
 ENDIF (NOT CMAKE_CXX_FLAGS_RELEASE)
-
 
 
 # Collect up information about the version of the OpenMM library we're building
@@ -462,7 +461,7 @@ ENDIF(OPENMM_BUILD_PYTHON_WRAPPERS)
 # Testing
 #
 
-ENABLE_TESTING()
+# ENABLE_TESTING() # robosample override
 
 IF (EXECUTABLE_OUTPUT_PATH)
   SET (TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
@@ -475,7 +474,7 @@ IF(BUILD_TESTING)
     ADD_SUBDIRECTORY(tests)
 ENDIF(BUILD_TESTING)
 
-SET(OPENMM_BUILD_EXAMPLES ON CACHE BOOL "Build example executables")
+# SET(OPENMM_BUILD_EXAMPLES ON CACHE BOOL "Build example executables")
 IF(OPENMM_BUILD_EXAMPLES)
   ADD_SUBDIRECTORY(examples)
 ENDIF(OPENMM_BUILD_EXAMPLES)
