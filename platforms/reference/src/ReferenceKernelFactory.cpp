@@ -37,6 +37,7 @@
 using namespace OpenMM;
 
 KernelImpl* ReferenceKernelFactory::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
+    printf("OPENMM_EXPLORE ReferenceKernelFactory::createKernelImpl %s \n", name.c_str());
     ReferencePlatform::PlatformData& data = *static_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     if (name == CalcForcesAndEnergyKernel::Name())
         return new ReferenceCalcForcesAndEnergyKernel(name, platform);

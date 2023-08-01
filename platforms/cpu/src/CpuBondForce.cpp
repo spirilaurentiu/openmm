@@ -164,7 +164,7 @@ void CpuBondForce::assignBond(int bond, int thread, vector<int>& atomThread, vec
     }
 }
 
-void CpuBondForce::calculateForce(vector<Vec3>& atomCoordinates, vector<vector<double> >& parameters, vector<Vec3>& forces, 
+void CpuBondForce::calculateForce(vector<Vec3>& atomCoordinates, vector<vector<double> >& parameters, vector<Vec3>& forces,
         double* totalEnergy, ReferenceBondIxn& referenceBondIxn) {
     // Have the worker threads compute their forces.
     
@@ -196,5 +196,17 @@ void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vect
     for (int i = 0; i < numBonds; i++) {
         int bond = bonds[i];
         referenceBondIxn.calculateBondIxn(bondAtoms[bond], atomCoordinates, parameters[bond], forces, totalEnergy, NULL);
+        /* printf("OPENMM_LS threadComputeForce atoms");
+        for(size_t tz = 0; tz < (bondAtoms[bond]).size(); tz++){printf(" %d", (bondAtoms[bond][tz]));} // OPENMM_LS
+        printf(" forces"); // OPENMM_LS
+        for(size_t tz = 0; tz < forces.size(); tz++){ // OPENMM_LS
+            printf(" %.4f %.4f %.4f ", forces[tz][0], forces[tz][1], forces[tz][2]); // OPENMM_LS
+        } */
+        // OPENMM_LS
+        //printf(" coords"); // OPENMM_LS
+        //for(size_t tz = 0; tz < atomCoordinates.size(); tz++){ // OPENMM_LS
+        //    printf(" %.4f %.4f %.4f ", atomCoordinates[tz][0], atomCoordinates[tz][1], atomCoordinates[tz][2]); // OPENMM_LS
+        //} // OPENMM_LS
+        //printf(" cumEnergy %.6f\n", *totalEnergy); // OPENMM_LS
     }
 }

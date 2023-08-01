@@ -279,6 +279,7 @@ public:
         return "CalcHarmonicBondForce";
     }
     CalcHarmonicBondForceKernel(std::string name, const Platform& platform) : KernelImpl(name, platform) {
+    printf("OPENMM_EXPLORE CalcHarmonicBondForceKernel %s \n", name.c_str());
     }
     /**
      * Initialize the kernel.

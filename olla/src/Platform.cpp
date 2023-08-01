@@ -141,6 +141,7 @@ bool Platform::supportsKernels(const vector<string>& kernelNames) const {
 Kernel Platform::createKernel(const string& name, ContextImpl& context) const {
     if (kernelFactories.find(name) == kernelFactories.end())
         throw OpenMMException("Called createKernel() on a Platform which does not support the requested kernel");
+    printf("OPENMM_EXPLORE Platform::createKernel %s \n", name.c_str());
     return Kernel(kernelFactories.find(name)->second->createKernelImpl(name, *this, context));
 }
 vector<Platform*>& Platform::getPlatforms() {

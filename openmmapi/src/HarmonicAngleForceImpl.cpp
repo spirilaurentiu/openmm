@@ -46,6 +46,7 @@ HarmonicAngleForceImpl::~HarmonicAngleForceImpl() {
 
 void HarmonicAngleForceImpl::initialize(ContextImpl& context) {
     kernel = context.getPlatform().createKernel(CalcHarmonicAngleForceKernel::Name(), context);
+    printf("OPENMM_EXPLORE HarmonicAngleForceImpl::initialize created kernel %s\n", kernel.getName().c_str());
     kernel.getAs<CalcHarmonicAngleForceKernel>().initialize(context.getSystem(), owner);
 }
 

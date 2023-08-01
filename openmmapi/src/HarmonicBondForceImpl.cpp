@@ -46,6 +46,7 @@ HarmonicBondForceImpl::~HarmonicBondForceImpl() {
 
 void HarmonicBondForceImpl::initialize(ContextImpl& context) {
     kernel = context.getPlatform().createKernel(CalcHarmonicBondForceKernel::Name(), context);
+    printf("OPENMM_EXPLORE HarmonicBondForceImpl::initialize created kernel %s\n", kernel.getName().c_str());
     kernel.getAs<CalcHarmonicBondForceKernel>().initialize(context.getSystem(), owner);
 }
 
