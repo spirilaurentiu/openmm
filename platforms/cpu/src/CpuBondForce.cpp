@@ -201,12 +201,12 @@ void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vect
         printf(" forces"); // OPENMM_LS
         for(size_t tz = 0; tz < forces.size(); tz++){ // OPENMM_LS
             printf(" %.4f %.4f %.4f ", forces[tz][0], forces[tz][1], forces[tz][2]); // OPENMM_LS
-        } */
+        }
         // OPENMM_LS
         //printf(" coords"); // OPENMM_LS
         //for(size_t tz = 0; tz < atomCoordinates.size(); tz++){ // OPENMM_LS
         //    printf(" %.4f %.4f %.4f ", atomCoordinates[tz][0], atomCoordinates[tz][1], atomCoordinates[tz][2]); // OPENMM_LS
         //} // OPENMM_LS
-        //printf(" cumEnergy %.6f\n", *totalEnergy); // OPENMM_LS
+        printf(" cumEnergy %.6f\n", *totalEnergy); // OPENMM_LS */
     }
 }

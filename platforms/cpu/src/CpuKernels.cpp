@@ -328,7 +328,7 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
     if (usePeriodic)
         angleBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, angleParamArray, forceData, includeEnergy ? &energy : NULL, angleBond);
-    //printf("OPENMM_LS angle_energy %.6f\n", energy);
+    printf("OPENMM_LS angle_energy %.6f\n", energy);
     return energy;
 }
 
@@ -377,7 +377,7 @@ double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool inc
     if (usePeriodic)
         periodicTorsionBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, periodicTorsionBond);
-    //printf("OPENMM_LS period_tors_energy %.6f\n", energy);
+    printf("OPENMM_LS period_tors_energy %.6f\n", energy);
     return energy;
 }
 
@@ -430,7 +430,7 @@ double CpuCalcRBTorsionForceKernel::execute(ContextImpl& context, bool includeFo
     if (usePeriodic)
         rbTorsionBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, rbTorsionBond);
-    //printf("OPENMM_LS RB_tors_energy %.6f\n", energy);
+    printf("OPENMM_LS RB_tors_energy %.6f\n", energy);
     return energy;
 }
 
@@ -711,7 +711,7 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         if (data.isPeriodic && nonbondedMethod != LJPME)
             energy += dispersionCoefficient/(boxVectors[0][0]*boxVectors[1][1]*boxVectors[2][2]);
     }
-    //printf("OPENMM_LS nonbonded_energy %.6f\n", energy);
+    printf("OPENMM_LS nonbonded_energy %.6f\n", energy);
     return energy;
 }
 

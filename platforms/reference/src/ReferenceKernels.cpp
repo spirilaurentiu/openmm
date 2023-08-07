@@ -365,7 +365,7 @@ double ReferenceCalcHarmonicBondForceKernel::execute(ContextImpl& context, bool 
     if (usePeriodic)
         harmonicBond.setPeriodic(extractBoxVectors(context));
     refBondForce.calculateForce(numBonds, bondIndexArray, posData, bondParamArray, forceData, includeEnergy ? &energy : NULL, harmonicBond);
-    //printf("OPENMM_LS bond_energy %.6f\n", energy);
+    printf("OPENMM_LS bond_energy %.6f\n", energy);
     return energy;
 }
 
