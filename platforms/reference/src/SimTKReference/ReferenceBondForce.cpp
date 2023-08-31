@@ -77,13 +77,13 @@ void ReferenceBondForce::calculateForce(int numberOfBonds, vector<vector<int> >&
 
       referenceBondIxn.calculateBondIxn(atomIndices[ii], atomCoordinates, parameters[ii], 
                                         forces, totalEnergy, NULL);
-      /* printf("OPENMM_LS ReferenceBondForce atoms ");
+      printf("OPENMM_LS ReferenceBondForce atoms ");
       for(size_t tz = 0; tz < (atomIndices[ii]).size(); tz++){printf(" %d", (atomIndices[ii][tz]));} // OPENMM_LS
       printf(" forces"); // OPENMM_LS
       for(size_t tz = 0; tz < forces.size(); tz++){ // OPENMM_LS
          printf(" %.4f %.4f %.4f ", forces[tz][0], forces[tz][1], forces[tz][2]); // OPENMM_LS
       } // OPENMM_LS
-      printf("OPENMM_LS bond_energy %.6f\n", totalEnergy); */
+      printf("OPENMM_LS bond_energy %.6f\n", totalEnergy);
    }
 }
 

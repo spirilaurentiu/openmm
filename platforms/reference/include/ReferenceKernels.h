@@ -168,6 +168,12 @@ public:
      */
     void getForces(ContextImpl& context, std::vector<Vec3>& forces);
     /**
+     * Get the current special forces on all particles.
+     *
+     * @param LS_forces  on exit, this contains the special forces
+     */
+    void getLS_Forces(ContextImpl& context, std::vector<Vec3>& LS_forces);
+    /**
      * Get the current derivatives of the energy with respect to context parameters.
      *
      * @param derivs  on exit, this contains the derivatives

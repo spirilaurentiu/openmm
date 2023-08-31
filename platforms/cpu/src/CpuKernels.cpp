@@ -71,6 +71,11 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     return *data->forces;
 }
 
+static vector<Vec3>& extractLS_Forces(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->LS_forces;
+}
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -224,6 +229,13 @@ void CpuCalcForcesAndEnergyKernel::beginComputation(ContextImpl& context, bool i
         fvec4 zero(0.0f);
         for (int j = 0; j < numParticles; j++)
             zero.store(&data.threadForce[threadIndex][j*4]);
+
+        // Clear the LS forces.
+
+        fvec4 LS_zero(0.0f);
+        for (int j = 0; j < numParticles; j++)
+            LS_zero.store(&data.threadLS_Force[threadIndex][j*4]);
+
     });
     data.threads.waitForThreads();
     if (!positionsValid)
@@ -297,6 +309,17 @@ double CpuCalcForcesAndEnergyKernel::finishComputation(ContextImpl& context, boo
             forceData[i][1] += f[1];
             forceData[i][2] += f[2];
         }
+
+        vector<Vec3>& LS_forceData = extractLS_Forces(context);
+        for (int i = start; i < end; i++) {
+            fvec4 f(0.0f);
+            for (int j = 0; j < numThreads; j++)
+                f += fvec4(&data.threadLS_Force[j][4*i]);
+            LS_forceData[i][0] += f[0];
+            LS_forceData[i][1] += f[1];
+            LS_forceData[i][2] += f[2];
+        }
+
     });
     data.threads.waitForThreads();
     return referenceKernel.getAs<ReferenceCalcForcesAndEnergyKernel>().finishComputation(context, includeForce, includeEnergy, groups, valid);
@@ -683,8 +706,10 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
     }
     double nonbondedEnergy = 0;
     if (includeDirect)
-        nonbonded->calculateDirectIxn(numParticles, &posq[0], posData, particleParams, C6params, exclusions, data.threadForce, includeEnergy ? &nonbondedEnergy : NULL, data.threads,
-        data.ls_vdw, data.ls_coulomb);
+        nonbonded->calculateDirectIxn(numParticles, &posq[0], posData, particleParams, C6params, exclusions,
+        data.threadForce, data.threadLS_Force,
+        includeEnergy ? &nonbondedEnergy : NULL, data.threads,
+        data.LS_vdw, data.LS_coulomb);
     if (includeReciprocal) {
         if (useOptimizedPme) {
             PmeIO io(&posq[0], &data.threadForce[0][0], numParticles);
@@ -973,7 +998,7 @@ double CpuCalcCustomNonbondedForceKernel::execute(ContextImpl& context, bool inc
     if (useSwitchingFunction)
         nonbonded->setUseSwitchingFunction(switchingDistance);
     vector<double> energyParamDerivValues(energyParamDerivNames.size()+1, 0.0);
-    nonbonded->calculatePairIxn(numParticles, &data.posq[0], posData, particleParamArray, globalParamValues, data.threadForce, includeForces, includeEnergy, energy, &energyParamDerivValues[0]);
+    nonbonded->calculatePairIxn(numParticles, &data.posq[0], posData, particleParamArray, globalParamValues,data.threadForce, includeForces, includeEnergy, energy, &energyParamDerivValues[0]);
     map<string, double>& energyParamDerivs = extractEnergyParameterDerivatives(context);
     for (int i = 0; i < energyParamDerivNames.size(); i++)
         energyParamDerivs[energyParamDerivNames[i]] += energyParamDerivValues[i];

@@ -170,8 +170,10 @@ class CpuNonbondedForce {
          --------------------------------------------------------------------------------------- */
           
       void calculateDirectIxn(int numberOfAtoms, float* posq, const std::vector<Vec3>& atomCoordinates, const std::vector<std::pair<float, float> >& atomParameters,
-            const std::vector<float>& C6params, const std::vector<std::set<int> >& exclusions, std::vector<AlignedArray<float> >& threadForce, double* totalEnergy, ThreadPool& threads,
-            std::vector<std::vector<float> >& ls_vdw, std::vector<std::vector<float> >& ls_coulomb);
+            const std::vector<float>& C6params, const std::vector<std::set<int> >& exclusions,
+            std::vector<AlignedArray<float> >& threadForce, std::vector<AlignedArray<float> >& threadLS_Force,
+            double* totalEnergy, ThreadPool& threads,
+            std::vector<std::vector<float> >& LS_vdw, std::vector<std::vector<float> >& LS_coulomb);
 
     /**
      * This routine contains the code executed by each thread.
@@ -207,9 +209,10 @@ protected:
         float const *C6params;
         std::set<int> const* exclusions;
         std::vector<AlignedArray<float> >* threadForce;
+        std::vector<AlignedArray<float> >* threadLS_Force;
 
-        std::vector<std::vector<float> > *ls_vdw;
-        std::vector<std::vector<float> > *ls_coulomb;
+        std::vector<std::vector<float> > *LS_vdw;
+        std::vector<std::vector<float> > *LS_coulomb;
 
         bool includeEnergy;
         float inverseRcut6;
@@ -231,7 +234,7 @@ protected:
             
          --------------------------------------------------------------------------------------- */
           
-      void calculateOneIxn(int atom1, int atom2, float* forces, double* totalEnergy, const fvec4& boxSize, const fvec4& invBoxSize);
+      void calculateOneIxn(int atom1, int atom2, float* forces, float* LS_forces, double* totalEnergy, const fvec4& boxSize, const fvec4& invBoxSize);
             
       /**---------------------------------------------------------------------------------------
       

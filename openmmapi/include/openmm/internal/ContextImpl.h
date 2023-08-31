@@ -120,6 +120,7 @@ public:
      * @param forces  on exit, this contains the forces
      */
     void getForces(std::vector<Vec3>& forces);
+    void getLS_Forces(std::vector<Vec3>& LS_forces);
     /**
      * Get the set of all adjustable parameters and their values
      */

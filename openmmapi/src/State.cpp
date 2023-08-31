@@ -53,6 +53,12 @@ const vector<Vec3>& State::getForces() const {
         throw OpenMMException("Invoked getForces() on a State which does not contain forces.");
     return forces;
 }
+const vector<Vec3>& State::getLS_Forces() const {
+    printf("State::getLS_Forces\n");
+    if ((types&Forces) == 0)
+        throw OpenMMException("Invoked getLS_Forces() on a State which does not contain forces.");
+    return LS_forces;
+}
 double State::getKineticEnergy() const {
     if ((types&Energy) == 0)
         throw OpenMMException("Invoked getKineticEnergy() on a State which does not contain energies.");
@@ -113,6 +119,12 @@ void State::setForces(const std::vector<Vec3>& force) {
     types |= Forces;
 }
 
+void State::setLS_Forces(const std::vector<Vec3>& LS_force) {
+    printf("State::setLS_Forces\n");
+    LS_forces = LS_force;
+    types |= LS_Forces;
+}
+
 void State::setParameters(const std::map<std::string, double>& params) {
     parameters = params;
     types |= Parameters;
@@ -152,6 +164,10 @@ void State::StateBuilder::setVelocities(const std::vector<Vec3>& vel) {
 
 void State::StateBuilder::setForces(const std::vector<Vec3>& force) {
     state.setForces(force);
+}
+
+void State::StateBuilder::setLS_Forces(const std::vector<Vec3>& LS_force) {
+    state.setLS_Forces(LS_force);
 }
 
 void State::StateBuilder::setParameters(const std::map<std::string, double>& params) {

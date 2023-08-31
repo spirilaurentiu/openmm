@@ -107,6 +107,10 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->forces;
 }
+static vector<Vec3>& extractLS_Forces(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->LS_forces;
+}
 
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
@@ -250,11 +254,22 @@ void ReferenceUpdateStateDataKernel::setVelocities(ContextImpl& context, const s
 }
 
 void ReferenceUpdateStateDataKernel::getForces(ContextImpl& context, std::vector<Vec3>& forces) {
+    printf("LS_ ReferenceUpdateStateDataKernel::getForces\n");
     int numParticles = context.getSystem().getNumParticles();
     vector<Vec3>& forceData = extractForces(context);
     forces.resize(numParticles);
     for (int i = 0; i < numParticles; ++i)
         forces[i] = Vec3(forceData[i][0], forceData[i][1], forceData[i][2]);
+}
+
+void ReferenceUpdateStateDataKernel::getLS_Forces(ContextImpl& context, std::vector<Vec3>& LS_forces) {
+    printf("LS_ ReferenceUpdateStateDataKernel::getLS_Forces\n");
+    int numParticles = context.getSystem().getNumParticles();
+    vector<Vec3>& LS_forceData = extractLS_Forces(context);
+    LS_forces.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i){
+        LS_forces[i] = Vec3(LS_forceData[i][0], LS_forceData[i][1], LS_forceData[i][2]);
+    }
 }
 
 void ReferenceUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {

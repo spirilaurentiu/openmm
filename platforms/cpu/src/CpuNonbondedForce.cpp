@@ -379,8 +379,10 @@ void CpuNonbondedForce::calculateReciprocalIxn(int numberOfAtoms, float* posq, c
 
 
 void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const vector<Vec3>& atomCoordinates, const vector<pair<float, float> >& atomParameters,
-                                           const vector<float>& C6params, const vector<set<int> >& exclusions, vector<AlignedArray<float> >& threadForce, double* totalEnergy, ThreadPool& threads,
-                                           std::vector<std::vector<float> >& ls_vdw, std::vector<std::vector<float> >& ls_coulomb) {
+                                           const vector<float>& C6params, const vector<set<int> >& exclusions,
+                                           vector<AlignedArray<float> >& threadForce, vector<AlignedArray<float> >& threadLS_Force,
+                                           double* totalEnergy, ThreadPool& threads,
+                                           std::vector<std::vector<float> >& LS_vdw, std::vector<std::vector<float> >& LS_coulomb) {
     // Record the parameters for the threads.
     
     this->numberOfAtoms = numberOfAtoms;
@@ -390,18 +392,20 @@ void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const
     this->C6params = &C6params[0];
     this->exclusions = &exclusions[0];
     this->threadForce = &threadForce;
+    this->threadLS_Force = &threadLS_Force;
 
-    this->ls_vdw = &ls_vdw;
-    this->ls_coulomb = &ls_coulomb;
 
-    /* printf("CpuNonbondedForce::calculateDirectIxn ls_vdw size %d \n", (*(this->ls_vdw)).size());fflush(stdout);
-    for(int tz = 0; tz < (*(this->ls_vdw)).size(); tz++){
-        printf("CpuNonbondedForce::calculateDirectIxn ls_vdw size %d \n", (*(this->ls_vdw))[0].size());fflush(stdout);
+    this->LS_vdw = &LS_vdw;
+    this->LS_coulomb = &LS_coulomb;
+
+    /* printf("CpuNonbondedForce::calculateDirectIxn LS_vdw size %d \n", (*(this->LS_vdw)).size());fflush(stdout);
+    for(int tz = 0; tz < (*(this->LS_vdw)).size(); tz++){
+        printf("CpuNonbondedForce::calculateDirectIxn LS_vdw size %d \n", (*(this->LS_vdw))[0].size());fflush(stdout);
     }
 
-    printf("CpuNonbondedForce::calculateDirectIxn ls_coulomb size %d \n", (*(this->ls_coulomb)).size());fflush(stdout);
-    for(int tz = 0; tz < (*(this->ls_coulomb)).size(); tz++){
-        printf("CpuNonbondedForce::calculateDirectIxn ls_coulomb size %d \n", (*(this->ls_coulomb))[0].size());fflush(stdout);
+    printf("CpuNonbondedForce::calculateDirectIxn LS_coulomb size %d \n", (*(this->LS_coulomb)).size());fflush(stdout);
+    for(int tz = 0; tz < (*(this->LS_coulomb)).size(); tz++){
+        printf("CpuNonbondedForce::calculateDirectIxn LS_coulomb size %d \n", (*(this->LS_coulomb))[0].size());fflush(stdout);
     } */    
 
 
@@ -410,8 +414,8 @@ void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const
     atomicCounter = 0;
     
 
-    /* this->ls_vdw.resize(this->numberOfAtoms, std::vector<float>(this->numberOfAtoms, 0));
-    this->ls_coulomb.resize(this->numberOfAtoms, std::vector<float>(this->numberOfAtoms, 0)); */
+    /* this->LS_vdw.resize(this->numberOfAtoms, std::vector<float>(this->numberOfAtoms, 0));
+    this->LS_coulomb.resize(this->numberOfAtoms, std::vector<float>(this->numberOfAtoms, 0)); */
 
     // Signal the threads to start running and wait for them to finish.
     
@@ -440,7 +444,7 @@ void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const
     for(unsigned int i = 0; i < this->numberOfAtoms; i++){
         printf("ommvdw");fflush(stdout);
         for(unsigned int j = 0; j < this->numberOfAtoms; j++){
-            printf( " %.5f", ls_vdw[i][j]);
+            printf( " %.5f", LS_vdw[i][j]);
         }
         printf("\n");fflush(stdout);
     }
@@ -448,7 +452,7 @@ void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const
     for(unsigned int i = 0; i < this->numberOfAtoms; i++){
         printf("ommcou");fflush(stdout);
         for(unsigned int j = 0; j < this->numberOfAtoms; j++){
-            printf( " %.5f", ls_coulomb[i][j]);
+            printf( " %.5f", LS_coulomb[i][j]);
         }
         printf("\n");fflush(stdout);
     } */
@@ -462,6 +466,7 @@ void CpuNonbondedForce::threadComputeDirect(ThreadPool& threads, int threadIndex
     threadEnergy[threadIndex] = 0;
     double* energyPtr = (includeEnergy ? &threadEnergy[threadIndex] : NULL);
     float* forces = &(*threadForce)[threadIndex][0];
+    float* LS_forces = &(*threadLS_Force)[threadIndex][0];
     fvec4 boxSize(periodicBoxVectors[0][0], periodicBoxVectors[1][1], periodicBoxVectors[2][2], 0);
     fvec4 invBoxSize(recipBoxSize[0], recipBoxSize[1], recipBoxSize[2], 0);
     if (ewald || pme || ljpme) {
@@ -543,13 +548,13 @@ void CpuNonbondedForce::threadComputeDirect(ThreadPool& threads, int threadIndex
                 break;
             for (int j = i+1; j < numberOfAtoms; j++)
                 if (exclusions[j].find(i) == exclusions[j].end())
-                    calculateOneIxn(i, j, forces, energyPtr, boxSize, invBoxSize);
+                    calculateOneIxn(i, j, forces, LS_forces, energyPtr, boxSize, invBoxSize);
         }
     }
 
 }
 
-void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* totalEnergy, const fvec4& boxSize, const fvec4& invBoxSize) {
+void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, float* LS_forces, double* totalEnergy, const fvec4& boxSize, const fvec4& invBoxSize) {
     // get deltaR, R2, and R between 2 atoms
 
     fvec4 deltaR;
@@ -586,8 +591,8 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
         energy *= switchValue;
     }
 
-    (*ls_vdw)[ii][jj] += energy;
-    (*ls_coulomb)[ii][jj] += (chargeProd*inverseR);
+    (*LS_vdw)[ii][jj] += energy;
+    (*LS_coulomb)[ii][jj] += (chargeProd*inverseR);
 
     // accumulate energies
 
@@ -604,6 +609,9 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
     fvec4 result = deltaR*dEdR;
     (fvec4(forces+4*ii)+result).store(forces+4*ii);
     (fvec4(forces+4*jj)-result).store(forces+4*jj);
+
+    (fvec4(LS_forces+4*ii)+result).store(LS_forces+4*ii);
+    (fvec4(LS_forces+4*jj)-result).store(LS_forces+4*jj);    
 }
 
 void CpuNonbondedForce::getDeltaR(const fvec4& posI, const fvec4& posJ, fvec4& deltaR, float& r2, bool periodic, const fvec4& boxSize, const fvec4& invBoxSize) const {

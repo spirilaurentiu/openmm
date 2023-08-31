@@ -92,17 +92,23 @@ State Context::getState(int types, bool enforcePeriodicBox, int groups) const {
     impl->getPeriodicBoxVectors(periodicBoxSize[0], periodicBoxSize[1], periodicBoxSize[2]);
     builder.setPeriodicBoxVectors(periodicBoxSize[0], periodicBoxSize[1], periodicBoxSize[2]);
     bool includeForces = types&State::Forces;
+    bool includeLS_Forces = types&State::LS_Forces;
     bool includeEnergy = types&State::Energy;
     bool includeParameterDerivs = types&State::ParameterDerivatives;
     bool needForcesForEnergy = (includeEnergy && getIntegrator().kineticEnergyRequiresForce());
-    if (includeForces || includeEnergy || includeParameterDerivs) {
-        double energy = impl->calcForcesAndEnergy(includeForces || needForcesForEnergy || includeParameterDerivs, includeEnergy, groups);
+    if (includeForces || includeEnergy || includeParameterDerivs || includeLS_Forces) {
+        double energy = impl->calcForcesAndEnergy(includeForces || needForcesForEnergy || includeParameterDerivs || includeLS_Forces, includeEnergy, groups);
         if (includeEnergy)
             builder.setEnergy(impl->calcKineticEnergy(), energy);
         if (includeForces) {
             vector<Vec3> forces;
             impl->getForces(forces);
             builder.setForces(forces);
+        }
+        if(includeLS_Forces){
+            vector<Vec3> LS_forces;
+            impl->getLS_Forces(LS_forces);
+            builder.setLS_Forces(LS_forces);
         }
     }
     if (types&State::Parameters) {

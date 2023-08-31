@@ -138,6 +138,7 @@ public:
      * @param forces  on exit, this contains the forces
      */
     void getForces(ContextImpl& context, std::vector<Vec3>& forces);
+    void getLS_Forces(ContextImpl& context, std::vector<Vec3>& LS_forces);
     /**
      * Get the current derivatives of the energy with respect to context parameters.
      *

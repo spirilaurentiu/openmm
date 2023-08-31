@@ -196,7 +196,7 @@ void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vect
     for (int i = 0; i < numBonds; i++) {
         int bond = bonds[i];
         referenceBondIxn.calculateBondIxn(bondAtoms[bond], atomCoordinates, parameters[bond], forces, totalEnergy, NULL);
-        /* printf("OPENMM_LS threadComputeForce atoms");
+        printf("OPENMM_LS threadComputeForce atoms");
         for(size_t tz = 0; tz < (bondAtoms[bond]).size(); tz++){printf(" %d", (bondAtoms[bond][tz]));} // OPENMM_LS
         printf(" forces"); // OPENMM_LS
         for(size_t tz = 0; tz < forces.size(); tz++){ // OPENMM_LS
@@ -207,6 +207,6 @@ void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vect
         //for(size_t tz = 0; tz < atomCoordinates.size(); tz++){ // OPENMM_LS
         //    printf(" %.4f %.4f %.4f ", atomCoordinates[tz][0], atomCoordinates[tz][1], atomCoordinates[tz][2]); // OPENMM_LS
         //} // OPENMM_LS
-        printf(" cumEnergy %.6f\n", *totalEnergy); // OPENMM_LS */
+        printf(" cumEnergy %.6f\n", *totalEnergy); // OPENMM_LS
     }
 }

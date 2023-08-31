@@ -95,9 +95,10 @@ public:
     int requestPosqIndex();
     AlignedArray<float> posq;
     std::vector<AlignedArray<float> > threadForce;
+    std::vector<AlignedArray<float> > threadLS_Force;
 
-    std::vector<std::vector<float> > ls_vdw;
-    std::vector<std::vector<float> > ls_coulomb;
+    std::vector<std::vector<float> > LS_vdw;
+    std::vector<std::vector<float> > LS_coulomb;
     
     ThreadPool threads;
     bool isPeriodic;

@@ -282,6 +282,7 @@ void OpenCLUpdateStateDataKernel::setVelocities(ContextImpl& context, const vect
 }
 
 void OpenCLUpdateStateDataKernel::getForces(ContextImpl& context, vector<Vec3>& forces) {
+    printf("LS_ OpenCLUpdateStateDataKernel::getForces\n");
     const vector<cl_int>& order = cl.getAtomIndex();
     int numParticles = context.getSystem().getNumParticles();
     forces.resize(numParticles);
@@ -301,6 +302,12 @@ void OpenCLUpdateStateDataKernel::getForces(ContextImpl& context, vector<Vec3>& 
             forces[order[i]] = Vec3(f.x, f.y, f.z);
         }
     }
+}
+void OpenCLUpdateStateDataKernel::getLS_Forces(ContextImpl& context, vector<Vec3>& LS_forces) {
+    printf("LS_ OpenCLUpdateStateDataKernel::getLS_Forces\n");
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    LS_forces.resize(numParticles);
 }
 
 void OpenCLUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
