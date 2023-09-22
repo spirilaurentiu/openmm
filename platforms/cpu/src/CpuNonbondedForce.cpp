@@ -610,8 +610,11 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, float* LS
     (fvec4(forces+4*ii)+result).store(forces+4*ii);
     (fvec4(forces+4*jj)-result).store(forces+4*jj);
 
+    // accumulate LS forces
+
     (fvec4(LS_forces+4*ii)+result).store(LS_forces+4*ii);
-    (fvec4(LS_forces+4*jj)-result).store(LS_forces+4*jj);    
+    (fvec4(LS_forces+4*jj)-result).store(LS_forces+4*jj);
+        
 }
 
 void CpuNonbondedForce::getDeltaR(const fvec4& posI, const fvec4& posJ, fvec4& deltaR, float& r2, bool periodic, const fvec4& boxSize, const fvec4& invBoxSize) const {
