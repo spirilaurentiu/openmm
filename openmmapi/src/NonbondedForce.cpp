@@ -217,6 +217,7 @@ void NonbondedForce::createExceptionsFromBonds(const vector<pair<int, int> >& bo
         bonded12[bond.first].insert(bond.second);
         bonded12[bond.second].insert(bond.first);
     }
+
     for (int i = 0; i < (int) exclusions.size(); ++i)
         addExclusionsToSet(bonded12, exclusions[i], i, i, 2);
 
@@ -245,6 +246,7 @@ void NonbondedForce::createExceptionsFromBonds(const vector<pair<int, int> >& bo
             }
         }
     }
+
 }
 
 void NonbondedForce::addExclusionsToSet(const vector<set<int> >& bonded12, set<int>& exclusions, int baseParticle, int fromParticle, int currentLevel) const {

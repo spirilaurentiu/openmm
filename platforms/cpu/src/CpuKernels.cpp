@@ -516,6 +516,7 @@ void CpuCalcNonbondedForceKernel::initialize(const System& system, const Nonbond
             nb14s.push_back(i);
         }
     }
+    
 
     // Record the particle parameters.
 
