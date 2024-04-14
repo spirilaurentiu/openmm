@@ -59,7 +59,7 @@ public:
      * This is an enumeration of the types of data which may be stored in a State.  When you create
      * a State, use these values to specify which data types it should contain.
      */
-    enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64};
+    enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64, Forces_drl_vdw=128};
     /**
      * Construct an empty State containing no data.  This exists so State objects can be used in STL containers.
      */
@@ -80,6 +80,11 @@ public:
      * Get the force acting on each particle.  If this State does not contain forces, this will throw an exception.
      */
     const std::vector<Vec3>& getForces() const;
+    /**
+     * part of the OPENMM_DRILL
+     * Get the VdW forces pairs
+     */
+    const std::vector<Vec3>& getForces_drl_vdw() const;    
     /**
      * Get the total kinetic energy of the system.  If this State does not contain energies, this will throw an exception.
      *
@@ -131,6 +136,8 @@ private:
     void setPositions(const std::vector<Vec3>& pos);
     void setVelocities(const std::vector<Vec3>& vel);
     void setForces(const std::vector<Vec3>& force);
+    void setForces_drl_vdw(const std::vector<Vec3>& force);
+
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& derivs);
     void setEnergy(double ke, double pe);
@@ -145,6 +152,9 @@ private:
     Vec3 periodicBoxVectors[3];
     std::map<std::string, double> parameters, energyParameterDerivatives;
     SerializationNode integratorParameters;
+
+    std::vector<Vec3> forces_drl_vdw; // drl
+
 };
 
 /**
@@ -159,6 +169,8 @@ public:
     void setPositions(const std::vector<Vec3>& pos);
     void setVelocities(const std::vector<Vec3>& vel);
     void setForces(const std::vector<Vec3>& force);
+    void setForces_drl_vdw(const std::vector<Vec3>& force);
+
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& params);
     void setEnergy(double ke, double pe);

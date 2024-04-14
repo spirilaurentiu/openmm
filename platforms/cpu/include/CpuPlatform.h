@@ -96,8 +96,9 @@ public:
     AlignedArray<float> posq;
     std::vector<AlignedArray<float> > threadForce;
 
-    std::vector<std::vector<float> > ls_vdw;
-    std::vector<std::vector<float> > ls_coulomb;
+    // drl
+    std::vector<std::vector<float> > drl_vdw;
+    std::vector<std::vector<float> > drl_coulomb;
     
     ThreadPool threads;
     bool isPeriodic;

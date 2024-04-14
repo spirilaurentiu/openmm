@@ -239,6 +239,10 @@ void ContextImpl::getForces(std::vector<Vec3>& forces) {
     updateStateDataKernel.getAs<UpdateStateDataKernel>().getForces(*this, forces);
 }
 
+void ContextImpl::getForces_drl_vdw(std::vector<Vec3>& forces_drl_vdw) {
+    updateStateDataKernel.getAs<UpdateStateDataKernel>().getForces_drl_vdw(*this, forces_drl_vdw);
+}
+
 const std::map<std::string, double>& ContextImpl::getParameters() const {
     return parameters;
 }

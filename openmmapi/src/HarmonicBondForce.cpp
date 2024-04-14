@@ -41,8 +41,8 @@ HarmonicBondForce::HarmonicBondForce() : usePeriodic(false) {
 }
 
 int HarmonicBondForce::addBond(int particle1, int particle2, double length, double k) {
-    //std::cout << "OPENMM_LS HarmonicBondForce::addBond " << particle1 <<" " << particle2 <<" " << length <<" " << k <<std::endl;
     bonds.push_back(BondInfo(particle1, particle2, length, k));
+    printf("drl HarmonicBondForce::addBond ix p1 p2 l k %d %d %d %f %f\n", bonds.size()-1, particle1, particle2, length, k);
     return bonds.size()-1;
 }
 

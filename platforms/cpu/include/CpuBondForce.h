@@ -39,6 +39,8 @@
 #include <set>
 #include <vector>
 
+#include <mutex> // drl
+
 namespace OpenMM {
 
 /**

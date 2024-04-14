@@ -108,6 +108,11 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     return *data->forces;
 }
 
+static vector<Vec3>& extractForces_drl_vdw(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->forces_drl_vdw;
+}
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -257,6 +262,14 @@ void ReferenceUpdateStateDataKernel::getForces(ContextImpl& context, std::vector
         forces[i] = Vec3(forceData[i][0], forceData[i][1], forceData[i][2]);
 }
 
+void ReferenceUpdateStateDataKernel::getForces_drl_vdw(ContextImpl& context, std::vector<Vec3>& forces_drl_vdw) {
+    int numParticles = context.getSystem().getNumParticles();
+    vector<Vec3>& forceData_drl_vdw = extractForces_drl_vdw(context);
+    forces_drl_vdw.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        forces_drl_vdw[i] = Vec3(forceData_drl_vdw[i][0], forceData_drl_vdw[i][1], forceData_drl_vdw[i][2]);
+}
+
 void ReferenceUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
     derivs = extractEnergyParameterDerivatives(context);
 }
@@ -365,7 +378,7 @@ double ReferenceCalcHarmonicBondForceKernel::execute(ContextImpl& context, bool 
     if (usePeriodic)
         harmonicBond.setPeriodic(extractBoxVectors(context));
     refBondForce.calculateForce(numBonds, bondIndexArray, posData, bondParamArray, forceData, includeEnergy ? &energy : NULL, harmonicBond);
-    //printf("OPENMM_LS bond_energy %.6f\n", energy);
+    printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond_energy %.6f\n", energy);
     return energy;
 }
 

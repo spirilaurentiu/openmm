@@ -174,7 +174,7 @@ void CpuBondForce::calculateForce(vector<Vec3>& atomCoordinates, vector<vector<d
         threadComputeForce(threads, threadIndex, atomCoordinates, parameters, forces, energy, referenceBondIxn);
     });
     threads->waitForThreads();
-    
+
     // Compute any "extra" bonds.
     
     for (int i = 0; i < extraBonds.size(); i++) {
@@ -184,15 +184,28 @@ void CpuBondForce::calculateForce(vector<Vec3>& atomCoordinates, vector<vector<d
 
     // Compute the total energy.
     
-    if (totalEnergy != NULL)
-        for (int i = 0; i < threads->getNumThreads(); i++)
+    if (totalEnergy != NULL){
+        for (int i = 0; i < threads->getNumThreads(); i++){
             *totalEnergy += threadEnergy[i];
+        }
+    }
+
+    printf("drl CpuBondForce::calculateForce %f \n", *totalEnergy);
+
+
 }
 
-std::mutex mtx; // victor
+// drl BEGIN
+//#include <iostream>
+//std::mutex drl_mtx; // victor
+// drl END
 
 void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vector<Vec3>& atomCoordinates, vector<vector<double> >& parameters, vector<Vec3>& forces, 
             double* totalEnergy, ReferenceBondIxn& referenceBondIxn) {
+    
+    //drl_mtx.lock();  // drl
+    //std::cout << "drl threadComputeForce threadIndex " << threadIndex << " ";
+
     vector<int>& bonds = threadBonds[threadIndex];
     int numBonds = bonds.size();
     for (int i = 0; i < numBonds; i++) {
@@ -200,32 +213,33 @@ void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vect
 
         referenceBondIxn.calculateBondIxn(bondAtoms[bond], atomCoordinates, parameters[bond], forces, totalEnergy, NULL);
 
-        // printf("OPENMM_LS threadComputeForce atoms");
-        // for(size_t tz = 0; tz < (bondAtoms[bond]).size(); tz++){printf(" %d", (bondAtoms[bond][tz]));} // OPENMM_LS
-        // printf(" forces"); // OPENMM_LS
-        // for(size_t tz = 0; tz < forces.size(); tz++){ // OPENMM_LS
-        //     printf(" %.4f %.4f %.4f ", forces[tz][0], forces[tz][1], forces[tz][2]); // OPENMM_LS
-        // }
-        
-        // OPENMM_LS
-        // printf(" coords "); // OPENMM_LS
-        // for(size_t tz = 0; tz < atomCoordinates.size(); tz++){ // OPENMM_LS
-        //    printf("%.4f %.4f %.4f ", atomCoordinates[tz][0], atomCoordinates[tz][1], atomCoordinates[tz][2]); // OPENMM_LS
-        // } // OPENMM_LS
-        // printf(" cumEnergy %.6f\n", *totalEnergy); // OPENMM_LS
-
-        // std::lock_guard<std::mutex> lock(mtx); // victor
-        // std::cout << "OPENMM_LS threadComputeForce i bond bondAtom bondAtom " << i << " " << bonds[i] << " ";
+        // // drl BEGIN
+        // std::cout << "drl threadBondIx " << i << " atomIxs ";
+        // // for(size_t aCnt = 0; aCnt < (bondAtoms[bond]).size(); aCnt++){
+        // //     std::cout << (bondAtoms[bond][aCnt]) <<" "
+        // //         << atomCoordinates[aCnt][0] <<" "
+        // //         << atomCoordinates[aCnt][1] <<" "
+        // //         << atomCoordinates[aCnt][2]
+        // //         <<" ";
+        // // }
         // for(size_t aCnt = 0; aCnt < (bondAtoms[bond]).size(); aCnt++){
-
         //     std::cout << (bondAtoms[bond][aCnt]) <<" "
-        //         << atomCoordinates[aCnt][0] <<" "
-        //         << atomCoordinates[aCnt][1] <<" "
-        //         << atomCoordinates[aCnt][2]
-        //         <<" ";
+        //     ;
         // }
-        // std::cout << " cumEnergy " << *totalEnergy <<" " <<std::endl;
+        // std::cout << " forces" ;
+        // for(size_t fCnt = 0; fCnt < forces.size(); fCnt++){ // drl
+        //     std::cout
+        //         << " " << forces[fCnt][0] 
+        //         << " " << forces[fCnt][1] 
+        //         << " " << forces[fCnt][2]; // drl
+        // }
+        // std::cout << std::endl;
+        // std::cout << " totalEnergy " << *totalEnergy <<" " << std::endl;
+        // // drl END
 
     }
+
+    //if(numBonds == 0){printf("\n");} // drl
+    //drl_mtx.unlock(); // drl
 
 }

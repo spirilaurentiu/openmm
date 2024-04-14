@@ -71,6 +71,11 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     return *data->forces;
 }
 
+static vector<Vec3>& extractForces_drl_vdw(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->forces_drl_vdw;
+}
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -328,7 +333,7 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
     if (usePeriodic)
         angleBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, angleParamArray, forceData, includeEnergy ? &energy : NULL, angleBond);
-    //printf("OPENMM_LS angle_energy %.6f\n", energy);
+    printf("drl CpuCalcHarmonicAngleForceKernel::execute energy %f \n", energy); // drl
     return energy;
 }
 
@@ -377,7 +382,7 @@ double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool inc
     if (usePeriodic)
         periodicTorsionBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, periodicTorsionBond);
-    //printf("OPENMM_LS period_tors_energy %.6f\n", energy);
+    printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
     return energy;
 }
 
@@ -430,7 +435,6 @@ double CpuCalcRBTorsionForceKernel::execute(ContextImpl& context, bool includeFo
     if (usePeriodic)
         rbTorsionBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, rbTorsionBond);
-    //printf("OPENMM_LS RB_tors_energy %.6f\n", energy);
     return energy;
 }
 
@@ -685,7 +689,7 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
     double nonbondedEnergy = 0;
     if (includeDirect)
         nonbonded->calculateDirectIxn(numParticles, &posq[0], posData, particleParams, C6params, exclusions, data.threadForce, includeEnergy ? &nonbondedEnergy : NULL, data.threads,
-        data.ls_vdw, data.ls_coulomb);
+        data.drl_vdw, data.drl_coulomb);
     if (includeReciprocal) {
         if (useOptimizedPme) {
             PmeIO io(&posq[0], &data.threadForce[0][0], numParticles);
@@ -712,7 +716,7 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         if (data.isPeriodic && nonbondedMethod != LJPME)
             energy += dispersionCoefficient/(boxVectors[0][0]*boxVectors[1][1]*boxVectors[2][2]);
     }
-    //printf("OPENMM_LS nonbonded_energy %.6f\n", energy);
+    printf("drl CpuCalcNonbondedForceKernel::execute nonbonded_energy %.6f\n", energy);
     return energy;
 }
 
