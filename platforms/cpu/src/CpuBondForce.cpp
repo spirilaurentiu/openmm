@@ -189,7 +189,7 @@ void CpuBondForce::calculateForce(vector<Vec3>& atomCoordinates, vector<vector<d
             *totalEnergy += threadEnergy[i];
 }
 
-std::mutex mtx; // victor
+//std::mutex mtx; // victor
 
 void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vector<Vec3>& atomCoordinates, vector<vector<double> >& parameters, vector<Vec3>& forces, 
             double* totalEnergy, ReferenceBondIxn& referenceBondIxn) {
