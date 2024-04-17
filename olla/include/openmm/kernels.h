@@ -183,7 +183,7 @@ public:
      *
      * @param forces  on exit, this contains the forces
      */
-    virtual void getForces_drl_vdw(ContextImpl& context, std::vector<Vec3>& forces_drl_vdw) = 0;
+    virtual void getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang) = 0;
     /**
      * Get the current derivatives of the energy with respect to context parameters.
      *

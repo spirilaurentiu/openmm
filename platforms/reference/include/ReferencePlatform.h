@@ -68,7 +68,11 @@ public:
     std::vector<Vec3>* positions;
     std::vector<Vec3>* velocities;
     std::vector<Vec3>* forces;
-    std::vector<Vec3>* forces_drl_vdw;
+
+    std::vector<Vec3>* forces_drl_bon;
+    std::vector<Vec3>* forces_drl_ang;
+    std::vector<Vec3>* forces_drl_tor;
+
     Vec3* periodicBoxSize;
     Vec3* periodicBoxVectors;
     ReferenceConstraints* constraints;

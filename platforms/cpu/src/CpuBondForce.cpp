@@ -189,10 +189,7 @@ void CpuBondForce::calculateForce(vector<Vec3>& atomCoordinates, vector<vector<d
             *totalEnergy += threadEnergy[i];
         }
     }
-
-    printf("drl CpuBondForce::calculateForce %f \n", *totalEnergy);
-
-
+    
 }
 
 // drl BEGIN

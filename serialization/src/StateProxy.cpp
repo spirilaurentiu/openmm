@@ -92,12 +92,12 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
     if ((s.getDataTypes()&State::IntegratorParameters) != 0) {
         node.getChildren().push_back(s.getIntegratorParameters());
     }
-    if ((s.getDataTypes()&State::Forces_drl_vdw) != 0) {
-        s.getForces_drl_vdw();
-        SerializationNode& forcesNode_drl_vdw = node.createChildNode("Forces_drl_vdw");
-        vector<Vec3> stateForces_drl_vdw = s.getForces_drl_vdw();
-        for (int i=0; i<stateForces_drl_vdw.size();i++) {
-            forcesNode_drl_vdw.createChildNode("Force").setDoubleProperty("x", stateForces_drl_vdw[i][0]).setDoubleProperty("y", stateForces_drl_vdw[i][1]).setDoubleProperty("z", stateForces_drl_vdw[i][2]);
+    if ((s.getDataTypes()&State::Forces_drl_ang) != 0) {
+        s.getForces_drl_ang();
+        SerializationNode& forcesNode_drl_ang = node.createChildNode("Forces_drl_ang");
+        vector<Vec3> stateForces_drl_ang = s.getForces_drl_ang();
+        for (int i=0; i<stateForces_drl_ang.size();i++) {
+            forcesNode_drl_ang.createChildNode("Force").setDoubleProperty("x", stateForces_drl_ang[i][0]).setDoubleProperty("y", stateForces_drl_ang[i][1]).setDoubleProperty("z", stateForces_drl_ang[i][2]);
         }
     }
 }
@@ -152,12 +152,12 @@ void* StateProxy::deserialize(const SerializationNode& node) const {
         else if (child.getName() == "IntegratorParameters") {
             builder.updateIntegratorParameters() = child;
         }
-        else if (child.getName() == "Forces_drl_vdw") {
-            vector<Vec3> outForces_drl_vdw;
+        else if (child.getName() == "Forces_drl_ang") {
+            vector<Vec3> outForces_drl_ang;
             for (auto& particle : child.getChildren())
-                outForces_drl_vdw.push_back(Vec3(particle.getDoubleProperty("x"),particle.getDoubleProperty("y"),particle.getDoubleProperty("z")));
-            builder.setForces_drl_vdw(outForces_drl_vdw);
-            arraySizes.push_back(outForces_drl_vdw.size());
+                outForces_drl_ang.push_back(Vec3(particle.getDoubleProperty("x"),particle.getDoubleProperty("y"),particle.getDoubleProperty("z")));
+            builder.setForces_drl_ang(outForces_drl_ang);
+            arraySizes.push_back(outForces_drl_ang.size());
         }        
     }
     for (int i = 1; i < arraySizes.size(); i++) {

@@ -123,9 +123,9 @@ public:
     /**
      * Get the current drill vdw forces on all particles.
      *
-     * @param forces_drl_vdw  on exit, this contains the forces
+     * @param forces_drl_ang  on exit, this contains the forces
      */
-    void getForces_drl_vdw(std::vector<Vec3>& forces_drl_vdw);    
+    void getForces_drl_ang(std::vector<Vec3>& forces_drl_ang);    
     /**
      * Get the set of all adjustable parameters and their values
      */

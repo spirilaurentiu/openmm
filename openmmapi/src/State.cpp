@@ -53,10 +53,10 @@ const vector<Vec3>& State::getForces() const {
         throw OpenMMException("Invoked getForces() on a State which does not contain forces.");
     return forces;
 }
-const vector<Vec3>& State::getForces_drl_vdw() const {
-    if ((types&Forces_drl_vdw) == 0)
+const vector<Vec3>& State::getForces_drl_ang() const {
+    if ((types&Forces_drl_ang) == 0)
         throw OpenMMException("Invoked getForces() on a State which does not contain forces.");
-    return forces_drl_vdw;
+    return forces_drl_ang;
 }
 double State::getKineticEnergy() const {
     if ((types&Energy) == 0)
@@ -118,9 +118,9 @@ void State::setForces(const std::vector<Vec3>& force) {
     types |= Forces;
 }
 
-void State::setForces_drl_vdw(const std::vector<Vec3>& arg_drl_vdw_force) {
-    forces_drl_vdw = arg_drl_vdw_force;
-    types |= Forces_drl_vdw;
+void State::setForces_drl_ang(const std::vector<Vec3>& arg_drl_ang_force) {
+    forces_drl_ang = arg_drl_ang_force;
+    types |= Forces_drl_ang;
 }
 
 void State::setParameters(const std::map<std::string, double>& params) {
@@ -164,8 +164,8 @@ void State::StateBuilder::setForces(const std::vector<Vec3>& force) {
     state.setForces(force);
 }
 
-void State::StateBuilder::setForces_drl_vdw(const std::vector<Vec3>& force_drl_vdw) {
-    state.setForces_drl_vdw(force_drl_vdw);
+void State::StateBuilder::setForces_drl_ang(const std::vector<Vec3>& force_drl_ang) {
+    state.setForces_drl_ang(force_drl_ang);
 }
 
 void State::StateBuilder::setParameters(const std::map<std::string, double>& params) {

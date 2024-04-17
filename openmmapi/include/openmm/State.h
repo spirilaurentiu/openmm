@@ -59,7 +59,8 @@ public:
      * This is an enumeration of the types of data which may be stored in a State.  When you create
      * a State, use these values to specify which data types it should contain.
      */
-    enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64, Forces_drl_vdw=128};
+    enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64
+        , Forces_drl_bon=128, Forces_drl_ang=256, Forces_drl_tor=512, Forces_drl_vdw=1024, Forces_drl_cou=2048}; // drl
     /**
      * Construct an empty State containing no data.  This exists so State objects can be used in STL containers.
      */
@@ -84,7 +85,7 @@ public:
      * part of the OPENMM_DRILL
      * Get the VdW forces pairs
      */
-    const std::vector<Vec3>& getForces_drl_vdw() const;    
+    const std::vector<Vec3>& getForces_drl_ang() const;    
     /**
      * Get the total kinetic energy of the system.  If this State does not contain energies, this will throw an exception.
      *
@@ -136,7 +137,7 @@ private:
     void setPositions(const std::vector<Vec3>& pos);
     void setVelocities(const std::vector<Vec3>& vel);
     void setForces(const std::vector<Vec3>& force);
-    void setForces_drl_vdw(const std::vector<Vec3>& force);
+    void setForces_drl_ang(const std::vector<Vec3>& force);
 
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& derivs);
@@ -153,7 +154,7 @@ private:
     std::map<std::string, double> parameters, energyParameterDerivatives;
     SerializationNode integratorParameters;
 
-    std::vector<Vec3> forces_drl_vdw; // drl
+    std::vector<Vec3> forces_drl_ang; // drl
 
 };
 
@@ -169,7 +170,7 @@ public:
     void setPositions(const std::vector<Vec3>& pos);
     void setVelocities(const std::vector<Vec3>& vel);
     void setForces(const std::vector<Vec3>& force);
-    void setForces_drl_vdw(const std::vector<Vec3>& force);
+    void setForces_drl_ang(const std::vector<Vec3>& force);
 
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& params);

@@ -108,9 +108,9 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     return *data->forces;
 }
 
-static vector<Vec3>& extractForces_drl_vdw(ContextImpl& context) {
+static vector<Vec3>& extractForces_drl_ang(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
-    return *data->forces_drl_vdw;
+    return *data->forces_drl_ang;
 }
 
 static Vec3& extractBoxSize(ContextImpl& context) {
@@ -262,12 +262,12 @@ void ReferenceUpdateStateDataKernel::getForces(ContextImpl& context, std::vector
         forces[i] = Vec3(forceData[i][0], forceData[i][1], forceData[i][2]);
 }
 
-void ReferenceUpdateStateDataKernel::getForces_drl_vdw(ContextImpl& context, std::vector<Vec3>& forces_drl_vdw) {
+void ReferenceUpdateStateDataKernel::getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang) {
     int numParticles = context.getSystem().getNumParticles();
-    vector<Vec3>& forceData_drl_vdw = extractForces_drl_vdw(context);
-    forces_drl_vdw.resize(numParticles);
+    vector<Vec3>& forceData_drl_ang = extractForces_drl_ang(context);
+    forces_drl_ang.resize(numParticles);
     for (int i = 0; i < numParticles; ++i)
-        forces_drl_vdw[i] = Vec3(forceData_drl_vdw[i][0], forceData_drl_vdw[i][1], forceData_drl_vdw[i][2]);
+        forces_drl_ang[i] = Vec3(forceData_drl_ang[i][0], forceData_drl_ang[i][1], forceData_drl_ang[i][2]);
 }
 
 void ReferenceUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
