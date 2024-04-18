@@ -167,12 +167,21 @@ public:
      * @param forces  on exit, this contains the forces
      */
     void getForces(ContextImpl& context, std::vector<Vec3>& forces);
+    
+    /**
+     * Get the current drl vdw forces on all particles.
+     *
+     * @param forces_drl_bon  on exit, this contains the forces
+     */
+    void getForces_drl_bon(ContextImpl& context, std::vector<Vec3>& forces_drl_bon);
+
     /**
      * Get the current drl vdw forces on all particles.
      *
      * @param forces_drl_ang  on exit, this contains the forces
      */
-    void getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang);    
+    void getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang);
+
     /**
      * Get the current derivatives of the energy with respect to context parameters.
      *

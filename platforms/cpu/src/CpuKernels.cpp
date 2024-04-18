@@ -71,6 +71,11 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     return *data->forces;
 }
 
+static vector<Vec3>& extractForces_drl_bon(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->forces_drl_bon;
+}
+
 static vector<Vec3>& extractForces_drl_ang(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->forces_drl_ang;
@@ -328,6 +333,16 @@ void CpuCalcHarmonicAngleForceKernel::initialize(const System& system, const Har
 double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
+    
+    vector<Vec3>& forceData_drl_ang = extractForces_drl_ang(context);
+    assert(forceData_drl_ang.size() == forceData.size());
+
+    for(int fIx = 0; fIx < forceData.size(); fIx++){
+        forceData_drl_ang[fIx][0] = forceData[fIx][0];
+        forceData_drl_ang[fIx][1] = forceData[fIx][1];
+        forceData_drl_ang[fIx][2] = forceData[fIx][2];
+    }
+
     double energy = 0;
     ReferenceAngleBondIxn angleBond;
     if (usePeriodic)
@@ -335,14 +350,10 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
     bondForce.calculateForce(posData, angleParamArray, forceData, includeEnergy ? &energy : NULL, angleBond);
 
     // drl angle forces BEGIN
-    vector<Vec3>& forceData_drl_ang = extractForces_drl_ang(context);
-
-    assert(forceData_drl_ang.size() == forceData.size());
-
     for(int fIx = 0; fIx < forceData.size(); fIx++){
-        forceData_drl_ang[fIx][0] = forceData[fIx][0];
-        forceData_drl_ang[fIx][1] = forceData[fIx][1];
-        forceData_drl_ang[fIx][2] = forceData[fIx][2];
+        forceData_drl_ang[fIx][0] = forceData[fIx][0] - forceData_drl_ang[fIx][0];
+        forceData_drl_ang[fIx][1] = forceData[fIx][1] - forceData_drl_ang[fIx][0];
+        forceData_drl_ang[fIx][2] = forceData[fIx][2] - forceData_drl_ang[fIx][0];
     }
 
     for(int fIx = 0; fIx < forceData_drl_ang.size(); fIx++){

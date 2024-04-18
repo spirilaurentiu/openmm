@@ -94,10 +94,19 @@ State Context::getState(int types, bool enforcePeriodicBox, int groups) const {
     bool includeForces = types&State::Forces;
     bool includeEnergy = types&State::Energy;
     bool includeParameterDerivs = types&State::ParameterDerivatives;
+
+    bool includeForces_drl_bon = types&State::Forces_drl_bon;
     bool includeForces_drl_ang = types&State::Forces_drl_ang;
+    bool includeForces_drl_tor = types&State::Forces_drl_tor;
+    bool includeForces_drl_vdw = types&State::Forces_drl_vdw;
+    bool includeForces_drl_cou = types&State::Forces_drl_cou;
+
     bool needForcesForEnergy = (includeEnergy && getIntegrator().kineticEnergyRequiresForce());
     if (includeForces || includeEnergy || includeParameterDerivs || includeForces_drl_ang) {
-        double energy = impl->calcForcesAndEnergy(includeForces || needForcesForEnergy || includeParameterDerivs || includeForces_drl_ang, includeEnergy, groups);
+        double energy = impl->calcForcesAndEnergy(
+                            includeForces || needForcesForEnergy || includeParameterDerivs
+                            || includeForces_drl_bon || includeForces_drl_ang || includeForces_drl_tor || includeForces_drl_vdw || includeForces_drl_cou,
+                            includeEnergy, groups);
         if (includeEnergy)
             builder.setEnergy(impl->calcKineticEnergy(), energy);
         if (includeForces) {
@@ -105,11 +114,18 @@ State Context::getState(int types, bool enforcePeriodicBox, int groups) const {
             impl->getForces(forces);
             builder.setForces(forces);
         }
+
+        if(includeForces_drl_bon){
+            vector<Vec3> forces_drl_bon;
+            impl->getForces_drl_bon(forces_drl_bon);
+            builder.setForces_drl_bon(forces_drl_bon);
+        }
         if(includeForces_drl_ang){
             vector<Vec3> forces_drl_ang;
             impl->getForces_drl_ang(forces_drl_ang);
             builder.setForces_drl_ang(forces_drl_ang);
         }
+
     }
     if (types&State::Parameters) {
         map<string, double> params;

@@ -120,12 +120,22 @@ public:
      * @param forces  on exit, this contains the forces
      */
     void getForces(std::vector<Vec3>& forces);
+
+    // OPENMM DRILL drl
+    /**
+     * Get the current drill vdw forces on all particles.
+     *
+     * @param forces_drl_bon  on exit, this contains the forces
+     */
+    void getForces_drl_bon(std::vector<Vec3>& forces_drl_bon);
     /**
      * Get the current drill vdw forces on all particles.
      *
      * @param forces_drl_ang  on exit, this contains the forces
      */
     void getForces_drl_ang(std::vector<Vec3>& forces_drl_ang);    
+    // drl END
+
     /**
      * Get the set of all adjustable parameters and their values
      */

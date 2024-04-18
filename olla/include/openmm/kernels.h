@@ -178,6 +178,13 @@ public:
      * @param forces  on exit, this contains the forces
      */
     virtual void getForces(ContextImpl& context, std::vector<Vec3>& forces) = 0;
+
+    /**
+     * Get the current forces on all particles.
+     *
+     * @param forces  on exit, this contains the forces
+     */
+    virtual void getForces_drl_bon(ContextImpl& context, std::vector<Vec3>& forces_drl_bon) = 0;
     /**
      * Get the current forces on all particles.
      *

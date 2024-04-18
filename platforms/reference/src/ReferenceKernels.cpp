@@ -108,6 +108,12 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     return *data->forces;
 }
 
+
+static vector<Vec3>& extractForces_drl_bon(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->forces_drl_bon;
+}
+
 static vector<Vec3>& extractForces_drl_ang(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->forces_drl_ang;
@@ -262,6 +268,14 @@ void ReferenceUpdateStateDataKernel::getForces(ContextImpl& context, std::vector
         forces[i] = Vec3(forceData[i][0], forceData[i][1], forceData[i][2]);
 }
 
+void ReferenceUpdateStateDataKernel::getForces_drl_bon(ContextImpl& context, std::vector<Vec3>& forces_drl_bon) {
+    int numParticles = context.getSystem().getNumParticles();
+    vector<Vec3>& forceData_drl_bon = extractForces_drl_bon(context);
+    forces_drl_bon.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        forces_drl_bon[i] = Vec3(forceData_drl_bon[i][0], forceData_drl_bon[i][1], forceData_drl_bon[i][2]);
+}
+
 void ReferenceUpdateStateDataKernel::getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang) {
     int numParticles = context.getSystem().getNumParticles();
     vector<Vec3>& forceData_drl_ang = extractForces_drl_ang(context);
@@ -372,13 +386,37 @@ void ReferenceCalcHarmonicBondForceKernel::initialize(const System& system, cons
 double ReferenceCalcHarmonicBondForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
+
+    vector<Vec3>& forceData_drl_bon = extractForces_drl_bon(context);
+    for(int fIx = 0; fIx < forceData.size(); fIx++){
+        forceData_drl_bon[fIx][0] = forceData[fIx][0];
+        forceData_drl_bon[fIx][1] = forceData[fIx][1];
+        forceData_drl_bon[fIx][2] = forceData[fIx][2];
+    }
+
     double energy = 0;
     ReferenceBondForce refBondForce;
     ReferenceHarmonicBondIxn harmonicBond;
     if (usePeriodic)
         harmonicBond.setPeriodic(extractBoxVectors(context));
     refBondForce.calculateForce(numBonds, bondIndexArray, posData, bondParamArray, forceData, includeEnergy ? &energy : NULL, harmonicBond);
+
+    // drl bond forces BEGIN
+    assert(forceData_drl_bon.size() == forceData.size());
+
+    for(int fIx = 0; fIx < forceData.size(); fIx++){
+        forceData_drl_bon[fIx][0] = forceData[fIx][0] - forceData_drl_bon[fIx][0];
+        forceData_drl_bon[fIx][1] = forceData[fIx][1] - forceData_drl_bon[fIx][1];
+        forceData_drl_bon[fIx][2] = forceData[fIx][2] - forceData_drl_bon[fIx][2];
+    }
+
+    for(int fIx = 0; fIx < forceData_drl_bon.size(); fIx++){
+        printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond %f %f %f\n",
+            forceData_drl_bon[fIx][0], forceData_drl_bon[fIx][1], forceData_drl_bon[fIx][2]);
+    }
     printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond_energy %.6f\n", energy);
+    // drl END
+
     return energy;
 }
 

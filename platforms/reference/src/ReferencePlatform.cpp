@@ -99,7 +99,10 @@ ReferencePlatform::PlatformData::PlatformData(const System& system) : time(0.0),
     positions = new vector<Vec3>(numParticles);
     velocities = new vector<Vec3>(numParticles);
     forces = new vector<Vec3>(numParticles);
+
+    forces_drl_bon = new vector<Vec3>(numParticles);
     forces_drl_ang = new vector<Vec3>(numParticles);
+
     periodicBoxSize = new Vec3();
     periodicBoxVectors = new Vec3[3];
     constraints = new ReferenceConstraints(system);
@@ -110,7 +113,10 @@ ReferencePlatform::PlatformData::~PlatformData() {
     delete positions;
     delete velocities;
     delete forces;
+
+    delete forces_drl_bon;
     delete forces_drl_ang;
+
     delete periodicBoxSize;
     delete[] periodicBoxVectors;
     delete constraints;

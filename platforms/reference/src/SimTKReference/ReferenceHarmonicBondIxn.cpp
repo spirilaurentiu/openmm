@@ -110,5 +110,5 @@ void ReferenceHarmonicBondIxn::calculateBondIxn(vector<int>& atomIndices,
    if (totalEnergy != NULL)
        *totalEnergy += 0.5*parameters[1]*deltaIdeal2;
 
-    printf("drl ReferenceHarmonicBondIxn::calculateBondIxn %d %d %f \n", atomIndices[0], atomIndices[1], (0.5*parameters[1]*deltaIdeal2));
+    //printf("drl ReferenceHarmonicBondIxn::calculateBondIxn %d %d %f \n", atomIndices[0], atomIndices[1], (0.5*parameters[1]*deltaIdeal2));
 }

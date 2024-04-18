@@ -81,11 +81,18 @@ public:
      * Get the force acting on each particle.  If this State does not contain forces, this will throw an exception.
      */
     const std::vector<Vec3>& getForces() const;
+
+    // part of the OPENMM_DRILL drl
     /**
-     * part of the OPENMM_DRILL
-     * Get the VdW forces pairs
+     * Get the bond forces
      */
-    const std::vector<Vec3>& getForces_drl_ang() const;    
+    const std::vector<Vec3>& getForces_drl_bon() const;
+    /**
+     * Get the angle forces
+     */
+    const std::vector<Vec3>& getForces_drl_ang() const;
+    // drl END
+
     /**
      * Get the total kinetic energy of the system.  If this State does not contain energies, this will throw an exception.
      *
@@ -137,6 +144,8 @@ private:
     void setPositions(const std::vector<Vec3>& pos);
     void setVelocities(const std::vector<Vec3>& vel);
     void setForces(const std::vector<Vec3>& force);
+
+    void setForces_drl_bon(const std::vector<Vec3>& force);
     void setForces_drl_ang(const std::vector<Vec3>& force);
 
     void setParameters(const std::map<std::string, double>& params);
@@ -154,6 +163,7 @@ private:
     std::map<std::string, double> parameters, energyParameterDerivatives;
     SerializationNode integratorParameters;
 
+    std::vector<Vec3> forces_drl_bon; // drl
     std::vector<Vec3> forces_drl_ang; // drl
 
 };
@@ -170,6 +180,8 @@ public:
     void setPositions(const std::vector<Vec3>& pos);
     void setVelocities(const std::vector<Vec3>& vel);
     void setForces(const std::vector<Vec3>& force);
+
+    void setForces_drl_bon(const std::vector<Vec3>& force);
     void setForces_drl_ang(const std::vector<Vec3>& force);
 
     void setParameters(const std::map<std::string, double>& params);
