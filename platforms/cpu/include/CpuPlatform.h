@@ -99,6 +99,8 @@ public:
     // drl
     std::vector<std::vector<float> > drl_vdw;
     std::vector<std::vector<float> > drl_coulomb;
+    std::vector<std::vector<Vec3> > drl_F_vdw;
+    std::vector<std::vector<Vec3> > drl_F_cou;
     
     ThreadPool threads;
     bool isPeriodic;

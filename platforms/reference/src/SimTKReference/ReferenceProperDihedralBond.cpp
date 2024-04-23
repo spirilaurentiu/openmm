@@ -163,4 +163,8 @@ void ReferenceProperDihedralBond::calculateBondIxn(vector<int>& atomIndices,
 
    if (totalEnergy != NULL)
        *totalEnergy += energy;
+
+   printf("drl ReferenceProperDihedralBond::calculateBondIxn %d %d %d %d %f \n",
+      atomIndices[0], atomIndices[1], atomIndices[2], atomIndices[3], energy);
+
 }

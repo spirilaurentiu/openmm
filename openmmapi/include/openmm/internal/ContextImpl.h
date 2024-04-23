@@ -133,7 +133,13 @@ public:
      *
      * @param forces_drl_ang  on exit, this contains the forces
      */
-    void getForces_drl_ang(std::vector<Vec3>& forces_drl_ang);    
+    void getForces_drl_ang(std::vector<Vec3>& forces_drl_ang);
+    /**
+     * Get the current drill vdw forces on all particles.
+     *
+     * @param forces_drl_tor  on exit, this contains the forces
+     */
+    void getForces_drl_tor(std::vector<Vec3>& forces_drl_tor);        
     // drl END
 
     /**

@@ -379,8 +379,10 @@ void CpuNonbondedForce::calculateReciprocalIxn(int numberOfAtoms, float* posq, c
 
 
 void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const vector<Vec3>& atomCoordinates, const vector<pair<float, float> >& atomParameters,
-                                           const vector<float>& C6params, const vector<set<int> >& exclusions, vector<AlignedArray<float> >& threadForce, double* totalEnergy, ThreadPool& threads,
-                                           std::vector<std::vector<float> >& drl_vdw, std::vector<std::vector<float> >& drl_coulomb) {
+                                           const vector<float>& C6params, const vector<set<int> >& exclusions, vector<AlignedArray<float> >& threadForce, double* totalEnergy, ThreadPool& threads
+                                           , std::vector<std::vector<float> >& drl_vdw, std::vector<std::vector<float> >& drl_coulomb
+                                           , std::vector<std::vector<Vec3> >& drl_F_vdw, std::vector<std::vector<Vec3> >& drl_F_cou
+                                           ) {
     // Record the parameters for the threads.
     
     this->numberOfAtoms = numberOfAtoms;
@@ -393,6 +395,8 @@ void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const
 
     this->drl_vdw = &drl_vdw;
     this->drl_coulomb = &drl_coulomb;
+    this->drl_F_vdw = &drl_F_vdw;
+    this->drl_F_cou = &drl_F_cou;
 
     /* printf("CpuNonbondedForce::calculateDirectIxn drl_vdw size %d \n", (*(this->drl_vdw)).size());fflush(stdout);
     for(int tz = 0; tz < (*(this->drl_vdw)).size(); tz++){
@@ -578,15 +582,25 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
 
     float eps       = atomParameters[ii].second*atomParameters[jj].second;
     float dEdR      = switchValue*eps*(12.0f*sig6 - 6.0f)*sig6;
+    float dEdR_drl_vdw = dEdR; // drl
+    float dEdR_drl_cou = 0.0; // drl
     float chargeProd = ONE_4PI_EPS0*posq[4*ii+3]*posq[4*jj+3];
-    if (cutoff)
+    if (cutoff){
         dEdR += (float) (chargeProd*(inverseR-2.0f*krf*r2));
-    else
+        dEdR_drl_cou = (float) (chargeProd*(inverseR-2.0f*krf*r2)); // drl
+    }
+    else{
         dEdR += (float) (chargeProd*inverseR);
+        dEdR_drl_cou = (float) (chargeProd*inverseR); // drl
+    }
     dEdR *= inverseR*inverseR;
+    dEdR_drl_vdw *= inverseR*inverseR; // drl
+    dEdR_drl_cou *= inverseR*inverseR; // drl
     float energy = eps*(sig6-1.0f)*sig6;
     if (useSwitch) {
         dEdR -= energy*switchDeriv*inverseR;
+        dEdR_drl_vdw -= energy*switchDeriv*inverseR; // drl
+        dEdR_drl_cou -= energy*switchDeriv*inverseR; // drl
         energy *= switchValue;
     }
 
@@ -606,17 +620,26 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
     // accumulate forces
 
     fvec4 result = deltaR*dEdR;
+
+    (*drl_F_vdw)[ii][jj][0] = (deltaR*dEdR_drl_vdw)[0];
+    (*drl_F_vdw)[ii][jj][1] = (deltaR*dEdR_drl_vdw)[1];
+    (*drl_F_vdw)[ii][jj][2] = (deltaR*dEdR_drl_vdw)[2];
+
+    (*drl_F_cou)[ii][jj][0] = (deltaR*dEdR_drl_cou)[0];
+    (*drl_F_cou)[ii][jj][1] = (deltaR*dEdR_drl_cou)[1];
+    (*drl_F_cou)[ii][jj][2] = (deltaR*dEdR_drl_cou)[2];
+
     (fvec4(forces+4*ii)+result).store(forces+4*ii);
     (fvec4(forces+4*jj)-result).store(forces+4*jj);
 
     // drl
     drl_mtx.lock();  // drl
     printf("drl_vdw_cou %d %d %f %f\n", ii, jj, (*drl_vdw)[ii][jj], (*drl_coulomb)[ii][jj]);
-    printf("drl_vdw_cou_F");
-    for(int fCnt = 0; fCnt < 4; fCnt++){
-        printf(" %f", result[fCnt]);
-    }
-    printf("\n");
+    printf("drl_vdw_F %d %d", ii, jj);
+    for(int fCnt = 0; fCnt < 3; fCnt++){printf(" %f", (*drl_F_vdw)[ii][jj][fCnt]);}printf("\n");
+    printf("drl_cou_F %d %d", ii, jj);
+    for(int fCnt = 0; fCnt < 3; fCnt++){printf(" %f", (*drl_F_cou)[ii][jj][fCnt]);}printf("\n");
+
     printf("drl energy total %f %f\n", energy, *totalEnergy);  // drl
     drl_mtx.unlock();  // drl
 

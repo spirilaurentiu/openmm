@@ -157,6 +157,9 @@ CpuPlatform::PlatformData::PlatformData(int numParticles, int numThreads, bool d
     this->drl_vdw.resize(numParticles, std::vector<float>(numParticles, 0));
     this->drl_coulomb.resize(numParticles, std::vector<float>(numParticles, 0));
 
+    this->drl_F_vdw.resize(numParticles, std::vector<Vec3>(numParticles));   
+    this->drl_F_cou.resize(numParticles, std::vector<Vec3>(numParticles));
+
     isPeriodic = false;
     stringstream threadsProperty;
     threadsProperty << numThreads;

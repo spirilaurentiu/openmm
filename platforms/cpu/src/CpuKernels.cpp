@@ -81,6 +81,11 @@ static vector<Vec3>& extractForces_drl_ang(ContextImpl& context) {
     return *data->forces_drl_ang;
 }
 
+static vector<Vec3>& extractForces_drl_tor(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->forces_drl_tor;
+}
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -333,7 +338,8 @@ void CpuCalcHarmonicAngleForceKernel::initialize(const System& system, const Har
 double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
-    
+
+    // drl angle forces BEGIN
     vector<Vec3>& forceData_drl_ang = extractForces_drl_ang(context);
     assert(forceData_drl_ang.size() == forceData.size());
 
@@ -342,6 +348,7 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
         forceData_drl_ang[fIx][1] = forceData[fIx][1];
         forceData_drl_ang[fIx][2] = forceData[fIx][2];
     }
+    // drl angle forces END
 
     double energy = 0;
     ReferenceAngleBondIxn angleBond;
@@ -356,10 +363,10 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
         forceData_drl_ang[fIx][2] = forceData[fIx][2] - forceData_drl_ang[fIx][0];
     }
 
-    for(int fIx = 0; fIx < forceData_drl_ang.size(); fIx++){
-        printf("drl CpuBondForce::calculateForce angle %f %f %f\n",
-            forceData_drl_ang[fIx][0], forceData_drl_ang[fIx][1], forceData_drl_ang[fIx][2]);
-    }
+    // for(int fIx = 0; fIx < forceData_drl_ang.size(); fIx++){
+    //     printf("drl CpuBondForce::calculateForce angle %f %f %f\n",
+    //         forceData_drl_ang[fIx][0], forceData_drl_ang[fIx][1], forceData_drl_ang[fIx][2]);
+    // }
 
     printf("drl CpuCalcHarmonicAngleForceKernel::execute energy %f \n", energy); // drl
     // drl angle forces END
@@ -407,12 +414,39 @@ void CpuCalcPeriodicTorsionForceKernel::initialize(const System& system, const P
 double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
+
+    // drl torsion forces BEGIN
+    vector<Vec3>& forceData_drl_tor = extractForces_drl_tor(context);
+    assert(forceData_drl_tor.size() == forceData.size());
+
+    for(int fIx = 0; fIx < forceData.size(); fIx++){
+        forceData_drl_tor[fIx][0] = forceData[fIx][0];
+        forceData_drl_tor[fIx][1] = forceData[fIx][1];
+        forceData_drl_tor[fIx][2] = forceData[fIx][2];
+    }
+    // drl torsion forces END
+
     double energy = 0;
     ReferenceProperDihedralBond periodicTorsionBond;
     if (usePeriodic)
         periodicTorsionBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, periodicTorsionBond);
+
+    // drl torsion forces BEGIN
+    for(int fIx = 0; fIx < forceData.size(); fIx++){
+        forceData_drl_tor[fIx][0] = forceData[fIx][0] - forceData_drl_tor[fIx][0];
+        forceData_drl_tor[fIx][1] = forceData[fIx][1] - forceData_drl_tor[fIx][0];
+        forceData_drl_tor[fIx][2] = forceData[fIx][2] - forceData_drl_tor[fIx][0];
+    }
+
+    // for(int fIx = 0; fIx < forceData_drl_tor.size(); fIx++){
+    //     printf("drl CpuBondForce::calculateForce torsion %f %f %f\n",
+    //         forceData_drl_tor[fIx][0], forceData_drl_tor[fIx][1], forceData_drl_tor[fIx][2]);
+    // }
+
     printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
+    // drl torsion forces END
+
     return energy;
 }
 
@@ -717,9 +751,10 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         nonbonded->setUseLJPME(ewaldDispersionAlpha, dispersionGridSize);
     }
     double nonbondedEnergy = 0;
-    if (includeDirect)
+    if (includeDirect){
         nonbonded->calculateDirectIxn(numParticles, &posq[0], posData, particleParams, C6params, exclusions, data.threadForce, includeEnergy ? &nonbondedEnergy : NULL, data.threads,
-        data.drl_vdw, data.drl_coulomb);
+            data.drl_vdw, data.drl_coulomb, data.drl_F_vdw, data.drl_F_cou);
+    }
     if (includeReciprocal) {
         if (useOptimizedPme) {
             PmeIO io(&posq[0], &data.threadForce[0][0], numParticles);

@@ -73,6 +73,9 @@ public:
     std::vector<Vec3>* forces_drl_ang;
     std::vector<Vec3>* forces_drl_tor;
 
+    std::vector<std::vector<double>>* energy_mdrl_ang;
+    std::vector<std::vector<Vec3>>* forces_mdrl_ang;
+
     Vec3* periodicBoxSize;
     Vec3* periodicBoxVectors;
     ReferenceConstraints* constraints;

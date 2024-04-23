@@ -102,7 +102,7 @@ State Context::getState(int types, bool enforcePeriodicBox, int groups) const {
     bool includeForces_drl_cou = types&State::Forces_drl_cou;
 
     bool needForcesForEnergy = (includeEnergy && getIntegrator().kineticEnergyRequiresForce());
-    if (includeForces || includeEnergy || includeParameterDerivs || includeForces_drl_ang) {
+    if (includeForces || includeEnergy || includeParameterDerivs || includeForces_drl_ang || includeForces_drl_tor || includeForces_drl_vdw || includeForces_drl_cou) {
         double energy = impl->calcForcesAndEnergy(
                             includeForces || needForcesForEnergy || includeParameterDerivs
                             || includeForces_drl_bon || includeForces_drl_ang || includeForces_drl_tor || includeForces_drl_vdw || includeForces_drl_cou,
@@ -124,6 +124,11 @@ State Context::getState(int types, bool enforcePeriodicBox, int groups) const {
             vector<Vec3> forces_drl_ang;
             impl->getForces_drl_ang(forces_drl_ang);
             builder.setForces_drl_ang(forces_drl_ang);
+        }
+        if(includeForces_drl_tor){
+            vector<Vec3> forces_drl_tor;
+            impl->getForces_drl_tor(forces_drl_tor);
+            builder.setForces_drl_tor(forces_drl_tor);
         }
 
     }

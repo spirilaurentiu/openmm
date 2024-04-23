@@ -170,8 +170,10 @@ class CpuNonbondedForce {
          --------------------------------------------------------------------------------------- */
           
       void calculateDirectIxn(int numberOfAtoms, float* posq, const std::vector<Vec3>& atomCoordinates, const std::vector<std::pair<float, float> >& atomParameters,
-            const std::vector<float>& C6params, const std::vector<std::set<int> >& exclusions, std::vector<AlignedArray<float> >& threadForce, double* totalEnergy, ThreadPool& threads,
-            std::vector<std::vector<float> >& drl_vdw, std::vector<std::vector<float> >& drl_coulomb);
+            const std::vector<float>& C6params, const std::vector<std::set<int> >& exclusions, std::vector<AlignedArray<float> >& threadForce, double* totalEnergy, ThreadPool& threads
+            , std::vector<std::vector<float> >& drl_vdw, std::vector<std::vector<float> >& drl_coulomb
+            , std::vector<std::vector<Vec3> >& drl_F_vdw, std::vector<std::vector<Vec3> >& drl_F_cou
+            );
 
     /**
      * This routine contains the code executed by each thread.
@@ -210,6 +212,8 @@ protected:
 
         std::vector<std::vector<float> > *drl_vdw;
         std::vector<std::vector<float> > *drl_coulomb;
+        std::vector<std::vector<Vec3> > *drl_F_vdw;
+        std::vector<std::vector<Vec3> > *drl_F_cou;
 
         bool includeEnergy;
         float inverseRcut6;

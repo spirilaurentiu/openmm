@@ -91,6 +91,10 @@ public:
      * Get the angle forces
      */
     const std::vector<Vec3>& getForces_drl_ang() const;
+    /**
+     * Get the angle forces
+     */
+    const std::vector<Vec3>& getForces_drl_tor() const;    
     // drl END
 
     /**
@@ -147,6 +151,8 @@ private:
 
     void setForces_drl_bon(const std::vector<Vec3>& force);
     void setForces_drl_ang(const std::vector<Vec3>& force);
+    void setForces_drl_tor(const std::vector<Vec3>& force);
+
 
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& derivs);
@@ -165,6 +171,8 @@ private:
 
     std::vector<Vec3> forces_drl_bon; // drl
     std::vector<Vec3> forces_drl_ang; // drl
+    std::vector<Vec3> forces_drl_tor; // drl
+
 
 };
 
@@ -183,6 +191,7 @@ public:
 
     void setForces_drl_bon(const std::vector<Vec3>& force);
     void setForces_drl_ang(const std::vector<Vec3>& force);
+    void setForces_drl_tor(const std::vector<Vec3>& force);
 
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& params);

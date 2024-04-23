@@ -119,6 +119,12 @@ static vector<Vec3>& extractForces_drl_ang(ContextImpl& context) {
     return *data->forces_drl_ang;
 }
 
+static vector<Vec3>& extractForces_drl_tor(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->forces_drl_tor;
+}
+
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -284,6 +290,14 @@ void ReferenceUpdateStateDataKernel::getForces_drl_ang(ContextImpl& context, std
         forces_drl_ang[i] = Vec3(forceData_drl_ang[i][0], forceData_drl_ang[i][1], forceData_drl_ang[i][2]);
 }
 
+void ReferenceUpdateStateDataKernel::getForces_drl_tor(ContextImpl& context, std::vector<Vec3>& forces_drl_tor) {
+    int numParticles = context.getSystem().getNumParticles();
+    vector<Vec3>& forceData_drl_tor = extractForces_drl_tor(context);
+    forces_drl_tor.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i)
+        forces_drl_tor[i] = Vec3(forceData_drl_tor[i][0], forceData_drl_tor[i][1], forceData_drl_tor[i][2]);
+}
+
 void ReferenceUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
     derivs = extractEnergyParameterDerivatives(context);
 }
@@ -410,10 +424,10 @@ double ReferenceCalcHarmonicBondForceKernel::execute(ContextImpl& context, bool 
         forceData_drl_bon[fIx][2] = forceData[fIx][2] - forceData_drl_bon[fIx][2];
     }
 
-    for(int fIx = 0; fIx < forceData_drl_bon.size(); fIx++){
-        printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond %f %f %f\n",
-            forceData_drl_bon[fIx][0], forceData_drl_bon[fIx][1], forceData_drl_bon[fIx][2]);
-    }
+    // for(int fIx = 0; fIx < forceData_drl_bon.size(); fIx++){
+    //     printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond %f %f %f\n",
+    //         forceData_drl_bon[fIx][0], forceData_drl_bon[fIx][1], forceData_drl_bon[fIx][2]);
+    // }
     printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond_energy %.6f\n", energy);
     // drl END
 
