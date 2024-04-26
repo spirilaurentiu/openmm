@@ -60,7 +60,7 @@ public:
      * a State, use these values to specify which data types it should contain.
      */
     enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64
-        , Forces_drl_bon=128, Forces_drl_ang=256, Forces_drl_tor=512, Forces_drl_vdw=1024, Forces_drl_cou=2048}; // drl
+        , Forces_drl_bon=128, Forces_drl_ang=256, Forces_drl_tor=512, Forces_drl_vdw=1024, Forces_drl_cou=2048, Forces_drl_n14=4096}; // drl
     /**
      * Construct an empty State containing no data.  This exists so State objects can be used in STL containers.
      */
@@ -92,9 +92,13 @@ public:
      */
     const std::vector<Vec3>& getForces_drl_ang() const;
     /**
-     * Get the angle forces
+     * Get the torsion forces
      */
-    const std::vector<Vec3>& getForces_drl_tor() const;    
+    const std::vector<Vec3>& getForces_drl_tor() const;
+    /**
+     * Get the nonbonded 1-4 forces
+     */
+    const std::vector<Vec3>& getForces_drl_n14() const;         
     // drl END
 
     /**
@@ -152,6 +156,7 @@ private:
     void setForces_drl_bon(const std::vector<Vec3>& force);
     void setForces_drl_ang(const std::vector<Vec3>& force);
     void setForces_drl_tor(const std::vector<Vec3>& force);
+    void setForces_drl_n14(const std::vector<Vec3>& force);
 
 
     void setParameters(const std::map<std::string, double>& params);
@@ -172,6 +177,7 @@ private:
     std::vector<Vec3> forces_drl_bon; // drl
     std::vector<Vec3> forces_drl_ang; // drl
     std::vector<Vec3> forces_drl_tor; // drl
+    std::vector<Vec3> forces_drl_n14; // drl    
 
 
 };
@@ -192,6 +198,7 @@ public:
     void setForces_drl_bon(const std::vector<Vec3>& force);
     void setForces_drl_ang(const std::vector<Vec3>& force);
     void setForces_drl_tor(const std::vector<Vec3>& force);
+    void setForces_drl_n14(const std::vector<Vec3>& force);    
 
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& params);

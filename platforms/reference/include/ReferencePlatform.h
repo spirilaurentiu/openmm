@@ -72,6 +72,7 @@ public:
     std::vector<Vec3>* forces_drl_bon;
     std::vector<Vec3>* forces_drl_ang;
     std::vector<Vec3>* forces_drl_tor;
+    std::vector<Vec3>* forces_drl_n14;    
 
     std::vector<std::vector<double>>* energy_mdrl_ang;
     std::vector<std::vector<Vec3>>* forces_mdrl_ang;

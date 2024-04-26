@@ -120,6 +120,16 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             forcesNode_drl_tor.createChildNode("Force").setDoubleProperty("x", stateForces_drl_tor[i][0]).setDoubleProperty("y", stateForces_drl_tor[i][1]).setDoubleProperty("z", stateForces_drl_tor[i][2]);
         }
     }
+
+    if ((s.getDataTypes()&State::Forces_drl_n14) != 0) {
+        s.getForces_drl_n14();
+        SerializationNode& forcesNode_drl_n14 = node.createChildNode("Forces_drl_n14");
+        vector<Vec3> stateForces_drl_n14 = s.getForces_drl_n14();
+        for (int i=0; i<stateForces_drl_n14.size();i++) {
+            forcesNode_drl_n14.createChildNode("Force").setDoubleProperty("x", stateForces_drl_n14[i][0]).setDoubleProperty("y", stateForces_drl_n14[i][1]).setDoubleProperty("z", stateForces_drl_n14[i][2]);
+        }
+    }
+
     // drl END
 
 }
@@ -195,6 +205,13 @@ void* StateProxy::deserialize(const SerializationNode& node) const {
                 outForces_drl_tor.push_back(Vec3(particle.getDoubleProperty("x"),particle.getDoubleProperty("y"),particle.getDoubleProperty("z")));
             builder.setForces_drl_tor(outForces_drl_tor);
             arraySizes.push_back(outForces_drl_tor.size());
+        }
+        else if (child.getName() == "Forces_drl_n14") {
+            vector<Vec3> outForces_drl_n14;
+            for (auto& particle : child.getChildren())
+                outForces_drl_n14.push_back(Vec3(particle.getDoubleProperty("x"),particle.getDoubleProperty("y"),particle.getDoubleProperty("z")));
+            builder.setForces_drl_n14(outForces_drl_n14);
+            arraySizes.push_back(outForces_drl_n14.size());
         }
 
     }

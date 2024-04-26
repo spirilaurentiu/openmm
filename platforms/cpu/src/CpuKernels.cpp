@@ -86,6 +86,11 @@ static vector<Vec3>& extractForces_drl_tor(ContextImpl& context) {
     return *data->forces_drl_tor;
 }
 
+static vector<Vec3>& extractForces_drl_n14(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->forces_drl_n14;
+}
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -726,6 +731,18 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
     Vec3* boxVectors = extractBoxVectors(context);
+
+    // drl torsion forces BEGIN
+    vector<Vec3>& forceData_drl_n14 = extractForces_drl_n14(context);
+    assert(forceData_drl_n14.size() == forceData.size());
+
+    for(int fIx = 0; fIx < forceData.size(); fIx++){
+        forceData_drl_n14[fIx][0] = forceData[fIx][0];
+        forceData_drl_n14[fIx][1] = forceData[fIx][1];
+        forceData_drl_n14[fIx][2] = forceData[fIx][2];
+    }
+    // drl torsion forces END
+
     double energy = (includeReciprocal ? ewaldSelfEnergy : 0.0);
     bool ewald  = (nonbondedMethod == Ewald);
     bool pme  = (nonbondedMethod == PME);
@@ -754,6 +771,29 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
     if (includeDirect){
         nonbonded->calculateDirectIxn(numParticles, &posq[0], posData, particleParams, C6params, exclusions, data.threadForce, includeEnergy ? &nonbondedEnergy : NULL, data.threads,
             data.drl_vdw, data.drl_coulomb, data.drl_F_vdw, data.drl_F_cou);
+
+
+
+        printf("OPENMM_DRILL vanDerWaals\n");fflush(stdout);
+        for(unsigned int i = 0; i < numParticles; i++){
+            printf("drl_vdw");fflush(stdout);
+            for(unsigned int j = 0; j < numParticles; j++){
+                printf( " %.5f", data.drl_vdw[i][j]);
+            }
+            printf("\n");fflush(stdout);
+        }
+        printf("OPENMM_DRILL Coulomb\n");fflush(stdout);
+        for(unsigned int i = 0; i < numParticles; i++){
+            printf("drl_cou");fflush(stdout);
+            for(unsigned int j = 0; j < numParticles; j++){
+                printf( " %.5f", data.drl_coulomb[i][j]);
+            }
+            printf("\n");fflush(stdout);
+        }
+        printf("OPENMM_DRL Nonbonded %f\n", nonbondedEnergy);fflush(stdout);
+
+
+
     }
     if (includeReciprocal) {
         if (useOptimizedPme) {
@@ -771,17 +811,34 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
             nonbonded->calculateReciprocalIxn(numParticles, &posq[0], posData, particleParams, C6params, exclusions, forceData, includeEnergy ? &nonbondedEnergy : NULL);
     }
     energy += nonbondedEnergy;
-    if (includeDirect) {
+    if (includeDirect) { // drl nonbonded 1-4
         ReferenceLJCoulomb14 nonbonded14;
         if (exceptionsArePeriodic) {
             Vec3* boxVectors = extractBoxVectors(context);
             nonbonded14.setPeriodic(boxVectors);
         }
         bondForce.calculateForce(posData, bonded14ParamArray, forceData, includeEnergy ? &energy : NULL, nonbonded14);
+
+        // drl torsion forces BEGIN
+        for(int fIx = 0; fIx < forceData.size(); fIx++){
+            forceData_drl_n14[fIx][0] = forceData[fIx][0] - forceData_drl_n14[fIx][0];
+            forceData_drl_n14[fIx][1] = forceData[fIx][1] - forceData_drl_n14[fIx][0];
+            forceData_drl_n14[fIx][2] = forceData[fIx][2] - forceData_drl_n14[fIx][0];
+        }
+
+    // for(int fIx = 0; fIx < forceData_drl_n14.size(); fIx++){
+    //     printf("drl CpuBondForce::calculateForce torsion %f %f %f\n",
+    //         forceData_drl_n14[fIx][0], forceData_drl_n14[fIx][1], forceData_drl_n14[fIx][2]);
+    // }
+
+    printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
+    // drl torsion forces END
+
+
         if (data.isPeriodic && nonbondedMethod != LJPME)
             energy += dispersionCoefficient/(boxVectors[0][0]*boxVectors[1][1]*boxVectors[2][2]);
     }
-    printf("drl CpuCalcNonbondedForceKernel::execute nonbonded_energy %.6f\n", energy);
+    printf("drl CpuCalcNonbondedForceKernel::execute nonbonded_energy energy %.6f %.6f\n", nonbondedEnergy, energy);
     return energy;
 }
 

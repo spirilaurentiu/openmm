@@ -123,23 +123,29 @@ public:
 
     // OPENMM DRILL drl
     /**
-     * Get the current drill vdw forces on all particles.
+     * Get the current drill bond forces on all particles.
      *
      * @param forces_drl_bon  on exit, this contains the forces
      */
     void getForces_drl_bon(std::vector<Vec3>& forces_drl_bon);
     /**
-     * Get the current drill vdw forces on all particles.
+     * Get the current drill angle forces on all particles.
      *
      * @param forces_drl_ang  on exit, this contains the forces
      */
     void getForces_drl_ang(std::vector<Vec3>& forces_drl_ang);
     /**
-     * Get the current drill vdw forces on all particles.
+     * Get the current drill torsion forces on all particles.
      *
      * @param forces_drl_tor  on exit, this contains the forces
      */
-    void getForces_drl_tor(std::vector<Vec3>& forces_drl_tor);        
+    void getForces_drl_tor(std::vector<Vec3>& forces_drl_tor);
+    /**
+     * Get the current drill nonbonded 1-4 forces on all particles.
+     *
+     * @param forces_drl_n14  on exit, this contains the forces
+     */
+    void getForces_drl_n14(std::vector<Vec3>& forces_drl_n14);           
     // drl END
 
     /**

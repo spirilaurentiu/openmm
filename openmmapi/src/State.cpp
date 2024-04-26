@@ -59,15 +59,23 @@ const vector<Vec3>& State::getForces_drl_bon() const {
         throw OpenMMException("Invoked getForces_drl_bon() on a State which does not contain forces.");
     return forces_drl_bon;
 }
+
 const vector<Vec3>& State::getForces_drl_ang() const {
     if ((types&Forces_drl_ang) == 0)
         throw OpenMMException("Invoked getForces_drl_ang() on a State which does not contain forces.");
     return forces_drl_ang;
 }
+
 const vector<Vec3>& State::getForces_drl_tor() const {
     if ((types&Forces_drl_tor) == 0)
         throw OpenMMException("Invoked getForces_drl_tor() on a State which does not contain forces.");
     return forces_drl_tor;
+}
+
+const vector<Vec3>& State::getForces_drl_n14() const {
+    if ((types&Forces_drl_n14) == 0)
+        throw OpenMMException("Invoked getForces_drl_n14() on a State which does not contain forces.");
+    return forces_drl_n14;
 }
 
 double State::getKineticEnergy() const {
@@ -145,6 +153,11 @@ void State::setForces_drl_tor(const std::vector<Vec3>& arg_drl_tor_force) {
     types |= Forces_drl_tor;
 }
 
+void State::setForces_drl_n14(const std::vector<Vec3>& arg_drl_n14_force) {
+    forces_drl_n14 = arg_drl_n14_force;
+    types |= Forces_drl_n14;
+}
+
 void State::setParameters(const std::map<std::string, double>& params) {
     parameters = params;
     types |= Parameters;
@@ -197,6 +210,10 @@ void State::StateBuilder::setForces_drl_ang(const std::vector<Vec3>& force_drl_a
 
 void State::StateBuilder::setForces_drl_tor(const std::vector<Vec3>& force_drl_tor) {
     state.setForces_drl_tor(force_drl_tor);
+}
+
+void State::StateBuilder::setForces_drl_n14(const std::vector<Vec3>& force_drl_n14) {
+    state.setForces_drl_n14(force_drl_n14);
 }
 
 void State::StateBuilder::setParameters(const std::map<std::string, double>& params) {
