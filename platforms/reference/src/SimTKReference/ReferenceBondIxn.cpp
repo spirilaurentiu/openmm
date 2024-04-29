@@ -66,7 +66,18 @@ ReferenceBondIxn::~ReferenceBondIxn() {
                                            vector<double>& parameters, vector<Vec3>& forces,
                                            double* totalEnergy, double* energyParamDerivs) {
 }
- 
+
+/**---------------------------------------------------------------------------------------
+
+   Drilling -- virtual method
+
+   --------------------------------------------------------------------------------------- */
+
+void ReferenceBondIxn::calculateBondIxnEnergy_drl(std::vector<int>& atomIndices, std::vector<OpenMM::Vec3>& atomCoordinates,
+                              std::vector<double>& parameters, std::vector<std::vector<double>>& energies,
+                              double* totalEnergy, double* energyParamDerivs) {
+}
+
 /**---------------------------------------------------------------------------------------
 
    Get normed dot product between two vectors

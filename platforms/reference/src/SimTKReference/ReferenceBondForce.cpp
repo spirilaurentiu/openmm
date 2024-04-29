@@ -80,3 +80,24 @@ void ReferenceBondForce::calculateForce(int numberOfBonds, vector<vector<int> >&
    }
 }
 
+/**---------------------------------------------------------------------------------------
+
+   Drilling
+
+   --------------------------------------------------------------------------------------- */
+
+void ReferenceBondForce::calculateEnergy_drl(int numberOfBonds, std::vector<std::vector<int> >& atomIndices,
+                  std::vector<OpenMM::Vec3>& atomCoordinates,
+                  std::vector<std::vector<double> >& parameters, std::vector<std::vector<double>>& energies_drl, 
+                  double* totalEnergy, ReferenceBondIxn& referenceBondIxn) {
+
+   for (int ii = 0; ii < numberOfBonds; ii++) {
+
+      // calculate bond ixn
+
+      referenceBondIxn.calculateBondIxnEnergy_drl(atomIndices[ii], atomCoordinates, parameters[ii], 
+                                        energies_drl, totalEnergy, NULL);
+   }
+                     
+}
+

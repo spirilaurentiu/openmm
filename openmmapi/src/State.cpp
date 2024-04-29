@@ -53,7 +53,7 @@ const vector<Vec3>& State::getForces() const {
         throw OpenMMException("Invoked getForces() on a State which does not contain forces.");
     return forces;
 }
-
+// drl BEGIN
 const vector<Vec3>& State::getForces_drl_bon() const {
     if ((types&Forces_drl_bon) == 0)
         throw OpenMMException("Invoked getForces_drl_bon() on a State which does not contain forces.");
@@ -78,6 +78,30 @@ const vector<Vec3>& State::getForces_drl_n14() const {
     return forces_drl_n14;
 }
 
+const vector<vector<double>>& State::getEnergies_drl_bon() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_bon() on a State which does not contain forces.");
+    return energies_drl_bon;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_ang() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_ang() on a State which does not contain forces.");
+    return energies_drl_ang;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_tor() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_tor() on a State which does not contain forces.");
+    return energies_drl_tor;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_n14() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_n14() on a State which does not contain forces.");
+    return energies_drl_n14;
+}
+//drl END
 double State::getKineticEnergy() const {
     if ((types&Energy) == 0)
         throw OpenMMException("Invoked getKineticEnergy() on a State which does not contain energies.");
@@ -137,7 +161,7 @@ void State::setForces(const std::vector<Vec3>& force) {
     forces = force;
     types |= Forces;
 }
-
+//drl BEGIN
 void State::setForces_drl_bon(const std::vector<Vec3>& arg_drl_bon_force) {
     forces_drl_bon = arg_drl_bon_force;
     types |= Forces_drl_bon;
@@ -158,6 +182,26 @@ void State::setForces_drl_n14(const std::vector<Vec3>& arg_drl_n14_force) {
     types |= Forces_drl_n14;
 }
 
+void State::setEnergies_drl_bon(const std::vector<std::vector<double>>& arg_drl_bon_energy) {
+    energies_drl_bon = arg_drl_bon_energy;
+    //types |= Forces_drl_bon;
+}
+
+void State::setEnergies_drl_ang(const std::vector<std::vector<double>>& arg_drl_ang_energy) {
+    energies_drl_ang = arg_drl_ang_energy;
+    //types |= Forces_drl_bon;
+}
+
+void State::setEnergies_drl_tor(const std::vector<std::vector<double>>& arg_drl_tor_energy) {
+    energies_drl_tor = arg_drl_tor_energy;
+    //types |= Forces_drl_bon;
+}
+
+void State::setEnergies_drl_n14(const std::vector<std::vector<double>>& arg_drl_n14_energy) {
+    energies_drl_n14 = arg_drl_n14_energy;
+    //types |= Forces_drl_bon;
+}
+// drl END
 void State::setParameters(const std::map<std::string, double>& params) {
     parameters = params;
     types |= Parameters;
@@ -198,8 +242,7 @@ void State::StateBuilder::setVelocities(const std::vector<Vec3>& vel) {
 void State::StateBuilder::setForces(const std::vector<Vec3>& force) {
     state.setForces(force);
 }
-
-
+//drl BEGIN
 void State::StateBuilder::setForces_drl_bon(const std::vector<Vec3>& force_drl_bon) {
     state.setForces_drl_bon(force_drl_bon);
 }
@@ -216,6 +259,22 @@ void State::StateBuilder::setForces_drl_n14(const std::vector<Vec3>& force_drl_n
     state.setForces_drl_n14(force_drl_n14);
 }
 
+void State::StateBuilder::setEnergies_drl_bon(const std::vector<std::vector<double>>& energies_drl_bon) {
+    state.setEnergies_drl_bon(energies_drl_bon);
+}
+
+void State::StateBuilder::setEnergies_drl_ang(const std::vector<std::vector<double>>& energies_drl_ang) {
+    state.setEnergies_drl_ang(energies_drl_ang);
+}
+
+void State::StateBuilder::setEnergies_drl_tor(const std::vector<std::vector<double>>& energies_drl_tor) {
+    state.setEnergies_drl_tor(energies_drl_tor);
+}
+
+void State::StateBuilder::setEnergies_drl_n14(const std::vector<std::vector<double>>& energies_drl_n14) {
+    state.setEnergies_drl_n14(energies_drl_n14);
+}
+// drl END
 void State::StateBuilder::setParameters(const std::map<std::string, double>& params) {
     state.setParameters(params);
 }

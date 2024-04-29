@@ -168,3 +168,70 @@ void ReferenceProperDihedralBond::calculateBondIxn(vector<int>& atomIndices,
       atomIndices[0], atomIndices[1], atomIndices[2], atomIndices[3], energy);
 
 }
+
+/**---------------------------------------------------------------------------------------
+
+ * drl
+
+   --------------------------------------------------------------------------------------- */
+
+void ReferenceProperDihedralBond::calculateBondIxnEnergy_drl(vector<int>& atomIndices,
+                                             vector<Vec3>& atomCoordinates,
+                                             vector<double>& parameters,
+                                             std::vector<std::vector<double>>& energies,
+                                             double* totalEnergy, double* energyParamDerivs) {
+
+   double deltaR[3][ReferenceForce::LastDeltaRIndex];
+
+   double crossProductMemory[6];
+
+   // ---------------------------------------------------------------------------------------
+
+   // get deltaR, R2, and R between three pairs of atoms: [j,i], [j,k], [l,k]
+
+   int atomAIndex = atomIndices[0];
+   int atomBIndex = atomIndices[1];
+   int atomCIndex = atomIndices[2];
+   int atomDIndex = atomIndices[3];
+   if (usePeriodic) {
+      ReferenceForce::getDeltaRPeriodic(atomCoordinates[atomBIndex], atomCoordinates[atomAIndex], boxVectors, deltaR[0]);  
+      ReferenceForce::getDeltaRPeriodic(atomCoordinates[atomBIndex], atomCoordinates[atomCIndex], boxVectors, deltaR[1]);  
+      ReferenceForce::getDeltaRPeriodic(atomCoordinates[atomDIndex], atomCoordinates[atomCIndex], boxVectors, deltaR[2]);  
+   }
+   else {
+      ReferenceForce::getDeltaR(atomCoordinates[atomBIndex], atomCoordinates[atomAIndex], deltaR[0]);  
+      ReferenceForce::getDeltaR(atomCoordinates[atomBIndex], atomCoordinates[atomCIndex], deltaR[1]);  
+      ReferenceForce::getDeltaR(atomCoordinates[atomDIndex], atomCoordinates[atomCIndex], deltaR[2]);  
+   }
+
+   double dotDihedral;
+   double signOfAngle;
+   int hasREntry = 1;
+
+   // Visual Studio complains if crossProduct declared as 'crossProduct[2][3]'
+
+   double* crossProduct[2];
+   crossProduct[0]           = crossProductMemory;
+   crossProduct[1]           = crossProductMemory + 3;
+
+   // get dihedral angle
+
+   double dihedralAngle  =  getDihedralAngleBetweenThreeVectors(deltaR[0], deltaR[1], deltaR[2],
+                                                                    crossProduct, &dotDihedral, deltaR[0], 
+                                                                    &signOfAngle, hasREntry);
+
+   // evaluate delta angle, dE/d(angle) 
+
+   double deltaAngle     = parameters[2]*dihedralAngle - parameters[1]; 
+   double sinDeltaAngle  = SIN(deltaAngle);
+   double dEdAngle       = -parameters[0]*parameters[2]*sinDeltaAngle;
+   double energy         =  parameters[0]*(1.0 + cos(deltaAngle));
+   
+   // accumulate energies
+
+   energies[atomBIndex][atomCIndex] += energy;
+
+   printf("drl ReferenceProperDihedralBond::calculateBondIxn %d %d %d %d %f \n",
+      atomIndices[0], atomIndices[1], atomIndices[2], atomIndices[3], energy);
+
+}

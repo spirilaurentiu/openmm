@@ -108,3 +108,33 @@ void ReferenceLJCoulomb14::calculateBondIxn(vector<int>& atomIndices, vector<Vec
     if (totalEnergy != NULL)
         *totalEnergy += parameters[1]*(sig6 - 1.0)*sig6 + (ONE_4PI_EPS0*parameters[2]*inverseR);
 }
+
+/**---------------------------------------------------------------------------------------
+
+ * drl
+
+   --------------------------------------------------------------------------------------- */
+
+void ReferenceLJCoulomb14::calculateBondIxnEnergy_drl(vector<int>& atomIndices, vector<Vec3>& atomCoordinates,
+                                     vector<double>& parameters, std::vector<std::vector<double>>& energies,
+                                     double* totalEnergy, double* energyParamDerivs) {
+    double deltaR[2][ReferenceForce::LastDeltaRIndex];
+
+    // get deltaR, R2, and R between 2 atoms
+
+    int atomAIndex = atomIndices[0];
+    int atomBIndex = atomIndices[1];
+    if (periodic)
+        ReferenceForce::getDeltaRPeriodic(atomCoordinates[atomBIndex], atomCoordinates[atomAIndex], periodicBoxVectors, deltaR[0]);
+    else
+        ReferenceForce::getDeltaR(atomCoordinates[atomBIndex], atomCoordinates[atomAIndex], deltaR[0]);  
+
+    double inverseR  = 1.0/(deltaR[0][ReferenceForce::RIndex]);
+    double sig2      = inverseR*parameters[0];
+           sig2     *= sig2;
+    double sig6      = sig2*sig2*sig2;
+
+    // accumulate energies
+
+    energies[atomAIndex][atomBIndex] += parameters[1]*(sig6 - 1.0)*sig6 + (ONE_4PI_EPS0*parameters[2]*inverseR);
+}

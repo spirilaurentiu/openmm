@@ -171,3 +171,57 @@ void ReferenceAngleBondIxn::calculateBondIxn(vector<int>& atomIndices,
       atomIndices[0], atomIndices[1], atomIndices[2], energy);
 
 }
+
+/**---------------------------------------------------------------------------------------
+
+ * drl
+
+   --------------------------------------------------------------------------------------- */
+
+void ReferenceAngleBondIxn::calculateBondIxnEnergy_drl(vector<int>& atomIndices,
+                                             vector<Vec3>& atomCoordinates,
+                                             vector<double>& parameters,
+                                             std::vector<std::vector<double>>& energies,
+                                             double* totalEnergy, double* energyParamDerivs) {
+
+    static const int LastAtomIndex      = 3;
+
+   double deltaR[2][ReferenceForce::LastDeltaRIndex];
+
+   // ---------------------------------------------------------------------------------------
+
+   // get deltaR, R2, and R between 2 atoms
+
+   int atomAIndex = atomIndices[0];
+   int atomBIndex = atomIndices[1];
+   int atomCIndex = atomIndices[2];
+   if (usePeriodic) {
+      ReferenceForce::getDeltaRPeriodic(atomCoordinates[atomAIndex], atomCoordinates[atomBIndex], boxVectors, deltaR[0]);  
+      ReferenceForce::getDeltaRPeriodic(atomCoordinates[atomCIndex], atomCoordinates[atomBIndex], boxVectors, deltaR[1]);  
+   }
+   else {
+      ReferenceForce::getDeltaR(atomCoordinates[atomAIndex], atomCoordinates[atomBIndex], deltaR[0]);  
+      ReferenceForce::getDeltaR(atomCoordinates[atomCIndex], atomCoordinates[atomBIndex], deltaR[1]);  
+   }
+
+   double pVector[3];
+   SimTKOpenMMUtilities::crossProductVector3(deltaR[0], deltaR[1], pVector);
+   double rp = sqrt(DOT3(pVector, pVector));
+   if (rp < 1.0e-06) {
+      rp = 1.0e-06;
+   }   
+   double dot             = DOT3(deltaR[0], deltaR[1]);
+   double cosine          = dot/sqrt((deltaR[0][ReferenceForce::R2Index]*deltaR[1][ReferenceForce::R2Index]));
+
+   double dEdR;
+   double energy;
+   getPrefactorsGivenAngleCosine(cosine, parameters, &dEdR, &energy);
+
+   // energies
+
+   energies[atomAIndex][atomBIndex] += energy;
+
+    printf("drl ReferenceAngleBondIxn::calculateBondIxn %d %d %d %f \n",
+      atomIndices[0], atomIndices[1], atomIndices[2], energy);
+
+}

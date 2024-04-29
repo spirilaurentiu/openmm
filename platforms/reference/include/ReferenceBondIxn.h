@@ -68,6 +68,16 @@ class OPENMM_EXPORT ReferenceBondIxn {
       virtual void calculateBondIxn(std::vector<int>& atomIndices, std::vector<OpenMM::Vec3>& atomCoordinates,
                                     std::vector<double>& parameters, std::vector<OpenMM::Vec3>& forces,
                                     double* totalEnergy, double* energyParamDerivs);
+
+      /**---------------------------------------------------------------------------------------
+      
+         Drilling -- virtual method
+      
+         --------------------------------------------------------------------------------------- */
+      
+      virtual void calculateBondIxnEnergy_drl(std::vector<int>& atomIndices, std::vector<OpenMM::Vec3>& atomCoordinates,
+                                    std::vector<double>& parameters, std::vector<std::vector<double>>& energies,
+                                    double* totalEnergy, double* energyParamDerivs);
       
       /**---------------------------------------------------------------------------------------
       

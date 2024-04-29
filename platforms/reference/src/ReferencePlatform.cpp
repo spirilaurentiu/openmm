@@ -105,6 +105,30 @@ ReferencePlatform::PlatformData::PlatformData(const System& system) : time(0.0),
     forces_drl_tor = new vector<Vec3>(numParticles);
     forces_drl_n14 = new vector<Vec3>(numParticles);
 
+    energies_drl_bon = new vector<vector<double>>();
+    energies_drl_bon->resize(numParticles);
+    for (size_t Ix = 0; Ix < energies_drl_bon->size(); ++Ix) {
+        (*energies_drl_bon)[Ix].resize(numParticles);
+    }
+
+    energies_drl_ang = new vector<vector<double>>();
+    energies_drl_ang->resize(numParticles);
+    for (size_t Ix = 0; Ix < energies_drl_ang->size(); ++Ix) {
+        (*energies_drl_ang)[Ix].resize(numParticles);
+    }
+
+    energies_drl_tor = new vector<vector<double>>();
+    energies_drl_tor->resize(numParticles);
+    for (size_t Ix = 0; Ix < energies_drl_tor->size(); ++Ix) {
+        (*energies_drl_tor)[Ix].resize(numParticles);
+    }
+
+    energies_drl_n14 = new vector<vector<double>>();
+    energies_drl_n14->resize(numParticles);
+    for (size_t Ix = 0; Ix < energies_drl_n14->size(); ++Ix) {
+        (*energies_drl_n14)[Ix].resize(numParticles);
+    }
+
     periodicBoxSize = new Vec3();
     periodicBoxVectors = new Vec3[3];
     constraints = new ReferenceConstraints(system);
@@ -121,6 +145,10 @@ ReferencePlatform::PlatformData::~PlatformData() {
     delete forces_drl_tor;
     delete forces_drl_n14;
 
+    delete energies_drl_bon;
+    delete energies_drl_ang;
+    delete energies_drl_tor;
+    delete energies_drl_n14;
 
     delete periodicBoxSize;
     delete[] periodicBoxVectors;

@@ -238,7 +238,7 @@ void ContextImpl::setVelocities(const std::vector<Vec3>& velocities) {
 void ContextImpl::getForces(std::vector<Vec3>& forces) {
     updateStateDataKernel.getAs<UpdateStateDataKernel>().getForces(*this, forces);
 }
-
+// drl BEGIN
 void ContextImpl::getForces_drl_bon(std::vector<Vec3>& forces_drl_bon) {
     updateStateDataKernel.getAs<UpdateStateDataKernel>().getForces_drl_bon(*this, forces_drl_bon);
 }
@@ -255,6 +255,22 @@ void ContextImpl::getForces_drl_n14(std::vector<Vec3>& forces_drl_n14) {
     updateStateDataKernel.getAs<UpdateStateDataKernel>().getForces_drl_n14(*this, forces_drl_n14);
 }
 
+void ContextImpl::getEnergies_drl_bon(std::vector<std::vector<double>>& energies_drl_bon) {
+    updateStateDataKernel.getAs<UpdateStateDataKernel>().getEnergies_drl_bon(*this, energies_drl_bon);
+}
+
+void ContextImpl::getEnergies_drl_ang(std::vector<std::vector<double>>& energies_drl_ang) {
+    updateStateDataKernel.getAs<UpdateStateDataKernel>().getEnergies_drl_ang(*this, energies_drl_ang);
+}
+
+void ContextImpl::getEnergies_drl_tor(std::vector<std::vector<double>>& energies_drl_tor) {
+    updateStateDataKernel.getAs<UpdateStateDataKernel>().getEnergies_drl_tor(*this, energies_drl_tor);
+}
+
+void ContextImpl::getEnergies_drl_n14(std::vector<std::vector<double>>& energies_drl_n14) {
+    updateStateDataKernel.getAs<UpdateStateDataKernel>().getEnergies_drl_n14(*this, energies_drl_n14);
+}
+//drl END
 const std::map<std::string, double>& ContextImpl::getParameters() const {
     return parameters;
 }

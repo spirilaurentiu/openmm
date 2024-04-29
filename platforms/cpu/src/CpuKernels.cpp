@@ -70,7 +70,7 @@ static vector<Vec3>& extractForces(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->forces;
 }
-
+// drl BEGIN
 static vector<Vec3>& extractForces_drl_bon(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->forces_drl_bon;
@@ -91,6 +91,26 @@ static vector<Vec3>& extractForces_drl_n14(ContextImpl& context) {
     return *data->forces_drl_n14;
 }
 
+static vector<vector<double>>& extractEnergies_drl_bon(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_bon;
+}
+
+static vector<vector<double>>& extractEnergies_drl_ang(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_ang;
+}
+
+static vector<vector<double>>& extractEnergies_drl_tor(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_tor;
+}
+
+static vector<vector<double>>& extractEnergies_drl_n14(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_n14;
+}
+// drl END
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -343,6 +363,7 @@ void CpuCalcHarmonicAngleForceKernel::initialize(const System& system, const Har
 double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
+    vector<vector<double>>& drlEnergyData = extractEnergies_drl_ang(context); // drl Energies
 
     // drl angle forces BEGIN
     vector<Vec3>& forceData_drl_ang = extractForces_drl_ang(context);
@@ -360,6 +381,7 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
     if (usePeriodic)
         angleBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, angleParamArray, forceData, includeEnergy ? &energy : NULL, angleBond);
+    bondForce.calculateEnergy_drl(posData, angleParamArray, drlEnergyData, includeEnergy ? &energy : NULL, angleBond); // drl Energies
 
     // drl angle forces BEGIN
     for(int fIx = 0; fIx < forceData.size(); fIx++){
@@ -419,6 +441,7 @@ void CpuCalcPeriodicTorsionForceKernel::initialize(const System& system, const P
 double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
     vector<Vec3>& posData = extractPositions(context);
     vector<Vec3>& forceData = extractForces(context);
+    vector<vector<double>>& drlEnergyData = extractEnergies_drl_tor(context); // drl Energies
 
     // drl torsion forces BEGIN
     vector<Vec3>& forceData_drl_tor = extractForces_drl_tor(context);
@@ -436,6 +459,7 @@ double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool inc
     if (usePeriodic)
         periodicTorsionBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, periodicTorsionBond);
+    bondForce.calculateEnergy_drl(posData, torsionParamArray, drlEnergyData, includeEnergy ? &energy : NULL, periodicTorsionBond); // drl Energies
 
     // drl torsion forces BEGIN
     for(int fIx = 0; fIx < forceData.size(); fIx++){
@@ -734,6 +758,8 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
 
     // drl torsion forces BEGIN
     vector<Vec3>& forceData_drl_n14 = extractForces_drl_n14(context);
+    vector<vector<double>>& drlEnergyData = extractEnergies_drl_tor(context); // drl Energies
+
     assert(forceData_drl_n14.size() == forceData.size());
 
     for(int fIx = 0; fIx < forceData.size(); fIx++){
@@ -817,7 +843,8 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
             Vec3* boxVectors = extractBoxVectors(context);
             nonbonded14.setPeriodic(boxVectors);
         }
-        bondForce.calculateForce(posData, bonded14ParamArray, forceData, includeEnergy ? &energy : NULL, nonbonded14);
+        bondForce.calculateForce(posData, bonded14ParamArray, forceData, includeEnergy ? &energy : NULL, nonbonded14);  
+        bondForce.calculateEnergy_drl(posData, bonded14ParamArray, drlEnergyData, includeEnergy ? &energy : NULL, nonbonded14); // drl Energies
 
         // drl torsion forces BEGIN
         for(int fIx = 0; fIx < forceData.size(); fIx++){

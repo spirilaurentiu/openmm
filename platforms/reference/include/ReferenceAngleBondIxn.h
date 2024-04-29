@@ -98,6 +98,10 @@ class OPENMM_EXPORT ReferenceAngleBondIxn : public ReferenceBondIxn {
                             double* totalEnergy, double* energyParamDerivs);
       
 
+      void calculateBondIxnEnergy_drl(std::vector<int>& atomIndices, std::vector<OpenMM::Vec3>& atomCoordinates,
+                                    std::vector<double>& parameters, std::vector<std::vector<double>>& energies,
+                                    double* totalEnergy, double* energyParamDerivs);                            
+
 };
 
 } // namespace OpenMM

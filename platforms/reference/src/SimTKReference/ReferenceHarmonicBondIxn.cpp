@@ -112,3 +112,32 @@ void ReferenceHarmonicBondIxn::calculateBondIxn(vector<int>& atomIndices,
 
     printf("drl ReferenceHarmonicBondIxn::calculateBondIxn %d %d %f \n", atomIndices[0], atomIndices[1], (0.5*parameters[1]*deltaIdeal2));
 }
+
+
+void ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl(std::vector<int>& atomIndices, std::vector<OpenMM::Vec3>& atomCoordinates,
+                              std::vector<double>& parameters, std::vector<std::vector<double>>& energies,
+                              double* totalEnergy, double* energyParamDerivs) {
+
+   double deltaR[ReferenceForce::LastDeltaRIndex];
+
+   // ---------------------------------------------------------------------------------------
+
+   // get deltaR, R2, and R between 2 atoms
+
+   int atomAIndex = atomIndices[0];
+   int atomBIndex = atomIndices[1];
+   
+   if (usePeriodic)
+       ReferenceForce::getDeltaRPeriodic(atomCoordinates[atomAIndex], atomCoordinates[atomBIndex], boxVectors, deltaR);  
+   else
+       ReferenceForce::getDeltaR(atomCoordinates[atomAIndex], atomCoordinates[atomBIndex], deltaR);  
+
+   // deltaIdeal = r - r_0
+
+   double deltaIdeal      = deltaR[ReferenceForce::RIndex] - parameters[0];
+   double deltaIdeal2     = deltaIdeal*deltaIdeal;
+
+    energies[atomAIndex][atomBIndex] = 0.5*parameters[1]*deltaIdeal2;
+    
+    printf("drl ReferenceHarmonicBondIxn::calculateBondIxn %d %d %f \n", atomAIndex, atomBIndex, energies[atomAIndex][atomBIndex]);                                
+}

@@ -59,10 +59,20 @@ public:
     void calculateForce(std::vector<OpenMM::Vec3>& atomCoordinates, std::vector<std::vector<double> >& parameters, std::vector<OpenMM::Vec3>& forces, 
             double* totalEnergy, ReferenceBondIxn& referenceBondIxn);
     /**
+     * Compute the energies from all bonds.
+     */
+    void calculateEnergy_drl(std::vector<OpenMM::Vec3>& atomCoordinates, std::vector<std::vector<double> >& parameters, std::vector<std::vector<double>>& energies, 
+            double* totalEnergy, ReferenceBondIxn& referenceBondIxn);
+    /**
      * This routine contains the code executed by each thread.
      */
     void threadComputeForce(ThreadPool& threads, int threadIndex, std::vector<OpenMM::Vec3>& atomCoordinates, std::vector<std::vector<double> >& parameters,
-            std::vector<OpenMM::Vec3>& forces, double* totalEnergy, ReferenceBondIxn& referenceBondIxn);
+            std::vector<OpenMM::Vec3>& forces, double* totalEnergy, ReferenceBondIxn& referenceBondIxn);                       
+    /**
+     * This routine contains the code executed by each thread.
+     */
+    void threadComputeEnergy_drl(ThreadPool& threads, int threadIndex, std::vector<OpenMM::Vec3>& atomCoordinates, std::vector<std::vector<double> >& parameters,
+            std::vector<std::vector<double>>& energies, double* totalEnergy, ReferenceBondIxn& referenceBondIxn);
 private:
     bool canAssignBond(int bond, int thread, std::vector<int>& atomThread);
     void assignBond(int bond, int thread, std::vector<int>& atomThread, std::vector<int>& bondThread, std::vector<std::set<int> >& atomBonds, std::list<int>& candidateBonds);

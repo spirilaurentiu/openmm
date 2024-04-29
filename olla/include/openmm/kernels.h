@@ -178,7 +178,7 @@ public:
      * @param forces  on exit, this contains the forces
      */
     virtual void getForces(ContextImpl& context, std::vector<Vec3>& forces) = 0;
-
+    // drl END
     /**
      * Get the current forces on all particles.
      *
@@ -203,6 +203,36 @@ public:
      * @param forces  on exit, this contains the forces
      */
     virtual void getForces_drl_n14(ContextImpl& context, std::vector<Vec3>& forces_drl_n14) = 0;        
+
+    /**
+     * Get the current forces on all particles.
+     *
+     * @param energies  on exit, this contains the forces
+     */
+    virtual void getEnergies_drl_bon(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_bon) = 0;
+
+    /**
+     * Get the current forces on all particles.
+     *
+     * @param energies  on exit, this contains the forces
+     */
+    virtual void getEnergies_drl_ang(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_ang) = 0;
+
+    /**
+     * Get the current forces on all particles.
+     *
+     * @param energies  on exit, this contains the forces
+     */
+    virtual void getEnergies_drl_tor(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_tor) = 0;
+
+    /**
+     * Get the current forces on all particles.
+     *
+     * @param energies  on exit, this contains the forces
+     */
+    virtual void getEnergies_drl_n14(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_n14) = 0;
+    // drl END
+    
     /**
      * Get the current derivatives of the energy with respect to context parameters.
      *

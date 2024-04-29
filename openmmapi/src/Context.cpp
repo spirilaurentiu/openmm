@@ -120,22 +120,38 @@ State Context::getState(int types, bool enforcePeriodicBox, int groups) const {
             vector<Vec3> forces_drl_bon;
             impl->getForces_drl_bon(forces_drl_bon);
             builder.setForces_drl_bon(forces_drl_bon);
+
+            vector<vector<double>> energies_drl_bon;
+            impl->getEnergies_drl_bon(energies_drl_bon);
+            builder.setEnergies_drl_bon(energies_drl_bon);            
         }
         if(includeForces_drl_ang){
             vector<Vec3> forces_drl_ang;
             impl->getForces_drl_ang(forces_drl_ang);
             builder.setForces_drl_ang(forces_drl_ang);
+
+            vector<vector<double>> energies_drl_ang;
+            impl->getEnergies_drl_ang(energies_drl_ang);
+            builder.setEnergies_drl_ang(energies_drl_ang);            
         }
         if(includeForces_drl_tor){
             vector<Vec3> forces_drl_tor;
             impl->getForces_drl_tor(forces_drl_tor);
             builder.setForces_drl_tor(forces_drl_tor);            
+
+            vector<vector<double>> energies_drl_tor;
+            impl->getEnergies_drl_tor(energies_drl_tor);
+            builder.setEnergies_drl_tor(energies_drl_tor);            
         }
 
         if(includeForces_drl_n14){
             vector<Vec3> forces_drl_n14;
             impl->getForces_drl_n14(forces_drl_n14);
             builder.setForces_drl_n14(forces_drl_n14);
+
+            vector<vector<double>> energies_drl_n14;
+            impl->getEnergies_drl_n14(energies_drl_n14);
+            builder.setEnergies_drl_n14(energies_drl_n14);            
         }
 
     }
