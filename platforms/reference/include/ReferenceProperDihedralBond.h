@@ -82,9 +82,11 @@ class OPENMM_EXPORT ReferenceProperDihedralBond : public ReferenceBondIxn {
                             std::vector<double>& parameters, std::vector<OpenMM::Vec3>& forces,
                             double* totalEnergy, double* energyParamDerivs);
 
-      void calculateBondIxnEnergy_drl(std::vector<int>& atomIndices, std::vector<OpenMM::Vec3>& atomCoordinates,
-                            std::vector<double>& parameters, std::vector<std::vector<double>>& energies,
-                            double* totalEnergy, double* energyParamDerivs);
+      void calculateBondIxnEnergy_drl(std::vector<int>& atomIndices,
+                                      std::vector<OpenMM::Vec3>& atomCoordinates,
+                                      std::vector<double>& parameters,
+                                      std::vector<std::vector<double>>& energies,
+                                      double* totalEnergy, double* energyParamDerivs);
 
 };
 

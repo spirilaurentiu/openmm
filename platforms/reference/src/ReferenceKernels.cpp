@@ -490,6 +490,13 @@ double ReferenceCalcHarmonicBondForceKernel::execute(ContextImpl& context, bool 
     vector<Vec3>& forceData = extractForces(context);
     vector<vector<double>>& drlEnergyData = extractEnergies_drl_bon(context); // drl Energies
 
+    // drl energy matrix to zero
+    for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) {
+        for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) {
+            drlEnergyData[Ix][Jx] = 0;
+        }
+    }
+
     // drl bond forces BEGIN
     vector<Vec3>& forceData_drl_bon = extractForces_drl_bon(context);
     for(int fIx = 0; fIx < forceData.size(); fIx++){

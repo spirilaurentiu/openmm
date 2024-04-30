@@ -365,6 +365,13 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
     vector<Vec3>& forceData = extractForces(context);
     vector<vector<double>>& drlEnergyData = extractEnergies_drl_ang(context); // drl Energies
 
+    // drl energy matrix to zero
+    for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) {
+        for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) {
+            drlEnergyData[Ix][Jx] = 0;
+        }
+    }
+
     // drl angle forces BEGIN
     vector<Vec3>& forceData_drl_ang = extractForces_drl_ang(context);
     assert(forceData_drl_ang.size() == forceData.size());
@@ -382,6 +389,15 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
         angleBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, angleParamArray, forceData, includeEnergy ? &energy : NULL, angleBond);
     bondForce.calculateEnergy_drl(posData, angleParamArray, drlEnergyData, includeEnergy ? &energy : NULL, angleBond); // drl Energies
+
+    // printf("ang vector\n"); // drl
+    // for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) { // drl
+    //     printf("ang"); // drl
+    //     for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) { // drl
+    //         printf(" %f", drlEnergyData[Ix][Jx]); // drl
+    //     } // drl
+    //     printf("\n"); // drl
+    // } // drl
 
     // drl angle forces BEGIN
     for(int fIx = 0; fIx < forceData.size(); fIx++){
@@ -443,6 +459,13 @@ double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool inc
     vector<Vec3>& forceData = extractForces(context);
     vector<vector<double>>& drlEnergyData = extractEnergies_drl_tor(context); // drl Energies
 
+    // drl energy matrix to zero
+    for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) {
+        for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) {
+            drlEnergyData[Ix][Jx] = 0;
+        }
+    }
+
     // drl torsion forces BEGIN
     vector<Vec3>& forceData_drl_tor = extractForces_drl_tor(context);
     assert(forceData_drl_tor.size() == forceData.size());
@@ -460,6 +483,15 @@ double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool inc
         periodicTorsionBond.setPeriodic(extractBoxVectors(context));
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, periodicTorsionBond);
     bondForce.calculateEnergy_drl(posData, torsionParamArray, drlEnergyData, includeEnergy ? &energy : NULL, periodicTorsionBond); // drl Energies
+
+    // printf("tor vector\n"); // drl
+    // for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) { // drl
+    //     printf("tor"); // drl
+    //     for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) { // drl
+    //         printf(" %f", drlEnergyData[Ix][Jx]); // drl
+    //     } // drl
+    //     printf("\n"); // drl
+    // } // drl
 
     // drl torsion forces BEGIN
     for(int fIx = 0; fIx < forceData.size(); fIx++){
@@ -758,7 +790,14 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
 
     // drl torsion forces BEGIN
     vector<Vec3>& forceData_drl_n14 = extractForces_drl_n14(context);
-    vector<vector<double>>& drlEnergyData = extractEnergies_drl_tor(context); // drl Energies
+    vector<vector<double>>& drlEnergyData = extractEnergies_drl_n14(context); // drl Energies
+
+    // drl energy matrix to zero
+    for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) {
+        for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) {
+            drlEnergyData[Ix][Jx] = 0;
+        }
+    }
 
     assert(forceData_drl_n14.size() == forceData.size());
 
@@ -845,6 +884,15 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         }
         bondForce.calculateForce(posData, bonded14ParamArray, forceData, includeEnergy ? &energy : NULL, nonbonded14);  
         bondForce.calculateEnergy_drl(posData, bonded14ParamArray, drlEnergyData, includeEnergy ? &energy : NULL, nonbonded14); // drl Energies
+
+        // printf("n14 vector\n"); // drl
+        // for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) { // drl
+        //     printf("n14"); // drl
+        //     for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) { // drl
+        //         printf(" %f", drlEnergyData[Ix][Jx]); // drl
+        //     } // drl
+        //     printf("\n"); // drl
+        // } // drl
 
         // drl torsion forces BEGIN
         for(int fIx = 0; fIx < forceData.size(); fIx++){

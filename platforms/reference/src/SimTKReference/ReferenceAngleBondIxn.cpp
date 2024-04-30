@@ -166,10 +166,6 @@ void ReferenceAngleBondIxn::calculateBondIxn(vector<int>& atomIndices,
    if (totalEnergy != NULL)
        *totalEnergy += energy;
 
-
-    printf("drl ReferenceAngleBondIxn::calculateBondIxn %d %d %d %f \n",
-      atomIndices[0], atomIndices[1], atomIndices[2], energy);
-
 }
 
 /**---------------------------------------------------------------------------------------
@@ -218,10 +214,19 @@ void ReferenceAngleBondIxn::calculateBondIxnEnergy_drl(vector<int>& atomIndices,
    getPrefactorsGivenAngleCosine(cosine, parameters, &dEdR, &energy);
 
    // energies
+   if(atomAIndex < atomBIndex){
+      energies[atomAIndex][atomBIndex] += energy;
 
-   energies[atomAIndex][atomBIndex] += energy;
+      printf("drl ReferenceAngleBondIxn::calculateBondIxnEnergy_drl %d %d %d %f %f \n",
+         atomIndices[0], atomIndices[1], atomIndices[2], energy, energies[atomAIndex][atomBIndex]);
 
-    printf("drl ReferenceAngleBondIxn::calculateBondIxn %d %d %d %f \n",
-      atomIndices[0], atomIndices[1], atomIndices[2], energy);
+   }else{
+      energies[atomBIndex][atomAIndex] += energy;
+
+      printf("drl ReferenceAngleBondIxn::calculateBondIxnEnergy_drl %d %d %d %f %f \n",
+         atomIndices[0], atomIndices[1], atomIndices[2], energy, energies[atomBIndex][atomAIndex]);
+
+   } 
+
 
 }

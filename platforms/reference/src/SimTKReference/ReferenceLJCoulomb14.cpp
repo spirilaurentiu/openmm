@@ -135,6 +135,21 @@ void ReferenceLJCoulomb14::calculateBondIxnEnergy_drl(vector<int>& atomIndices, 
     double sig6      = sig2*sig2*sig2;
 
     // accumulate energies
+    double energy = parameters[1]*(sig6 - 1.0)*sig6 + (ONE_4PI_EPS0*parameters[2]*inverseR);
 
-    energies[atomAIndex][atomBIndex] += parameters[1]*(sig6 - 1.0)*sig6 + (ONE_4PI_EPS0*parameters[2]*inverseR);
+   if(atomAIndex < atomBIndex){
+      energies[atomAIndex][atomBIndex] = energy;
+
+    printf("drl ReferenceLJCoulomb14::calculateBondIxnEnergy_drl %d %d %f %f \n",
+        atomAIndex, atomBIndex, energy, energies[atomAIndex][atomBIndex]);                                
+      
+   }else{
+      energies[atomBIndex][atomAIndex] = energy;
+
+    printf("drl ReferenceLJCoulomb14::calculateBondIxnEnergy_drl %d %d %f %f \n",
+        atomAIndex, atomBIndex, energy, energies[atomBIndex][atomAIndex]);                                
+   }    
+
+
+
 }

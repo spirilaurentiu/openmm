@@ -121,6 +121,9 @@ ReferencePlatform::PlatformData::PlatformData(const System& system) : time(0.0),
     energies_drl_tor->resize(numParticles);
     for (size_t Ix = 0; Ix < energies_drl_tor->size(); ++Ix) {
         (*energies_drl_tor)[Ix].resize(numParticles);
+        // for (size_t Jx = 0; Jx < (*energies_drl_tor)[Ix].size(); ++Jx) {
+        //     (*energies_drl_tor)[Ix][Jx] = 0;
+        // }        
     }
 
     energies_drl_n14 = new vector<vector<double>>();

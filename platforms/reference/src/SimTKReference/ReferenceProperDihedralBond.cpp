@@ -164,8 +164,8 @@ void ReferenceProperDihedralBond::calculateBondIxn(vector<int>& atomIndices,
    if (totalEnergy != NULL)
        *totalEnergy += energy;
 
-   printf("drl ReferenceProperDihedralBond::calculateBondIxn %d %d %d %d %f \n",
-      atomIndices[0], atomIndices[1], atomIndices[2], atomIndices[3], energy);
+   //printf("drl ReferenceProperDihedralBond::calculateBondIxn %d %d %d %d %f %f \n",
+   //   atomAIndex, atomBIndex, atomCIndex, atomDIndex, energy, *totalEnergy);
 
 }
 
@@ -181,14 +181,13 @@ void ReferenceProperDihedralBond::calculateBondIxnEnergy_drl(vector<int>& atomIn
                                              std::vector<std::vector<double>>& energies,
                                              double* totalEnergy, double* energyParamDerivs) {
 
-   double deltaR[3][ReferenceForce::LastDeltaRIndex];
 
+   double deltaR[3][ReferenceForce::LastDeltaRIndex];
    double crossProductMemory[6];
 
    // ---------------------------------------------------------------------------------------
 
    // get deltaR, R2, and R between three pairs of atoms: [j,i], [j,k], [l,k]
-
    int atomAIndex = atomIndices[0];
    int atomBIndex = atomIndices[1];
    int atomCIndex = atomIndices[2];
@@ -226,12 +225,22 @@ void ReferenceProperDihedralBond::calculateBondIxnEnergy_drl(vector<int>& atomIn
    double sinDeltaAngle  = SIN(deltaAngle);
    double dEdAngle       = -parameters[0]*parameters[2]*sinDeltaAngle;
    double energy         =  parameters[0]*(1.0 + cos(deltaAngle));
+
+
    
    // accumulate energies
+   if(atomBIndex < atomCIndex){
+      energies[atomBIndex][atomCIndex] += energy;
 
-   energies[atomBIndex][atomCIndex] += energy;
+      printf("drl ReferenceProperDihedralBond::calculateBondIxnEnergy_drl %d %d %d %d %f %f \n",
+         atomAIndex, atomBIndex, atomCIndex, atomDIndex, energy, energies[atomBIndex][atomCIndex]);
 
-   printf("drl ReferenceProperDihedralBond::calculateBondIxn %d %d %d %d %f \n",
-      atomIndices[0], atomIndices[1], atomIndices[2], atomIndices[3], energy);
+   }else{
+      energies[atomCIndex][atomBIndex] += energy;
+
+      printf("drl ReferenceProperDihedralBond::calculateBondIxnEnergy_drl %d %d %d %d %f %f \n",
+         atomAIndex, atomBIndex, atomCIndex, atomDIndex, energy, energies[atomCIndex][atomBIndex]);
+
+   }
 
 }

@@ -200,13 +200,10 @@ void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vect
             double* totalEnergy, ReferenceBondIxn& referenceBondIxn) {
     
     //drl_mtx.lock();  // drl
-    //std::cout << "drl threadComputeForce threadIndex " << threadIndex << " ";
-
     vector<int>& bonds = threadBonds[threadIndex];
     int numBonds = bonds.size();
     for (int i = 0; i < numBonds; i++) {
         int bond = bonds[i];
-
         referenceBondIxn.calculateBondIxn(bondAtoms[bond], atomCoordinates, parameters[bond], forces, totalEnergy, NULL);
     }
 
@@ -215,32 +212,48 @@ void CpuBondForce::threadComputeForce(ThreadPool& threads, int threadIndex, vect
 /**
  * Compute the energies from all bonds.
  */
-void CpuBondForce::calculateEnergy_drl(std::vector<OpenMM::Vec3>& atomCoordinates, std::vector<std::vector<double> >& parameters, std::vector<std::vector<double>>& energies, 
+void CpuBondForce::calculateEnergy_drl(std::vector<OpenMM::Vec3>& atomCoordinates, std::vector<std::vector<double> >& parameters, std::vector<std::vector<double>>& drl_energies, 
         double* totalEnergy, ReferenceBondIxn& referenceBondIxn){
     // Have the worker threads compute their forces.
-    
+
+
+    // printf("drl vector before threads\n"); // drl
+    // for (size_t Ix = 0; Ix < drl_energies.size(); ++Ix) { // drl
+    //     printf("drlv"); // drl
+    //     for (size_t Jx = 0; Jx < drl_energies[Ix].size(); ++Jx) { // drl
+    //         printf(" %f", drl_energies[Ix][Jx]); // drl
+    //     } // drl
+    //     printf("\n"); // drl
+    // } // drl
+
     vector<double> threadEnergy(threads->getNumThreads(), 0);
     threads->execute([&] (ThreadPool& threads, int threadIndex) {
         double* energy = (totalEnergy == NULL ? NULL : &threadEnergy[threadIndex]);
-        threadComputeEnergy_drl(threads, threadIndex, atomCoordinates, parameters, energies, energy, referenceBondIxn);
+        threadComputeEnergy_drl(threads, threadIndex, atomCoordinates, parameters, drl_energies, energy, referenceBondIxn);
     });
     threads->waitForThreads();
+
+    // printf("drl vector after threads\n"); // drl
+    // for (size_t Ix = 0; Ix < drl_energies.size(); ++Ix) { // drl
+    //     printf("drlv"); // drl
+    //     for (size_t Jx = 0; Jx < drl_energies[Ix].size(); ++Jx) { // drl
+    //         printf(" %f", drl_energies[Ix][Jx]); // drl
+    //     } // drl
+    //     printf("\n"); // drl
+    // } // drl
 
           
 }
 
-void CpuBondForce::threadComputeEnergy_drl(ThreadPool& threads, int threadIndex, vector<Vec3>& atomCoordinates, vector<vector<double> >& parameters, std::vector<std::vector<double>>& energies, 
+void CpuBondForce::threadComputeEnergy_drl(ThreadPool& threads, int threadIndex, vector<Vec3>& atomCoordinates, vector<vector<double> >& parameters, std::vector<std::vector<double>>& drl_energies, 
             double* totalEnergy, ReferenceBondIxn& referenceBondIxn) {
     
-    //drl_mtx.lock();  // drl
-    //std::cout << "drl threadComputeForce threadIndex " << threadIndex << " ";
-
     vector<int>& bonds = threadBonds[threadIndex];
     int numBonds = bonds.size();
     for (int i = 0; i < numBonds; i++) {
         int bond = bonds[i];
 
-        referenceBondIxn.calculateBondIxnEnergy_drl(bondAtoms[bond], atomCoordinates, parameters[bond], energies, totalEnergy, NULL);
+        referenceBondIxn.calculateBondIxnEnergy_drl(bondAtoms[bond], atomCoordinates, parameters[bond], drl_energies, totalEnergy, NULL);
     }
 
 }

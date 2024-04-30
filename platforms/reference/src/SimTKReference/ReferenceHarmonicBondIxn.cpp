@@ -109,8 +109,6 @@ void ReferenceHarmonicBondIxn::calculateBondIxn(vector<int>& atomIndices,
 
    if (totalEnergy != NULL)
        *totalEnergy += 0.5*parameters[1]*deltaIdeal2;
-
-    printf("drl ReferenceHarmonicBondIxn::calculateBondIxn %d %d %f \n", atomIndices[0], atomIndices[1], (0.5*parameters[1]*deltaIdeal2));
 }
 
 
@@ -137,7 +135,18 @@ void ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl(std::vector<int>& atom
    double deltaIdeal      = deltaR[ReferenceForce::RIndex] - parameters[0];
    double deltaIdeal2     = deltaIdeal*deltaIdeal;
 
-    energies[atomAIndex][atomBIndex] = 0.5*parameters[1]*deltaIdeal2;
+    double energy = 0.5*parameters[1]*deltaIdeal2;
+
+    if(atomAIndex < atomBIndex){
+        energies[atomAIndex][atomBIndex] += energy;
     
-    printf("drl ReferenceHarmonicBondIxn::calculateBondIxn %d %d %f \n", atomAIndex, atomBIndex, energies[atomAIndex][atomBIndex]);                                
+        printf("drl ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl %d %d %f %f \n",
+            atomAIndex, atomBIndex, energy, energies[atomAIndex][atomBIndex]);
+     }else{
+        energies[atomBIndex][atomAIndex] += energy;
+    
+        printf("drl ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl %d %d %f %f \n",
+            atomAIndex, atomBIndex, energy, energies[atomBIndex][atomAIndex]);
+     } 
+                                       
 }
