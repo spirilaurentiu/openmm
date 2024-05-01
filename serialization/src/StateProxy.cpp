@@ -94,6 +94,7 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
     }
 
     // OPENMM DRILL drl
+
     if ((s.getDataTypes()&State::Forces_drl_bon) != 0) {
         s.getForces_drl_bon();
         SerializationNode& forcesNode_drl_bon = node.createChildNode("Forces_drl_bon");
@@ -102,8 +103,7 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             forcesNode_drl_bon.createChildNode("Force").setDoubleProperty("x", stateForces_drl_bon[i][0]).setDoubleProperty("y", stateForces_drl_bon[i][1]).setDoubleProperty("z", stateForces_drl_bon[i][2]);
         }
 
-        // drl serialize 2D vector BEGIN
-        s.getEnergies_drl_bon();
+        s.getEnergies_drl_bon(); // drl serialize 2D vector BEGIN
         SerializationNode& energiesNode_drl_bon = node.createChildNode("Energies_drl_bon");
         vector<vector<double>> stateEnergies_drl_bon = s.getEnergies_drl_bon();
         for (int i=0; i<stateEnergies_drl_bon.size();i++) {
@@ -111,9 +111,7 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             for (size_t j = 0; j < stateEnergies_drl_bon[i].size(); j++) {
                 innerNode.createChildNode("Element").setDoubleProperty("value", stateEnergies_drl_bon[i][j]);
             }
-        }
-        // drl serialize 2D vector END
-
+        } // drl serialize 2D vector END
     }
 
     if ((s.getDataTypes()&State::Forces_drl_ang) != 0) {
@@ -124,8 +122,7 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             forcesNode_drl_ang.createChildNode("Force").setDoubleProperty("x", stateForces_drl_ang[i][0]).setDoubleProperty("y", stateForces_drl_ang[i][1]).setDoubleProperty("z", stateForces_drl_ang[i][2]);
         }
 
-        // drl serialize 2D vector BEGIN
-        s.getEnergies_drl_ang();
+        s.getEnergies_drl_ang(); // drl serialize 2D vector BEGIN
         SerializationNode& energiesNode_drl_bon = node.createChildNode("Energies_drl_ang");
         vector<vector<double>> stateEnergies_drl_ang = s.getEnergies_drl_ang();
         for (int i=0; i<stateEnergies_drl_ang.size();i++) {
@@ -133,9 +130,7 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             for (size_t j = 0; j < stateEnergies_drl_ang[i].size(); j++) {
                 innerNode.createChildNode("Element").setDoubleProperty("value", stateEnergies_drl_ang[i][j]);
             }
-        }
-        // drl serialize 2D vector END
-
+        } // drl serialize 2D vector END
     }
 
     if ((s.getDataTypes()&State::Forces_drl_tor) != 0) {
@@ -146,8 +141,7 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             forcesNode_drl_tor.createChildNode("Force").setDoubleProperty("x", stateForces_drl_tor[i][0]).setDoubleProperty("y", stateForces_drl_tor[i][1]).setDoubleProperty("z", stateForces_drl_tor[i][2]);
         }
 
-        // drl serialize 2D vector BEGIN
-        s.getEnergies_drl_tor();
+        s.getEnergies_drl_tor(); // drl serialize 2D vector BEGIN
         SerializationNode& energiesNode_drl_bon = node.createChildNode("Energies_drl_tor");
         vector<vector<double>> stateEnergies_drl_tor = s.getEnergies_drl_tor();
         for (int i=0; i<stateEnergies_drl_tor.size();i++) {
@@ -155,9 +149,7 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             for (size_t j = 0; j < stateEnergies_drl_tor[i].size(); j++) {
                 innerNode.createChildNode("Element").setDoubleProperty("value", stateEnergies_drl_tor[i][j]);
             }
-        }
-        // drl serialize 2D vector END
-
+        } // drl serialize 2D vector END
     }
 
     if ((s.getDataTypes()&State::Forces_drl_n14) != 0) {
@@ -177,9 +169,47 @@ void StateProxy::serialize(const void* object, SerializationNode& node) const {
             for (size_t j = 0; j < stateEnergies_drl_n14[i].size(); j++) {
                 innerNode.createChildNode("Element").setDoubleProperty("value", stateEnergies_drl_n14[i][j]);
             }
-        }
-        // drl serialize 2D vector END
+        } // drl serialize 2D vector END
+    }
 
+    if ((s.getDataTypes()&State::Forces_drl_vdw) != 0) {
+        // s.getForces_drl_vdw();
+        // SerializationNode& forcesNode_drl_vdw = node.createChildNode("Forces_drl_vdw");
+        // vector<Vec3> stateForces_drl_vdw = s.getForces_drl_vdw();
+        // for (int i=0; i<stateForces_drl_vdw.size();i++) {
+        //     forcesNode_drl_vdw.createChildNode("Force").setDoubleProperty("x", stateForces_drl_vdw[i][0]).setDoubleProperty("y", stateForces_drl_vdw[i][1]).setDoubleProperty("z", stateForces_drl_vdw[i][2]);
+        // }
+
+        // drl serialize 2D vector BEGIN
+        s.getEnergies_drl_vdw();
+        SerializationNode& energiesNode_drl_bon = node.createChildNode("Energies_drl_vdw");
+        vector<vector<double>> stateEnergies_drl_vdw = s.getEnergies_drl_vdw();
+        for (int i=0; i<stateEnergies_drl_vdw.size();i++) {
+            SerializationNode& innerNode = energiesNode_drl_bon.createChildNode("EnergyVector");
+            for (size_t j = 0; j < stateEnergies_drl_vdw[i].size(); j++) {
+                innerNode.createChildNode("Element").setDoubleProperty("value", stateEnergies_drl_vdw[i][j]);
+            }
+        } // drl serialize 2D vector END
+    }
+
+    if ((s.getDataTypes()&State::Forces_drl_cou) != 0) {
+        // s.getForces_drl_cou();
+        // SerializationNode& forcesNode_drl_cou = node.createChildNode("Forces_drl_cou");
+        // vector<Vec3> stateForces_drl_cou = s.getForces_drl_cou();
+        // for (int i=0; i<stateForces_drl_cou.size();i++) {
+        //     forcesNode_drl_cou.createChildNode("Force").setDoubleProperty("x", stateForces_drl_cou[i][0]).setDoubleProperty("y", stateForces_drl_cou[i][1]).setDoubleProperty("z", stateForces_drl_cou[i][2]);
+        // }
+
+        // drl serialize 2D vector BEGIN
+        s.getEnergies_drl_cou();
+        SerializationNode& energiesNode_drl_bon = node.createChildNode("Energies_drl_cou");
+        vector<vector<double>> stateEnergies_drl_cou = s.getEnergies_drl_cou();
+        for (int i=0; i<stateEnergies_drl_cou.size();i++) {
+            SerializationNode& innerNode = energiesNode_drl_bon.createChildNode("EnergyVector");
+            for (size_t j = 0; j < stateEnergies_drl_cou[i].size(); j++) {
+                innerNode.createChildNode("Element").setDoubleProperty("value", stateEnergies_drl_cou[i][j]);
+            }
+        } // drl serialize 2D vector END
     }
 
     // drl END
@@ -265,6 +295,20 @@ void* StateProxy::deserialize(const SerializationNode& node) const {
             builder.setForces_drl_n14(outForces_drl_n14);
             arraySizes.push_back(outForces_drl_n14.size());
         }
+        // else if (child.getName() == "Forces_drl_vdw") {
+        //     vector<Vec3> outForces_drl_vdw;
+        //     for (auto& particle : child.getChildren())
+        //         outForces_drl_vdw.push_back(Vec3(particle.getDoubleProperty("x"),particle.getDoubleProperty("y"),particle.getDoubleProperty("z")));
+        //     builder.setForces_drl_vdw(outForces_drl_vdw);
+        //     arraySizes.push_back(outForces_drl_vdw.size());
+        // }
+        //         else if (child.getName() == "Forces_drl_cou") {
+        //     vector<Vec3> outForces_drl_cou;
+        //     for (auto& particle : child.getChildren())
+        //         outForces_drl_cou.push_back(Vec3(particle.getDoubleProperty("x"),particle.getDoubleProperty("y"),particle.getDoubleProperty("z")));
+        //     builder.setForces_drl_cou(outForces_drl_cou);
+        //     arraySizes.push_back(outForces_drl_cou.size());
+        // }
 
         // drl serialize 2D vector BEGIN
         else if (child.getName() == "Energies_drl_bon") {
@@ -327,7 +371,38 @@ void* StateProxy::deserialize(const SerializationNode& node) const {
             }           
             builder.setEnergies_drl_n14(outEnergies_drl_n14);
             arraySizes.push_back(outEnergies_drl_n14.size());
-        }  
+        } 
+
+        // drl serialize 2D vector BEGIN
+        else if (child.getName() == "Energies_drl_vdw") {
+            vector<vector<double>> outEnergies_drl_vdw;
+            for (const auto& innerNode : child.getChildren()) {
+                vector<double> innerVector;                
+                for (const auto& element : innerNode.getChildren()) {
+                    double value = element.getDoubleProperty("value");
+                    innerVector.push_back(value);
+                }
+                outEnergies_drl_vdw.push_back(innerVector);
+            }           
+            builder.setEnergies_drl_vdw(outEnergies_drl_vdw);
+            arraySizes.push_back(outEnergies_drl_vdw.size());
+        } 
+
+        // drl serialize 2D vector BEGIN
+        else if (child.getName() == "Energies_drl_cou") {
+            vector<vector<double>> outEnergies_drl_cou;
+            for (const auto& innerNode : child.getChildren()) {
+                vector<double> innerVector;                
+                for (const auto& element : innerNode.getChildren()) {
+                    double value = element.getDoubleProperty("value");
+                    innerVector.push_back(value);
+                }
+                outEnergies_drl_cou.push_back(innerVector);
+            }           
+            builder.setEnergies_drl_cou(outEnergies_drl_cou);
+            arraySizes.push_back(outEnergies_drl_cou.size());
+        } 
+
         // drl serialize 2D vector END
 
 

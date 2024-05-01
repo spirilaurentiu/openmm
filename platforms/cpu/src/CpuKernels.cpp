@@ -110,7 +110,19 @@ static vector<vector<double>>& extractEnergies_drl_n14(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->energies_drl_n14;
 }
+
+static vector<vector<double>>& extractEnergies_drl_vdw(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_vdw;
+}
+
+static vector<vector<double>>& extractEnergies_drl_cou(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_cou;
+}
+
 // drl END
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -337,6 +349,17 @@ double CpuCalcForcesAndEnergyKernel::finishComputation(ContextImpl& context, boo
             forceData[i][1] += f[1];
             forceData[i][2] += f[2];
         }
+
+        // drl BEGIN
+        // vector<vector<double>>& drlEnergyData_vdw = extractEnergies_drl_vdw(context);
+        // for (int i = start; i < end; i++) {
+        //     fvec4 f(0.0f);
+        //     for (int j = 0; j < numThreads; j++)
+        //         f += (&data.energies_drl_vdw[j][4*i]);
+        //     drlEnergyData_vdw[i] += f;
+        // }
+        // drl END
+
     });
     data.threads.waitForThreads();
     return referenceKernel.getAs<ReferenceCalcForcesAndEnergyKernel>().finishComputation(context, includeForce, includeEnergy, groups, valid);
@@ -484,26 +507,12 @@ double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool inc
     bondForce.calculateForce(posData, torsionParamArray, forceData, includeEnergy ? &energy : NULL, periodicTorsionBond);
     bondForce.calculateEnergy_drl(posData, torsionParamArray, drlEnergyData, includeEnergy ? &energy : NULL, periodicTorsionBond); // drl Energies
 
-    // printf("tor vector\n"); // drl
-    // for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) { // drl
-    //     printf("tor"); // drl
-    //     for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) { // drl
-    //         printf(" %f", drlEnergyData[Ix][Jx]); // drl
-    //     } // drl
-    //     printf("\n"); // drl
-    // } // drl
-
     // drl torsion forces BEGIN
     for(int fIx = 0; fIx < forceData.size(); fIx++){
         forceData_drl_tor[fIx][0] = forceData[fIx][0] - forceData_drl_tor[fIx][0];
         forceData_drl_tor[fIx][1] = forceData[fIx][1] - forceData_drl_tor[fIx][0];
         forceData_drl_tor[fIx][2] = forceData[fIx][2] - forceData_drl_tor[fIx][0];
     }
-
-    // for(int fIx = 0; fIx < forceData_drl_tor.size(); fIx++){
-    //     printf("drl CpuBondForce::calculateForce torsion %f %f %f\n",
-    //         forceData_drl_tor[fIx][0], forceData_drl_tor[fIx][1], forceData_drl_tor[fIx][2]);
-    // }
 
     printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
     // drl torsion forces END
@@ -790,12 +799,14 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
 
     // drl torsion forces BEGIN
     vector<Vec3>& forceData_drl_n14 = extractForces_drl_n14(context);
-    vector<vector<double>>& drlEnergyData = extractEnergies_drl_n14(context); // drl Energies
+    vector<vector<double>>& drlEnergyData_n14 = extractEnergies_drl_n14(context); // drl Energies n14
+    vector<vector<double>>& drlEnergyData_vdw = extractEnergies_drl_vdw(context); // drl Energies vdw
+    vector<vector<double>>& drlEnergyData_cou = extractEnergies_drl_cou(context); // drl Energies cou
 
     // drl energy matrix to zero
-    for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) {
-        for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) {
-            drlEnergyData[Ix][Jx] = 0;
+    for (size_t Ix = 0; Ix < drlEnergyData_n14.size(); ++Ix) {
+        for (size_t Jx = 0; Jx < drlEnergyData_n14[Ix].size(); ++Jx) {
+            drlEnergyData_n14[Ix][Jx] = 0;
         }
     }
 
@@ -835,15 +846,14 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
     double nonbondedEnergy = 0;
     if (includeDirect){
         nonbonded->calculateDirectIxn(numParticles, &posq[0], posData, particleParams, C6params, exclusions, data.threadForce, includeEnergy ? &nonbondedEnergy : NULL, data.threads,
-            data.drl_vdw, data.drl_coulomb, data.drl_F_vdw, data.drl_F_cou);
-
+            data.energies_drl_vdw, data.energies_drl_cou, data.drl_F_vdw, data.drl_F_cou);
 
 
         printf("OPENMM_DRILL vanDerWaals\n");fflush(stdout);
         for(unsigned int i = 0; i < numParticles; i++){
             printf("drl_vdw");fflush(stdout);
             for(unsigned int j = 0; j < numParticles; j++){
-                printf( " %.5f", data.drl_vdw[i][j]);
+                printf( " %.5f", data.energies_drl_vdw[i][j]);
             }
             printf("\n");fflush(stdout);
         }
@@ -851,12 +861,11 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         for(unsigned int i = 0; i < numParticles; i++){
             printf("drl_cou");fflush(stdout);
             for(unsigned int j = 0; j < numParticles; j++){
-                printf( " %.5f", data.drl_coulomb[i][j]);
+                printf( " %.5f", data.energies_drl_cou[i][j]);
             }
             printf("\n");fflush(stdout);
         }
         printf("OPENMM_DRL Nonbonded %f\n", nonbondedEnergy);fflush(stdout);
-
 
 
     }
@@ -883,13 +892,13 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
             nonbonded14.setPeriodic(boxVectors);
         }
         bondForce.calculateForce(posData, bonded14ParamArray, forceData, includeEnergy ? &energy : NULL, nonbonded14);  
-        bondForce.calculateEnergy_drl(posData, bonded14ParamArray, drlEnergyData, includeEnergy ? &energy : NULL, nonbonded14); // drl Energies
+        bondForce.calculateEnergy_drl(posData, bonded14ParamArray, drlEnergyData_n14, includeEnergy ? &energy : NULL, nonbonded14); // drl Energies
 
         // printf("n14 vector\n"); // drl
-        // for (size_t Ix = 0; Ix < drlEnergyData.size(); ++Ix) { // drl
+        // for (size_t Ix = 0; Ix < drlEnergyData_n14.size(); ++Ix) { // drl
         //     printf("n14"); // drl
-        //     for (size_t Jx = 0; Jx < drlEnergyData[Ix].size(); ++Jx) { // drl
-        //         printf(" %f", drlEnergyData[Ix][Jx]); // drl
+        //     for (size_t Jx = 0; Jx < drlEnergyData_n14[Ix].size(); ++Jx) { // drl
+        //         printf(" %f", drlEnergyData_n14[Ix][Jx]); // drl
         //     } // drl
         //     printf("\n"); // drl
         // } // drl
@@ -900,11 +909,6 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
             forceData_drl_n14[fIx][1] = forceData[fIx][1] - forceData_drl_n14[fIx][0];
             forceData_drl_n14[fIx][2] = forceData[fIx][2] - forceData_drl_n14[fIx][0];
         }
-
-    // for(int fIx = 0; fIx < forceData_drl_n14.size(); fIx++){
-    //     printf("drl CpuBondForce::calculateForce torsion %f %f %f\n",
-    //         forceData_drl_n14[fIx][0], forceData_drl_n14[fIx][1], forceData_drl_n14[fIx][2]);
-    // }
 
     printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
     // drl torsion forces END

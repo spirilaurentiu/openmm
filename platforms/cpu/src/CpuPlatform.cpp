@@ -154,8 +154,8 @@ CpuPlatform::PlatformData::PlatformData(int numParticles, int numThreads, bool d
     for (int i = 0; i < numThreads; i++)
         threadForce[i].resize(4*numParticles);
     
-    this->drl_vdw.resize(numParticles, std::vector<float>(numParticles, 0));
-    this->drl_coulomb.resize(numParticles, std::vector<float>(numParticles, 0));
+    this->energies_drl_vdw.resize(numParticles, std::vector<double>(numParticles, 0));
+    this->energies_drl_cou.resize(numParticles, std::vector<double>(numParticles, 0));
 
     this->drl_F_vdw.resize(numParticles, std::vector<Vec3>(numParticles));   
     this->drl_F_cou.resize(numParticles, std::vector<Vec3>(numParticles));

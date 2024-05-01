@@ -173,6 +173,21 @@ public:
      * @param energies_drl_n14  on exit, this contains the forces
      */
     void getEnergies_drl_n14(std::vector<std::vector<double>>& energies_drl_n14);
+
+    /**
+     * Get the current drill bond forces on all particles.
+     *
+     * @param energies_drl_vdw  on exit, this contains the forces
+     */
+    void getEnergies_drl_vdw(std::vector<std::vector<double>>& energies_drl_vdw);
+    
+    /**
+     * Get the current drill bond forces on all particles.
+     *
+     * @param energies_drl_cou  on exit, this contains the forces
+     */
+    void getEnergies_drl_cou(std::vector<std::vector<double>>& energies_drl_cou);
+        
     // drl END
 
     /**

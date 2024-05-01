@@ -99,6 +99,14 @@ public:
      * Get the nonbonded 1-4 forces
      */
     const std::vector<Vec3>& getForces_drl_n14() const;
+    // /**
+    //  * Get the nonbonded LJ forces
+    //  */
+    // const std::vector<Vec3>& getForces_drl_vdw() const;
+    // /**
+    //  * Get the nonbonded Coulomb forces
+    //  */
+    // const std::vector<Vec3>& getForces_drl_cou() const;
 
     /**
      * Get the bond forces
@@ -115,7 +123,16 @@ public:
     /**
      * Get the bond forces
      */
-    const std::vector<std::vector<double>>& getEnergies_drl_n14() const;              
+    const std::vector<std::vector<double>>& getEnergies_drl_n14() const;
+    /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_vdw() const;
+           /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_cou() const;
+                         
     // drl END
 
     /**
@@ -174,11 +191,15 @@ private:
     void setForces_drl_ang(const std::vector<Vec3>& force);
     void setForces_drl_tor(const std::vector<Vec3>& force);
     void setForces_drl_n14(const std::vector<Vec3>& force);
+    // void setForces_drl_vdw(const std::vector<Vec3>& force);
+    // void setForces_drl_cou(const std::vector<Vec3>& force);
 
     void setEnergies_drl_bon(const std::vector<std::vector<double>>& force);
     void setEnergies_drl_ang(const std::vector<std::vector<double>>& force);
     void setEnergies_drl_tor(const std::vector<std::vector<double>>& force);
     void setEnergies_drl_n14(const std::vector<std::vector<double>>& force);    
+    void setEnergies_drl_vdw(const std::vector<std::vector<double>>& force);    
+    void setEnergies_drl_cou(const std::vector<std::vector<double>>& force);    
 
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& derivs);
@@ -198,13 +219,17 @@ private:
     std::vector<Vec3> forces_drl_bon; // drl
     std::vector<Vec3> forces_drl_ang; // drl
     std::vector<Vec3> forces_drl_tor; // drl
-    std::vector<Vec3> forces_drl_n14; // drl    
+    std::vector<Vec3> forces_drl_n14; // drl
+    // std::vector<Vec3> forces_drl_vdw; // drl    
+    // std::vector<Vec3> forces_drl_cou; // drl    
+
 
     std::vector<std::vector<double>> energies_drl_bon; // drl
     std::vector<std::vector<double>> energies_drl_ang; // drl
     std::vector<std::vector<double>> energies_drl_tor; // drl
     std::vector<std::vector<double>> energies_drl_n14; // drl
-
+    std::vector<std::vector<double>> energies_drl_vdw; // drl
+    std::vector<std::vector<double>> energies_drl_cou; // drl
 
 
 };
@@ -226,11 +251,15 @@ public:
     void setForces_drl_ang(const std::vector<Vec3>& force);
     void setForces_drl_tor(const std::vector<Vec3>& force);
     void setForces_drl_n14(const std::vector<Vec3>& force);
+    void setForces_drl_vdw(const std::vector<Vec3>& force);
+    void setForces_drl_cou(const std::vector<Vec3>& force);
 
     void setEnergies_drl_bon(const std::vector<std::vector<double>>& force);
     void setEnergies_drl_ang(const std::vector<std::vector<double>>& force);
     void setEnergies_drl_tor(const std::vector<std::vector<double>>& force);
     void setEnergies_drl_n14(const std::vector<std::vector<double>>& force);
+    void setEnergies_drl_vdw(const std::vector<std::vector<double>>& force);
+    void setEnergies_drl_cou(const std::vector<std::vector<double>>& force);
 
     void setParameters(const std::map<std::string, double>& params);
     void setEnergyParameterDerivatives(const std::map<std::string, double>& params);

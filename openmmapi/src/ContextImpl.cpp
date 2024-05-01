@@ -270,7 +270,17 @@ void ContextImpl::getEnergies_drl_tor(std::vector<std::vector<double>>& energies
 void ContextImpl::getEnergies_drl_n14(std::vector<std::vector<double>>& energies_drl_n14) {
     updateStateDataKernel.getAs<UpdateStateDataKernel>().getEnergies_drl_n14(*this, energies_drl_n14);
 }
+
+void ContextImpl::getEnergies_drl_vdw(std::vector<std::vector<double>>& energies_drl_vdw) {
+    updateStateDataKernel.getAs<UpdateStateDataKernel>().getEnergies_drl_vdw(*this, energies_drl_vdw);
+}
+
+void ContextImpl::getEnergies_drl_cou(std::vector<std::vector<double>>& energies_drl_cou) {
+    updateStateDataKernel.getAs<UpdateStateDataKernel>().getEnergies_drl_cou(*this, energies_drl_cou);
+}
+
 //drl END
+
 const std::map<std::string, double>& ContextImpl::getParameters() const {
     return parameters;
 }

@@ -380,7 +380,7 @@ void CpuNonbondedForce::calculateReciprocalIxn(int numberOfAtoms, float* posq, c
 
 void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const vector<Vec3>& atomCoordinates, const vector<pair<float, float> >& atomParameters,
                                            const vector<float>& C6params, const vector<set<int> >& exclusions, vector<AlignedArray<float> >& threadForce, double* totalEnergy, ThreadPool& threads
-                                           , std::vector<std::vector<float> >& drl_vdw, std::vector<std::vector<float> >& drl_coulomb
+                                           , std::vector<std::vector<double> >& energies_drl_vdw, std::vector<std::vector<double> >& energies_drl_cou
                                            , std::vector<std::vector<Vec3> >& drl_F_vdw, std::vector<std::vector<Vec3> >& drl_F_cou
                                            ) {
     // Record the parameters for the threads.
@@ -393,8 +393,8 @@ void CpuNonbondedForce::calculateDirectIxn(int numberOfAtoms, float* posq, const
     this->exclusions = &exclusions[0];
     this->threadForce = &threadForce;
 
-    this->drl_vdw = &drl_vdw;
-    this->drl_coulomb = &drl_coulomb;
+    this->energies_drl_vdw = &energies_drl_vdw;
+    this->energies_drl_cou = &energies_drl_cou;
     this->drl_F_vdw = &drl_F_vdw;
     this->drl_F_cou = &drl_F_cou;
 
@@ -570,8 +570,8 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
         energy *= switchValue;
     }
 
-    (*drl_vdw)[ii][jj] += energy;
-    (*drl_coulomb)[ii][jj] += (chargeProd*inverseR);
+    (*energies_drl_vdw)[ii][jj] += energy;
+    (*energies_drl_cou)[ii][jj] += (chargeProd*inverseR);
 
     // accumulate energies
 
@@ -597,16 +597,6 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
 
     (fvec4(forces+4*ii)+result).store(forces+4*ii);
     (fvec4(forces+4*jj)-result).store(forces+4*jj);
-
-    // drl
-    //drl_mtx.lock();  // drl
-    // printf("drl_vdw_cou %d %d %f %f\n", ii, jj, (*drl_vdw)[ii][jj], (*drl_coulomb)[ii][jj]);
-    // printf("drl_vdw_F %d %d", ii, jj);
-    // for(int fCnt = 0; fCnt < 3; fCnt++){printf(" %f", (*drl_F_vdw)[ii][jj][fCnt]);}printf("\n");
-    // printf("drl_cou_F %d %d", ii, jj);
-    // for(int fCnt = 0; fCnt < 3; fCnt++){printf(" %f", (*drl_F_cou)[ii][jj][fCnt]);}printf("\n");
-    // printf("drl nbenergy nbtotal %f %f\n", energy, *totalEnergy);  // drl
-    //drl_mtx.unlock();  // drl
 
 }
 

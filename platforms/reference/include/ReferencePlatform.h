@@ -79,6 +79,9 @@ public:
     std::vector<std::vector<double>>* energies_drl_tor;
     std::vector<std::vector<double>>* energies_drl_n14;
 
+    std::vector<std::vector<double>>* energies_drl_vdw;
+    std::vector<std::vector<double>>* energies_drl_cou;
+
     Vec3* periodicBoxSize;
     Vec3* periodicBoxVectors;
     ReferenceConstraints* constraints;

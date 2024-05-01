@@ -148,7 +148,18 @@ static vector<vector<double>>& extractEnergies_drl_n14(ContextImpl& context) {
     return *data->energies_drl_n14;
 }
 
+static vector<vector<double>>& extractEnergies_drl_vdw(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_vdw;
+}
+
+static vector<vector<double>>& extractEnergies_drl_cou(ContextImpl& context) {
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    return *data->energies_drl_cou;
+}
+
 //drl END
+
 static Vec3& extractBoxSize(ContextImpl& context) {
     ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
     return *data->periodicBoxSize;
@@ -330,6 +341,22 @@ void ReferenceUpdateStateDataKernel::getForces_drl_n14(ContextImpl& context, std
         forces_drl_n14[i] = Vec3(forceData_drl_n14[i][0], forceData_drl_n14[i][1], forceData_drl_n14[i][2]);
 }
 
+// void ReferenceUpdateStateDataKernel::getForces_drl_vdw(ContextImpl& context, std::vector<Vec3>& forces_drl_vdw) {
+//     int numParticles = context.getSystem().getNumParticles();
+//     vector<Vec3>& forceData_drl_vdw = extractForces_drl_vdw(context);
+//     forces_drl_vdw.resize(numParticles);
+//     for (int i = 0; i < numParticles; ++i)
+//         forces_drl_vdw[i] = Vec3(forceData_drl_vdw[i][0], forceData_drl_vdw[i][1], forceData_drl_vdw[i][2]);
+// }
+
+// void ReferenceUpdateStateDataKernel::getForces_drl_cou(ContextImpl& context, std::vector<Vec3>& forces_drl_cou) {
+//     int numParticles = context.getSystem().getNumParticles();
+//     vector<Vec3>& forceData_drl_cou = extractForces_drl_cou(context);
+//     forces_drl_cou.resize(numParticles);
+//     for (int i = 0; i < numParticles; ++i)
+//         forces_drl_cou[i] = Vec3(forceData_drl_cou[i][0], forceData_drl_cou[i][1], forceData_drl_cou[i][2]);
+// }
+
 void ReferenceUpdateStateDataKernel::getEnergies_drl_bon(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_bon) {
     int numParticles = context.getSystem().getNumParticles();
     vector<vector<double>>& forceData_drl_bon = extractEnergies_drl_bon(context);
@@ -385,7 +412,37 @@ void ReferenceUpdateStateDataKernel::getEnergies_drl_n14(ContextImpl& context, s
         }
     }
 }
+
+void ReferenceUpdateStateDataKernel::getEnergies_drl_vdw(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_vdw) {
+    int numParticles = context.getSystem().getNumParticles();
+    vector<vector<double>>& forceData_drl_vdw = extractEnergies_drl_vdw(context);
+    energies_drl_vdw.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i){
+        energies_drl_vdw[i].resize(numParticles);
+    }
+    for (int i = 0; i < numParticles; ++i){
+        for (int j = 0; j < numParticles; ++j){
+            energies_drl_vdw[i][j] = forceData_drl_vdw[i][j];
+        }
+    }
+}
+
+void ReferenceUpdateStateDataKernel::getEnergies_drl_cou(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_cou) {
+    int numParticles = context.getSystem().getNumParticles();
+    vector<vector<double>>& forceData_drl_cou = extractEnergies_drl_cou(context);
+    energies_drl_cou.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i){
+        energies_drl_cou[i].resize(numParticles);
+    }
+    for (int i = 0; i < numParticles; ++i){
+        for (int j = 0; j < numParticles; ++j){
+            energies_drl_cou[i][j] = forceData_drl_cou[i][j];
+        }
+    }
+}
+
 // drl END
+
 void ReferenceUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
     derivs = extractEnergyParameterDerivatives(context);
 }
