@@ -328,6 +328,18 @@ void CpuCalcForcesAndEnergyKernel::beginComputation(ContextImpl& context, bool i
             lastPositions = posData;
         }
     }
+
+    // drl BEGIN       
+    vector<vector<double>>& drlEnergyData_vdw = extractEnergies_drl_vdw(context);
+    vector<vector<double>>& drlEnergyData_cou = extractEnergies_drl_cou(context);
+    for(int i = 0; i < numParticles; i++){
+        for(int j = 0; j < numParticles; j++){
+            drlEnergyData_vdw[i][j] = 0;
+            drlEnergyData_cou[i][j] = 0;
+        }
+    }
+    // drl END
+
 }
 
 double CpuCalcForcesAndEnergyKernel::finishComputation(ContextImpl& context, bool includeForce, bool includeEnergy, int groups, bool& valid) {
@@ -351,18 +363,57 @@ double CpuCalcForcesAndEnergyKernel::finishComputation(ContextImpl& context, boo
         }
 
         // drl BEGIN
-        // vector<vector<double>>& drlEnergyData_vdw = extractEnergies_drl_vdw(context);
-        // for (int i = start; i < end; i++) {
-        //     fvec4 f(0.0f);
-        //     for (int j = 0; j < numThreads; j++)
-        //         f += (&data.energies_drl_vdw[j][4*i]);
-        //     drlEnergyData_vdw[i] += f;
+        //start = threadIndex*numParticles/numThreads;
+        //end = (threadIndex+1)*numParticles/numThreads;        
+        //int numParticles = context.getSystem().getNumParticles(); // drl
+        //vector<vector<double>>& drlEnergyData_vdw = extractEnergies_drl_vdw(context);
+        //vector<vector<double>>& drlEnergyData_cou = extractEnergies_drl_cou(context);
+
+        // for(int i = 0; i < numParticles; i++){printf("[FINISH]");
+        //     for(int j = 0; j < numParticles; j++){
+        //         printf(" %.2f", (data.energies_drl_vdw)[i][j]);
+        //     }printf("\n");
+        // }
+        // for(int i = 0; i < numParticles; i++){printf("[FINISH]");
+        //     for(int j = 0; j < numParticles; j++){
+        //         printf(" %.2f", (data.energies_drl_cou)[i][j]);
+        //     }printf("\n");
+        // }
+
+        // //printf("[FINISH thread size] %d %d\n", threadIndex, (data.energies_drl_vdw).size());        
+        // for(int i = 0; i < numParticles; i++){
+        //     //printf("[FINISH thread i size] %d %d %d\n", threadIndex, i, (data.energies_drl_vdw)[i].size());            
+        //     for(int j = 0; j < numParticles; j++){
+        //         //printf("[FINISH thread i j size] %d %d %d %.2f\n", threadIndex, i, j, (data.energies_drl_vdw)[i][j]);
+        //         drlEnergyData_vdw[i][j] += (data.energies_drl_vdw)[i][j];
+        //         drlEnergyData_cou[i][j] += (data.energies_drl_cou)[i][j];
+        //     }//printf("\n");
         // }
         // drl END
 
     });
     data.threads.waitForThreads();
+
+    int numParticles = context.getSystem().getNumParticles();
+    vector<vector<double>>& drlEnergyData_vdw = extractEnergies_drl_vdw(context);
+    vector<vector<double>>& drlEnergyData_cou = extractEnergies_drl_cou(context);    
+    //printf("[FINISH thread size] %d %d\n", threadIndex, (data.energies_drl_vdw).size());        
+    for(int i = 0; i < numParticles; i++){
+        //printf("[FINISH thread i size] %d %d %d\n", threadIndex, i, (data.energies_drl_vdw)[i].size());            
+        for(int j = 0; j < numParticles; j++){
+            //printf("[FINISH thread i j size] %d %d %d %.2f\n", threadIndex, i, j, (data.energies_drl_vdw)[i][j]);
+            drlEnergyData_vdw[i][j] = (data.energies_drl_vdw)[i][j];
+            drlEnergyData_cou[i][j] = (data.energies_drl_cou)[i][j];
+        }//printf("\n");
+    }
+    // drl END
+
+
+
+
     return referenceKernel.getAs<ReferenceCalcForcesAndEnergyKernel>().finishComputation(context, includeForce, includeEnergy, groups, valid);
+
+
 }
 
 void CpuCalcHarmonicAngleForceKernel::initialize(const System& system, const HarmonicAngleForce& force) {
@@ -849,23 +900,23 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
             data.energies_drl_vdw, data.energies_drl_cou, data.drl_F_vdw, data.drl_F_cou);
 
 
-        printf("OPENMM_DRILL vanDerWaals\n");fflush(stdout);
-        for(unsigned int i = 0; i < numParticles; i++){
-            printf("drl_vdw");fflush(stdout);
-            for(unsigned int j = 0; j < numParticles; j++){
-                printf( " %.5f", data.energies_drl_vdw[i][j]);
-            }
-            printf("\n");fflush(stdout);
-        }
-        printf("OPENMM_DRILL Coulomb\n");fflush(stdout);
-        for(unsigned int i = 0; i < numParticles; i++){
-            printf("drl_cou");fflush(stdout);
-            for(unsigned int j = 0; j < numParticles; j++){
-                printf( " %.5f", data.energies_drl_cou[i][j]);
-            }
-            printf("\n");fflush(stdout);
-        }
-        printf("OPENMM_DRL Nonbonded %f\n", nonbondedEnergy);fflush(stdout);
+        // printf("OPENMM_DRILL vanDerWaals\n");fflush(stdout);
+        // for(unsigned int i = 0; i < numParticles; i++){
+        //     printf("drl_vdw");fflush(stdout);
+        //     for(unsigned int j = 0; j < numParticles; j++){
+        //         printf( " %.5f", data.energies_drl_vdw[i][j]);
+        //     }
+        //     printf("\n");fflush(stdout);
+        // }
+        // printf("OPENMM_DRILL Coulomb\n");fflush(stdout);
+        // for(unsigned int i = 0; i < numParticles; i++){
+        //     printf("drl_cou");fflush(stdout);
+        //     for(unsigned int j = 0; j < numParticles; j++){
+        //         printf( " %.5f", data.energies_drl_cou[i][j]);
+        //     }
+        //     printf("\n");fflush(stdout);
+        // }
+        // printf("OPENMM_DRL Nonbonded %f\n", nonbondedEnergy);fflush(stdout);
 
 
     }

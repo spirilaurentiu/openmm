@@ -570,8 +570,8 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
         energy *= switchValue;
     }
 
-    (*energies_drl_vdw)[ii][jj] += energy;
-    (*energies_drl_cou)[ii][jj] += (chargeProd*inverseR);
+    (*energies_drl_vdw)[ii][jj] = energy;
+    (*energies_drl_cou)[ii][jj] = (chargeProd*inverseR);
 
     // accumulate energies
 
