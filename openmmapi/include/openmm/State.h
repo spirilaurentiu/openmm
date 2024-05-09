@@ -59,7 +59,9 @@ public:
      * This is an enumeration of the types of data which may be stored in a State.  When you create
      * a State, use these values to specify which data types it should contain.
      */
-    enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64};
+    //enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64};
+    enum DataType {Positions=1, Velocities=2, Forces=4, Energy=8, Parameters=16, ParameterDerivatives=32, IntegratorParameters=64
+        , Forces_drl_bon=128, Forces_drl_ang=256, Forces_drl_tor=512, Forces_drl_vdw=1024, Forces_drl_cou=2048, Forces_drl_n14=4096}; // drl    
     /**
      * Construct an empty State containing no data.  This exists so State objects can be used in STL containers.
      */
@@ -80,6 +82,61 @@ public:
      * Get the force acting on each particle.  If this State does not contain forces, this will throw an exception.
      */
     const std::vector<Vec3>& getForces() const;
+
+    // part of the OPENMM_DRILL drl
+    /**
+     * Get the bond forces
+     */
+    const std::vector<Vec3>& getForces_drl_bon() const;
+    /**
+     * Get the angle forces
+     */
+    const std::vector<Vec3>& getForces_drl_ang() const;
+    /**
+     * Get the torsion forces
+     */
+    const std::vector<Vec3>& getForces_drl_tor() const;
+    /**
+     * Get the nonbonded 1-4 forces
+     */
+    const std::vector<Vec3>& getForces_drl_n14() const;
+    // /**
+    //  * Get the nonbonded LJ forces
+    //  */
+    // const std::vector<Vec3>& getForces_drl_vdw() const;
+    // /**
+    //  * Get the nonbonded Coulomb forces
+    //  */
+    // const std::vector<Vec3>& getForces_drl_cou() const;
+
+    /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_bon() const;
+    /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_ang() const;              
+    /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_tor() const;              
+    /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_n14() const;
+    /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_vdw() const;
+           /**
+     * Get the bond forces
+     */
+    const std::vector<std::vector<double>>& getEnergies_drl_cou() const;
+                         
+    // drl END
+
+
     /**
      * Get the total kinetic energy of the system.  If this State does not contain energies, this will throw an exception.
      *
@@ -142,6 +199,22 @@ private:
     std::vector<Vec3> positions;
     std::vector<Vec3> velocities;
     std::vector<Vec3> forces;
+
+    std::vector<Vec3> forces_drl_bon; // drl
+    std::vector<Vec3> forces_drl_ang; // drl
+    std::vector<Vec3> forces_drl_tor; // drl
+    std::vector<Vec3> forces_drl_n14; // drl
+    // std::vector<Vec3> forces_drl_vdw; // drl    
+    // std::vector<Vec3> forces_drl_cou; // drl    
+
+
+    std::vector<std::vector<double>> energies_drl_bon; // drl
+    std::vector<std::vector<double>> energies_drl_ang; // drl
+    std::vector<std::vector<double>> energies_drl_tor; // drl
+    std::vector<std::vector<double>> energies_drl_n14; // drl
+    std::vector<std::vector<double>> energies_drl_vdw; // drl
+    std::vector<std::vector<double>> energies_drl_cou; // drl
+
     Vec3 periodicBoxVectors[3];
     std::map<std::string, double> parameters, energyParameterDerivatives;
     SerializationNode integratorParameters;

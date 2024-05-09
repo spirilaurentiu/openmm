@@ -53,6 +53,83 @@ const vector<Vec3>& State::getForces() const {
         throw OpenMMException("Invoked getForces() on a State which does not contain forces.");
     return forces;
 }
+
+
+// drl BEGIN
+const vector<Vec3>& State::getForces_drl_bon() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getForces_drl_bon() on a State which does not contain forces.");
+    return forces_drl_bon;
+}
+
+const vector<Vec3>& State::getForces_drl_ang() const {
+    if ((types&Forces_drl_ang) == 0)
+        throw OpenMMException("Invoked getForces_drl_ang() on a State which does not contain forces.");
+    return forces_drl_ang;
+}
+
+const vector<Vec3>& State::getForces_drl_tor() const {
+    if ((types&Forces_drl_tor) == 0)
+        throw OpenMMException("Invoked getForces_drl_tor() on a State which does not contain forces.");
+    return forces_drl_tor;
+}
+
+const vector<Vec3>& State::getForces_drl_n14() const {
+    if ((types&Forces_drl_n14) == 0)
+        throw OpenMMException("Invoked getForces_drl_n14() on a State which does not contain forces.");
+    return forces_drl_n14;
+}
+
+// const vector<Vec3>& State::getForces_drl_vdw() const {
+//     if ((types&Forces_drl_vdw) == 0)
+//         throw OpenMMException("Invoked getForces_drl_vdw() on a State which does not contain forces.");
+//     return forces_drl_vdw;
+// }
+
+// const vector<Vec3>& State::getForces_drl_cou() const {
+//     if ((types&Forces_drl_cou) == 0)
+//         throw OpenMMException("Invoked getForces_drl_cou() on a State which does not contain forces.");
+//     return forces_drl_cou;
+// }
+
+const vector<vector<double>>& State::getEnergies_drl_bon() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_bon() on a State which does not contain forces.");
+    return energies_drl_bon;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_ang() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_ang() on a State which does not contain forces.");
+    return energies_drl_ang;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_tor() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_tor() on a State which does not contain forces.");
+    return energies_drl_tor;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_n14() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_n14() on a State which does not contain forces.");
+    return energies_drl_n14;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_vdw() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_vdw() on a State which does not contain forces.");
+    return energies_drl_vdw;
+}
+
+const vector<vector<double>>& State::getEnergies_drl_cou() const {
+    if ((types&Forces_drl_bon) == 0)
+        throw OpenMMException("Invoked getEnergies_drl_cou() on a State which does not contain forces.");
+    return energies_drl_cou;
+}
+
+//drl END
+
 double State::getKineticEnergy() const {
     if ((types&Energy) == 0)
         throw OpenMMException("Invoked getKineticEnergy() on a State which does not contain energies.");
