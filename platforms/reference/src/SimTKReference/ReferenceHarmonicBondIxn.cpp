@@ -140,13 +140,13 @@ void ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl(std::vector<int>& atom
     if(atomAIndex < atomBIndex){
         energies[atomAIndex][atomBIndex] += energy;
     
-        printf("drl ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl %d %d %f %f \n",
-            atomAIndex, atomBIndex, energy, energies[atomAIndex][atomBIndex]);
+        //printf("drl ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl %d %d %f %f \n",
+        //    atomAIndex, atomBIndex, energy, energies[atomAIndex][atomBIndex]);
      }else{
         energies[atomBIndex][atomAIndex] += energy;
     
-        printf("drl ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl %d %d %f %f \n",
-            atomAIndex, atomBIndex, energy, energies[atomBIndex][atomAIndex]);
+        //printf("drl ReferenceHarmonicBondIxn::calculateBondIxnEnergy_drl %d %d %f %f \n",
+        //    atomAIndex, atomBIndex, energy, energies[atomBIndex][atomAIndex]);
      } 
                                        
 }

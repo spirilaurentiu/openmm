@@ -232,14 +232,14 @@ void ReferenceProperDihedralBond::calculateBondIxnEnergy_drl(vector<int>& atomIn
    if(atomBIndex < atomCIndex){
       energies[atomBIndex][atomCIndex] += energy;
 
-      printf("drl ReferenceProperDihedralBond::calculateBondIxnEnergy_drl %d %d %d %d %f %f \n",
-         atomAIndex, atomBIndex, atomCIndex, atomDIndex, energy, energies[atomBIndex][atomCIndex]);
+      //printf("drl ReferenceProperDihedralBond::calculateBondIxnEnergy_drl %d %d %d %d %f %f \n",
+      //   atomAIndex, atomBIndex, atomCIndex, atomDIndex, energy, energies[atomBIndex][atomCIndex]);
 
    }else{
       energies[atomCIndex][atomBIndex] += energy;
 
-      printf("drl ReferenceProperDihedralBond::calculateBondIxnEnergy_drl %d %d %d %d %f %f \n",
-         atomAIndex, atomBIndex, atomCIndex, atomDIndex, energy, energies[atomCIndex][atomBIndex]);
+      //printf("drl ReferenceProperDihedralBond::calculateBondIxnEnergy_drl %d %d %d %d %f %f \n",
+      //   atomAIndex, atomBIndex, atomCIndex, atomDIndex, energy, energies[atomCIndex][atomBIndex]);
 
    }
 

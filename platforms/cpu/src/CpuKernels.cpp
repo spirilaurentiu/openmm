@@ -485,7 +485,7 @@ double CpuCalcHarmonicAngleForceKernel::execute(ContextImpl& context, bool inclu
     //         forceData_drl_ang[fIx][0], forceData_drl_ang[fIx][1], forceData_drl_ang[fIx][2]);
     // }
 
-    printf("drl CpuCalcHarmonicAngleForceKernel::execute energy %f \n", energy); // drl
+    //printf("drl CpuCalcHarmonicAngleForceKernel::execute energy %f \n", energy); // drl
     // drl angle forces END
 
     return energy;
@@ -565,7 +565,7 @@ double CpuCalcPeriodicTorsionForceKernel::execute(ContextImpl& context, bool inc
         forceData_drl_tor[fIx][2] = forceData[fIx][2] - forceData_drl_tor[fIx][0];
     }
 
-    printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
+    //printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
     // drl torsion forces END
 
     return energy;
@@ -961,14 +961,14 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
             forceData_drl_n14[fIx][2] = forceData[fIx][2] - forceData_drl_n14[fIx][0];
         }
 
-    printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
+    //printf("drl CpuCalcPeriodicTorsionForceKernel::execute energy %f \n", energy); // drl
     // drl torsion forces END
 
 
         if (data.isPeriodic && nonbondedMethod != LJPME)
             energy += dispersionCoefficient/(boxVectors[0][0]*boxVectors[1][1]*boxVectors[2][2]);
     }
-    printf("drl CpuCalcNonbondedForceKernel::execute nonbonded_energy energy %.6f %.6f\n", nonbondedEnergy, energy);
+    //printf("drl CpuCalcNonbondedForceKernel::execute nonbonded_energy energy %.6f %.6f\n", nonbondedEnergy, energy);
     return energy;
 }
 

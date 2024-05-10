@@ -140,14 +140,14 @@ void ReferenceLJCoulomb14::calculateBondIxnEnergy_drl(vector<int>& atomIndices, 
    if(atomAIndex < atomBIndex){
       energies[atomAIndex][atomBIndex] = energy;
 
-    printf("drl ReferenceLJCoulomb14::calculateBondIxnEnergy_drl %d %d %f %f \n",
-        atomAIndex, atomBIndex, energy, energies[atomAIndex][atomBIndex]);                                
+    //printf("drl ReferenceLJCoulomb14::calculateBondIxnEnergy_drl %d %d %f %f \n",
+    //    atomAIndex, atomBIndex, energy, energies[atomAIndex][atomBIndex]);                                
       
    }else{
       energies[atomBIndex][atomAIndex] = energy;
 
-    printf("drl ReferenceLJCoulomb14::calculateBondIxnEnergy_drl %d %d %f %f \n",
-        atomAIndex, atomBIndex, energy, energies[atomBIndex][atomAIndex]);                                
+    //printf("drl ReferenceLJCoulomb14::calculateBondIxnEnergy_drl %d %d %f %f \n",
+    //    atomAIndex, atomBIndex, energy, energies[atomBIndex][atomAIndex]);                                
    }    
 
 

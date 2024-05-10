@@ -584,7 +584,7 @@ double ReferenceCalcHarmonicBondForceKernel::execute(ContextImpl& context, bool 
     //     printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond %f %f %f\n",
     //         forceData_drl_bon[fIx][0], forceData_drl_bon[fIx][1], forceData_drl_bon[fIx][2]);
     // }
-    printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond_energy %.6f\n", energy);
+    //printf("drl ReferenceCalcHarmonicBondForceKernel::execute bond_energy %.6f\n", energy);
     // drl END
 
     return energy;
