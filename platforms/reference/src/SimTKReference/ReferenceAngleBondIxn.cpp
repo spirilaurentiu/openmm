@@ -166,6 +166,8 @@ void ReferenceAngleBondIxn::calculateBondIxn(vector<int>& atomIndices,
    if (totalEnergy != NULL)
        *totalEnergy += energy;
 
+   printf("drl ReferenceAngleBondIxn::calculateBondIxn %d %d %d %f \n",
+      atomIndices[0], atomIndices[1], atomIndices[2], energy);
 }
 
 /**---------------------------------------------------------------------------------------
