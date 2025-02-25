@@ -308,6 +308,8 @@ void ReferenceUpdateStateDataKernel::getForces(ContextImpl& context, std::vector
     for (int i = 0; i < numParticles; ++i)
         forces[i] = Vec3(forceData[i][0], forceData[i][1], forceData[i][2]);
 }
+
+
 //drl BEGIN
 void ReferenceUpdateStateDataKernel::getForces_drl_bon(ContextImpl& context, std::vector<Vec3>& forces_drl_bon) {
     int numParticles = context.getSystem().getNumParticles();
@@ -442,6 +444,7 @@ void ReferenceUpdateStateDataKernel::getEnergies_drl_cou(ContextImpl& context, s
 }
 
 // drl END
+
 
 void ReferenceUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
     derivs = extractEnergyParameterDerivatives(context);

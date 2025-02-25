@@ -303,6 +303,68 @@ void OpenCLUpdateStateDataKernel::getForces(ContextImpl& context, vector<Vec3>& 
     }
 }
 
+
+//drl BEGIN
+void OpenCLUpdateStateDataKernel::getForces_drl_bon(ContextImpl& context, std::vector<Vec3>& forces_drl_bon) {
+    assert(!"Not implemented");
+}
+
+void OpenCLUpdateStateDataKernel::getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang) {
+    assert(!"Not implemented");
+
+}
+
+void OpenCLUpdateStateDataKernel::getForces_drl_tor(ContextImpl& context, std::vector<Vec3>& forces_drl_tor) {
+    assert(!"Not implemented");
+
+}
+
+void OpenCLUpdateStateDataKernel::getForces_drl_n14(ContextImpl& context, std::vector<Vec3>& forces_drl_n14) {
+    assert(!"Not implemented");
+
+}
+
+// void OpenCLUpdateStateDataKernel::getForces_drl_vdw(ContextImpl& context, std::vector<Vec3>& forces_drl_vdw) {
+//    assert(!"Not implemented");
+// }
+
+// void OpenCLUpdateStateDataKernel::getForces_drl_cou(ContextImpl& context, std::vector<Vec3>& forces_drl_cou) {
+//    assert(!"Not implemented");
+// }
+
+void OpenCLUpdateStateDataKernel::getEnergies_drl_bon(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_bon) {
+    assert(!"Not implemented");
+    
+}
+
+void OpenCLUpdateStateDataKernel::getEnergies_drl_ang(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_ang) {
+    assert(!"Not implemented");
+
+}
+
+void OpenCLUpdateStateDataKernel::getEnergies_drl_tor(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_tor) {
+    assert(!"Not implemented");
+
+}
+
+void OpenCLUpdateStateDataKernel::getEnergies_drl_n14(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_n14) {
+    assert(!"Not implemented");
+
+}
+
+void OpenCLUpdateStateDataKernel::getEnergies_drl_vdw(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_vdw) {
+    assert(!"Not implemented");
+
+}
+
+void OpenCLUpdateStateDataKernel::getEnergies_drl_cou(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_cou) {
+    assert(!"Not implemented");
+
+}
+
+// drl END
+
+
 void OpenCLUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
     const vector<string>& paramDerivNames = cl.getEnergyParamDerivNames();
     int numDerivs = paramDerivNames.size();
