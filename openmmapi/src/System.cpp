@@ -58,6 +58,7 @@ double System::getParticleMass(int index) const {
 
 void System::setParticleMass(int index, double mass) {
     ASSERT_VALID_INDEX(index, masses);
+    printf("STUDY_OMM_System::setParticleMass index mass %d %.6f\n", index, mass);      
     masses[index] = mass;
 }
 
