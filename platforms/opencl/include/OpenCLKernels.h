@@ -140,7 +140,7 @@ public:
     void getForces(ContextImpl& context, std::vector<Vec3>& forces);
 
 
-        //drl BEGIN    
+    //drl BEGIN    
     /**
      * Get the current drl vdw forces on all particles.
      *
@@ -221,7 +221,6 @@ public:
      * @param energies_drl_cou  on exit, this contains the forces
      */
     void getEnergies_drl_cou(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_cou);
-
     // drl END
 
 

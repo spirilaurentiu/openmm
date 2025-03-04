@@ -282,6 +282,69 @@ void CudaUpdateStateDataKernel::getForces(ContextImpl& context, vector<Vec3>& fo
         forces[order[i]] = Vec3(scale*force[i], scale*force[i+paddedNumParticles], scale*force[i+paddedNumParticles*2]);
 }
 
+
+//drl BEGIN
+void CudaUpdateStateDataKernel::getForces_drl_bon(ContextImpl& context, std::vector<Vec3>& forces_drl_bon) {
+    assert(!"Not implemented");
+}
+
+void CudaUpdateStateDataKernel::getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang) {
+    assert(!"Not implemented");
+
+}
+
+void CudaUpdateStateDataKernel::getForces_drl_tor(ContextImpl& context, std::vector<Vec3>& forces_drl_tor) {
+    assert(!"Not implemented");
+
+}
+
+void CudaUpdateStateDataKernel::getForces_drl_n14(ContextImpl& context, std::vector<Vec3>& forces_drl_n14) {
+    assert(!"Not implemented");
+
+}
+
+// void CudaUpdateStateDataKernel::getForces_drl_vdw(ContextImpl& context, std::vector<Vec3>& forces_drl_vdw) {
+//    assert(!"Not implemented");
+// }
+
+// void CudaUpdateStateDataKernel::getForces_drl_cou(ContextImpl& context, std::vector<Vec3>& forces_drl_cou) {
+//    assert(!"Not implemented");
+// }
+
+void CudaUpdateStateDataKernel::getEnergies_drl_bon(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_bon) {
+    assert(!"Not implemented");
+    
+}
+
+void CudaUpdateStateDataKernel::getEnergies_drl_ang(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_ang) {
+    assert(!"Not implemented");
+
+}
+
+void CudaUpdateStateDataKernel::getEnergies_drl_tor(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_tor) {
+    assert(!"Not implemented");
+
+}
+
+void CudaUpdateStateDataKernel::getEnergies_drl_n14(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_n14) {
+    assert(!"Not implemented");
+
+}
+
+void CudaUpdateStateDataKernel::getEnergies_drl_vdw(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_vdw) {
+    assert(!"Not implemented");
+
+}
+
+void CudaUpdateStateDataKernel::getEnergies_drl_cou(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_cou) {
+    assert(!"Not implemented");
+
+}
+
+// drl END
+
+
+
 void CudaUpdateStateDataKernel::getEnergyParameterDerivatives(ContextImpl& context, map<string, double>& derivs) {
     const vector<string>& paramDerivNames = cu.getEnergyParamDerivNames();
     int numDerivs = paramDerivNames.size();
