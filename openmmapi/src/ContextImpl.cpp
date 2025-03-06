@@ -222,6 +222,13 @@ void ContextImpl::getPositions(std::vector<Vec3>& positions) {
 }
 
 void ContextImpl::setPositions(const std::vector<Vec3>& positions) {
+
+    for(int i=0; i<positions.size(); i++){
+        Vec3 pos_ = positions[i];
+        //std::cout<<"drl_"<<__FILE__<<":"<<__LINE__<<":"<<system.getParticleMass(i)<<" "<<pos_[0]<<" "<<pos_[1]<<" "<<pos_[2]<<"\n";
+    }
+
+    
     hasSetPositions = true;
     updateStateDataKernel.getAs<UpdateStateDataKernel>().setPositions(*this, positions);
     integrator.stateChanged(State::Positions);

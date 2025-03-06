@@ -273,6 +273,7 @@ string OpenCLBondedUtilities::createForceSource(int forceIndex, int numBonds, in
 }
 
 void OpenCLBondedUtilities::computeInteractions(int groups) {
+    //std::cout<<"drl_OpenCL:"<<__FILE__<<":"<<__LINE__<<":computeInteractions\n";
     if ((groups&allGroups) == 0)
         return;
     if (!hasInitializedKernels) {
