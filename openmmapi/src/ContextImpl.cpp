@@ -71,7 +71,6 @@ ContextImpl::ContextImpl(Context& owner, const System& system, Integrator& integ
                 if (system.isVirtualSite(site.getParticle(j)))
                     throw OpenMMException("A virtual site cannot depend on another virtual site");
         }
-        printf("STUDY_ContextImpl::ContextImpl massed %d %.6f\n", i, system.getParticleMass(i));
     }
     set<pair<int, int> > constraintAtoms;
     for (int i = 0; i < system.getNumConstraints(); i++) {
