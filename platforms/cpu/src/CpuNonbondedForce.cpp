@@ -109,6 +109,7 @@ void CpuNonbondedForce::setUseSwitchingFunction(float distance) {
      --------------------------------------------------------------------------------------- */
 
 void CpuNonbondedForce::setPeriodic(Vec3* periodicBoxVectors) {
+    printf("OMM::CpuNonbondedForce::setPeriodic %s\n", "_begin_");
 
     assert(cutoff);
     assert(periodicBoxVectors[0][0] >= 2.0*cutoffDistance);
@@ -118,6 +119,11 @@ void CpuNonbondedForce::setPeriodic(Vec3* periodicBoxVectors) {
     this->periodicBoxVectors[0] = periodicBoxVectors[0];
     this->periodicBoxVectors[1] = periodicBoxVectors[1];
     this->periodicBoxVectors[2] = periodicBoxVectors[2];
+
+    printf("OMM::CpuNonbondedForce::setPeriodic %f %f %f\n", this->periodicBoxVectors[0][0], this->periodicBoxVectors[0][1], this->periodicBoxVectors[0][2]);
+    printf("OMM::CpuNonbondedForce::setPeriodic %f %f %f\n", this->periodicBoxVectors[1][0], this->periodicBoxVectors[1][1], this->periodicBoxVectors[1][2]);
+    printf("OMM::CpuNonbondedForce::setPeriodic %f %f %f\n", this->periodicBoxVectors[2][0], this->periodicBoxVectors[2][1], this->periodicBoxVectors[2][2]);
+
     recipBoxSize[0] = (float) (1.0/periodicBoxVectors[0][0]);
     recipBoxSize[1] = (float) (1.0/periodicBoxVectors[1][1]);
     recipBoxSize[2] = (float) (1.0/periodicBoxVectors[2][2]);
@@ -246,6 +252,9 @@ void CpuNonbondedForce::tabulateExpTerms() {
 void CpuNonbondedForce::calculateReciprocalIxn(int numberOfAtoms, float* posq, const vector<Vec3>& atomCoordinates,
                                                const vector<pair<float, float> >& atomParameters, const vector<float> &C6params, const vector<set<int> >& exclusions,
                                                vector<Vec3>& forces, double* totalEnergy) const {
+                                                
+    //printf("OMMPME::CpuNonbondedForce::calculateReciprocalIxn %s\n", "_begin_");    
+
     typedef std::complex<float> d_complex;
 
     static const float epsilon     =  1.0;
@@ -365,6 +374,8 @@ void CpuNonbondedForce::calculateReciprocalIxn(int numberOfAtoms, float* posq, c
                         forces[n][1] += 2 * recipCoeff * force * ky;
                         forces[n][2] += 2 * recipCoeff * force * kz;
                     }
+
+                    printf("drl ewaldEnergy recipCoeff ak cs ss %f %f %f %f\n", recipCoeff, ak, cs, ss); // drl
 
                     if (totalEnergy)
                         *totalEnergy += recipCoeff * ak * (cs * cs + ss * ss);
@@ -572,6 +583,9 @@ void CpuNonbondedForce::calculateOneIxn(int ii, int jj, float* forces, double* t
 
     (*energies_drl_vdw)[ii][jj] = energy;
     (*energies_drl_cou)[ii][jj] = (chargeProd*inverseR);
+
+    //printf("drl CpuNonbondedForce::calculateOneIxn vdw %d %d %f\n", ii, jj, (*energies_drl_vdw)[ii][jj]);
+    //printf("drl CpuNonbondedForce::calculateOneIxn cou %d %d %f\n", ii, jj, (*energies_drl_cou)[ii][jj]);
 
     // accumulate energies
 

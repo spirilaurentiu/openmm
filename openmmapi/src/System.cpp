@@ -42,6 +42,10 @@ System::System() {
     periodicBoxVectors[0] = Vec3(2, 0, 0);
     periodicBoxVectors[1] = Vec3(0, 2, 0);
     periodicBoxVectors[2] = Vec3(0, 0, 2);
+
+    printf("OMM::System::System %f %f %f\n", periodicBoxVectors[0][0], periodicBoxVectors[0][1], periodicBoxVectors[0][2]);
+    printf("OMM::System::System %f %f %f\n", periodicBoxVectors[1][0], periodicBoxVectors[1][1], periodicBoxVectors[1][2]);
+    printf("OMM::System::System %f %f %f\n", periodicBoxVectors[2][0], periodicBoxVectors[2][1], periodicBoxVectors[2][2]);
 }
 
 System::~System() {
@@ -120,9 +124,15 @@ void System::getDefaultPeriodicBoxVectors(Vec3& a, Vec3& b, Vec3& c) const {
     a = periodicBoxVectors[0];
     b = periodicBoxVectors[1];
     c = periodicBoxVectors[2];
+
+    printf("OMM::System::getDefaultPeriodicBoxVectors %f %f %f\n", a[0], a[1], a[2]);
+    printf("OMM::System::getDefaultPeriodicBoxVectors %f %f %f\n", b[0], b[1], b[2]);
+    printf("OMM::System::getDefaultPeriodicBoxVectors %f %f %f\n", c[0], c[1], c[2]);    
+    
 }
 
 void System::setDefaultPeriodicBoxVectors(const Vec3& a, const Vec3& b, const Vec3& c) {
+    printf("OMM::System::setDefaultPeriodicBoxVectors %s\n", "_begin_");
     if (a[1] != 0.0 || a[2] != 0.0)
         throw OpenMMException("First periodic box vector must be parallel to x.");
     if (b[2] != 0.0)
@@ -132,6 +142,10 @@ void System::setDefaultPeriodicBoxVectors(const Vec3& a, const Vec3& b, const Ve
     periodicBoxVectors[0] = a;
     periodicBoxVectors[1] = b;
     periodicBoxVectors[2] = c;
+    printf("OMM::System::setDefaultPeriodicBoxVectors %f %f %f\n", periodicBoxVectors[0][0], periodicBoxVectors[0][1], periodicBoxVectors[0][2]);
+    printf("OMM::System::setDefaultPeriodicBoxVectors %f %f %f\n", periodicBoxVectors[1][0], periodicBoxVectors[1][1], periodicBoxVectors[1][2]);
+    printf("OMM::System::setDefaultPeriodicBoxVectors %f %f %f\n", periodicBoxVectors[2][0], periodicBoxVectors[2][1], periodicBoxVectors[2][2]);
+
 }
 
 bool System::usesPeriodicBoundaryConditions() const {

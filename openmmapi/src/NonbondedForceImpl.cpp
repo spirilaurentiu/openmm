@@ -94,8 +94,10 @@ void NonbondedForceImpl::initialize(ContextImpl& context) {
         Vec3 boxVectors[3];
         system.getDefaultPeriodicBoxVectors(boxVectors[0], boxVectors[1], boxVectors[2]);
         double cutoff = owner.getCutoffDistance();
-        if (cutoff > 0.5*boxVectors[0][0] || cutoff > 0.5*boxVectors[1][1] || cutoff > 0.5*boxVectors[2][2])
+        if (cutoff > 0.5*boxVectors[0][0] || cutoff > 0.5*boxVectors[1][1] || cutoff > 0.5*boxVectors[2][2]){
+            printf("OMM::NonbondedForceImpl::initialize cutoff box00 box11 box22 %f %f %f %f\n", cutoff, boxVectors[0][0], boxVectors[1][1], boxVectors[2][2]);
             throw OpenMMException("NonbondedForce: The cutoff distance cannot be greater than half the periodic box size.");
+        }
         if (owner.getNonbondedMethod() == NonbondedForce::Ewald && (boxVectors[1][0] != 0.0 || boxVectors[2][0] != 0.0 || boxVectors[2][1] != 0))
             throw OpenMMException("NonbondedForce: Ewald is not supported with non-rectangular boxes.  Use PME instead.");
     }

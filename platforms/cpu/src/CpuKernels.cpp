@@ -810,6 +810,7 @@ void CpuCalcNonbondedForceKernel::initialize(const System& system, const Nonbond
 }
 
 double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeForces, bool includeEnergy, bool includeDirect, bool includeReciprocal) {
+    //printf("OMMPME:: CpuCalcNonbondedForceKernel::execute %s %d\n", "_begin_", nonbondedMethod);
     if (!hasInitializedPme) {
         hasInitializedPme = true;
         useOptimizedPme = false;
@@ -916,11 +917,20 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         //     }
         //     printf("\n");fflush(stdout);
         // }
+        // printf("OPENMM_DRILL N14\n");fflush(stdout);
+        // for(unsigned int i = 0; i < numParticles; i++){
+        //     printf("drl_n14");fflush(stdout);
+        //     for(unsigned int j = 0; j < numParticles; j++){
+        //         printf( " %.5f", drlEnergyData_n14[i][j]);
+        //     }
+        //     printf("\n");fflush(stdout);
+        // }
         // printf("OPENMM_DRL Nonbonded %f\n", nonbondedEnergy);fflush(stdout);
 
 
     }
     if (includeReciprocal) {
+        //printf("OMMPEM:: CpuCalcNonbondedForceKernel::execute %s %d\n", "includeReciprocal", includeReciprocal);    
         if (useOptimizedPme) {
             PmeIO io(&posq[0], &data.threadForce[0][0], numParticles);
             Vec3 periodicBoxVectors[3] = {boxVectors[0], boxVectors[1], boxVectors[2]};
@@ -945,14 +955,13 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         bondForce.calculateForce(posData, bonded14ParamArray, forceData, includeEnergy ? &energy : NULL, nonbonded14);  
         bondForce.calculateEnergy_drl(posData, bonded14ParamArray, drlEnergyData_n14, includeEnergy ? &energy : NULL, nonbonded14); // drl Energies
 
-        // printf("n14 vector\n"); // drl
-        // for (size_t Ix = 0; Ix < drlEnergyData_n14.size(); ++Ix) { // drl
-        //     printf("n14"); // drl
-        //     for (size_t Jx = 0; Jx < drlEnergyData_n14[Ix].size(); ++Jx) { // drl
-        //         printf(" %f", drlEnergyData_n14[Ix][Jx]); // drl
-        //     } // drl
-        //     printf("\n"); // drl
-        // } // drl
+        // // for (size_t Ix = 0; Ix < drlEnergyData_n14.size(); ++Ix) { // drl
+        // //     printf("drl n14"); // drl
+        // //     for (size_t Jx = 0; Jx < drlEnergyData_n14[Ix].size(); ++Jx) { // drl
+        // //         printf(" %f", drlEnergyData_n14[Ix][Jx]); // drl
+        // //     } // drl
+        // //     printf("\n"); fflush(stdout); // drl
+        // // } // drl
 
         // drl torsion forces BEGIN
         for(int fIx = 0; fIx < forceData.size(); fIx++){
@@ -968,7 +977,7 @@ double CpuCalcNonbondedForceKernel::execute(ContextImpl& context, bool includeFo
         if (data.isPeriodic && nonbondedMethod != LJPME)
             energy += dispersionCoefficient/(boxVectors[0][0]*boxVectors[1][1]*boxVectors[2][2]);
     }
-    //printf("drl CpuCalcNonbondedForceKernel::execute nonbonded_energy energy %.6f %.6f\n", nonbondedEnergy, energy);
+    //printf("drl CpuCalcNonbondedForceKernel::execute nonbonded_energy energy %.6f %.6f\n", nonbondedEnergy, energy); fflush(stdout);
     return energy;
 }
 

@@ -219,14 +219,14 @@ void ReferenceAngleBondIxn::calculateBondIxnEnergy_drl(vector<int>& atomIndices,
    if(atomAIndex < atomBIndex){
       energies[atomAIndex][atomBIndex] += energy;
 
-      //printf("drl ReferenceAngleBondIxn::calculateBondIxnEnergy_drl %d %d %d %f %f \n",
-      //   atomIndices[0], atomIndices[1], atomIndices[2], energy, energies[atomAIndex][atomBIndex]);
+      ////printf("drl ReferenceAngleBondIxn::calculateBondIxnEnergy_drl %d %d %d %f %f \n",
+      ////   atomIndices[0], atomIndices[1], atomIndices[2], energy, energies[atomAIndex][atomBIndex]); fflush(stdout);
 
    }else{
       energies[atomBIndex][atomAIndex] += energy;
 
-      //printf("drl ReferenceAngleBondIxn::calculateBondIxnEnergy_drl %d %d %d %f %f \n",
-      //   atomIndices[0], atomIndices[1], atomIndices[2], energy, energies[atomBIndex][atomAIndex]);
+      ////printf("drl ReferenceAngleBondIxn::calculateBondIxnEnergy_drl %d %d %d %f %f \n",
+      ////   atomIndices[0], atomIndices[1], atomIndices[2], energy, energies[atomBIndex][atomAIndex]); fflush(stdout);
 
    } 
 
