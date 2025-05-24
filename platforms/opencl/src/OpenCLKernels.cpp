@@ -305,61 +305,91 @@ void OpenCLUpdateStateDataKernel::getForces(ContextImpl& context, vector<Vec3>& 
 
 
 //drl BEGIN
+#pragma region drl_forces
 void OpenCLUpdateStateDataKernel::getForces_drl_bon(ContextImpl& context, std::vector<Vec3>& forces_drl_bon) {
-    assert(!"Not implemented");
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    forces_drl_bon.resize(numParticles);
 }
 
 void OpenCLUpdateStateDataKernel::getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    forces_drl_ang.resize(numParticles);
 }
 
 void OpenCLUpdateStateDataKernel::getForces_drl_tor(ContextImpl& context, std::vector<Vec3>& forces_drl_tor) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    forces_drl_tor.resize(numParticles);
 }
 
 void OpenCLUpdateStateDataKernel::getForces_drl_n14(ContextImpl& context, std::vector<Vec3>& forces_drl_n14) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    forces_drl_n14.resize(numParticles);
 }
 
 // void OpenCLUpdateStateDataKernel::getForces_drl_vdw(ContextImpl& context, std::vector<Vec3>& forces_drl_vdw) {
 //    assert(!"Not implemented");
 // }
-
 // void OpenCLUpdateStateDataKernel::getForces_drl_cou(ContextImpl& context, std::vector<Vec3>& forces_drl_cou) {
 //    assert(!"Not implemented");
 // }
+#pragma endregion
 
 void OpenCLUpdateStateDataKernel::getEnergies_drl_bon(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_bon) {
-    assert(!"Not implemented");
-    
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_bon.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i) {
+        energies_drl_bon[i].resize(numParticles, -9999.0);
+    }
 }
 
 void OpenCLUpdateStateDataKernel::getEnergies_drl_ang(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_ang) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_ang.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i) {
+        energies_drl_ang[i].resize(numParticles, -9999.0);
+    }
 }
 
 void OpenCLUpdateStateDataKernel::getEnergies_drl_tor(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_tor) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_tor.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i) {
+        energies_drl_tor[i].resize(numParticles, -9999.0);
+    }
 }
 
 void OpenCLUpdateStateDataKernel::getEnergies_drl_n14(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_n14) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_n14.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i) {
+        energies_drl_n14[i].resize(numParticles, -9999.0);
+    }
 }
 
 void OpenCLUpdateStateDataKernel::getEnergies_drl_vdw(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_vdw) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_vdw.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i) {
+        energies_drl_vdw[i].resize(numParticles, -9999.0);
+    }
 }
 
 void OpenCLUpdateStateDataKernel::getEnergies_drl_cou(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_cou) {
-    assert(!"Not implemented");
-
+    const vector<cl_int>& order = cl.getAtomIndex();
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_cou.resize(numParticles);
+    for (int i = 0; i < numParticles; ++i) {
+        energies_drl_cou[i].resize(numParticles, -9999.0);
+    }
 }
 
 // drl END
@@ -1042,6 +1072,8 @@ void OpenCLCalcNonbondedForceKernel::initialize(const System& system, const Nonb
         replacements["APPLY_PERIODIC"] = (usePeriodic && force.getExceptionsUsePeriodicBoundaryConditions() ? "1" : "0");
         replacements["PARAMS"] = cl.getBondedUtilities().addArgument(exceptionParams.getDeviceBuffer(), "float4");
         cl.getBondedUtilities().addInteraction(atoms, cl.replaceStrings(CommonKernelSources::nonbondedExceptions, replacements), force.getForceGroup());
+        std::cout << "drl_OpenCL:" <<__FILE__<<":"<<__LINE__<<"OpenCLCalcNonbondedForceKernel::initialize\n"<<std::flush;
+
     }
     
     // Initialize parameter offsets.
