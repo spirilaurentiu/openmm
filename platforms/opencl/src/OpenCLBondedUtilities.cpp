@@ -218,8 +218,8 @@ void OpenCLBondedUtilities::initialize(const System& system) {
                     s<<"energyParamDerivs[get_global_id(0)*"<<numDerivs<<"+"<<index<<"] += energyParamDeriv"<<i<<";\n";
         s<<"}\n";
 
-std::cout << "drl_OpenCL:" <<__FILE__<<":"<<__LINE__<<"OpenCLBondedUtilities::initialize\n"<<std::flush;
-//std::cout << "drl_OpenCL:" << s.str() << std::endl<<std::flush;
+// std::cout << "drl_OpenCL:" <<__FILE__<<":"<<__LINE__<<"OpenCLBondedUtilities::initialize\n"<<std::flush;
+// //std::cout << "drl_OpenCL:" << s.str() << std::endl<<std::flush;
 
         map<string, string> defines;
         defines["PADDED_NUM_ATOMS"] = context.intToString(context.getPaddedNumAtoms());
@@ -277,7 +277,7 @@ string OpenCLBondedUtilities::createForceSource(int forceIndex, int numBonds, in
 }
 
 void OpenCLBondedUtilities::computeInteractions(int groups) {
-    std::cout<<"drl_OpenCL:"<<__FILE__<<":"<<__LINE__<<":OpenCLBondedUtilities::computeInteractions\n";
+    //std::cout<<"drl_OpenCL:"<<__FILE__<<":"<<__LINE__<<":OpenCLBondedUtilities::computeInteractions\n";
     if ((groups&allGroups) == 0)
         return;
     if (!hasInitializedKernels) {
