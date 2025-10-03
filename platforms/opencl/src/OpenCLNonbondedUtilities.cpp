@@ -101,6 +101,7 @@ OpenCLNonbondedUtilities::~OpenCLNonbondedUtilities() {
 }
 
 void OpenCLNonbondedUtilities::addInteraction(bool usesCutoff, bool usesPeriodic, bool usesExclusions, double cutoffDistance, const vector<vector<int> >& exclusionList, const string& kernel, int forceGroup) {
+    //std::cout<<"DRILL kernel "<< kernel << std::endl;
     if (groupCutoff.size() > 0) {
         if (usesCutoff != useCutoff)
             throw OpenMMException("All Forces must agree on whether to use a cutoff");
@@ -716,6 +717,7 @@ cl::Kernel OpenCLNonbondedUtilities::createInteractionKernel(const string& sourc
     else
         kernel.setArg<cl::Buffer>(index++, context.getForceBuffers().getDeviceBuffer());
     kernel.setArg<cl::Buffer>(index++, context.getEnergyBuffer().getDeviceBuffer());
+    //kernel.setArg<cl::Buffer>(index++, context.getEnergyBuffer_drl_cou().getDeviceBuffer()); // drl_drl_drl
     kernel.setArg<cl::Buffer>(index++, context.getPosq().getDeviceBuffer());
     kernel.setArg<cl::Buffer>(index++, exclusions.getDeviceBuffer());
     kernel.setArg<cl::Buffer>(index++, exclusionTiles.getDeviceBuffer());

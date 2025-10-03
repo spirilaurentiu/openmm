@@ -47,6 +47,9 @@ static const std::string brownian;
 static const std::string cmapTorsionForce;
 static const std::string constraints;
 static const std::string coulombLennardJones;
+
+static const std::string coulomb_drl; // drl_drl_drl
+
 static const std::string customCVForce;
 static const std::string customCentroidBond;
 static const std::string customExternalForce;

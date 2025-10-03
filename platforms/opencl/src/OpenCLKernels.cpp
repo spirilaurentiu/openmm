@@ -310,6 +310,24 @@ void OpenCLUpdateStateDataKernel::getForces_drl_bon(ContextImpl& context, std::v
     const vector<cl_int>& order = cl.getAtomIndex();
     int numParticles = context.getSystem().getNumParticles();
     forces_drl_bon.resize(numParticles);
+
+    if (cl.getUseDoublePrecision()) {
+        mm_double4* pinMem = (mm_double4*) cl.getPinnedBuffer();
+        cl.getForce().download(pinMem); // Copy from getForce from pinMem (I think)
+        for (int i = 0; i < numParticles; ++i) {
+            mm_double4 f = pinMem[i];
+            forces_drl_bon[order[i]] = Vec3(f.x, f.y, f.z);
+        }
+    }
+    else {
+        mm_float4* pinMem = (mm_float4*) cl.getPinnedBuffer();
+        cl.getForce().download(pinMem); // Copy from getForce from pinMem (I think)
+        for (int i = 0; i < numParticles; ++i) {
+            mm_float4 f = pinMem[i];
+            forces_drl_bon[order[i]] = Vec3(f.x, f.y, f.z);
+        }
+    }
+    //for (int i = 0; i < numParticles; ++i) {printf("drl_bon_forces %f %f %f\n", forces_drl_bon[order[i]][0], forces_drl_bon[order[i]][1], forces_drl_bon[order[i]][2]);}
 }
 
 void OpenCLUpdateStateDataKernel::getForces_drl_ang(ContextImpl& context, std::vector<Vec3>& forces_drl_ang) {
@@ -627,6 +645,10 @@ public:
         addEnergyKernel.setArg<cl::Buffer>(0, pmeEnergyBuffer.getDeviceBuffer());
         addEnergyKernel.setArg<cl::Buffer>(1, cl.getEnergyBuffer().getDeviceBuffer());
         addEnergyKernel.setArg<cl_int>(2, pmeEnergyBuffer.getSize());
+
+        //std::cout<< "drl_OpenCL:" <<__FILE__<<":"<<__LINE__<<":"<<"OpenCLCalcNonbondedForceKernel::setKernel"<<std::endl<<std::flush; // drl_drl_drl
+        //addEnergyKernel.setArg<cl::Buffer>(3, cl.getEnergyBuffer_drl_cou().getDeviceBuffer()); // drl_drl_drl
+        
     }
     double computeForceAndEnergy(bool includeForces, bool includeEnergy, int groups) {
         if ((groups&(1<<forceGroup)) != 0) {
@@ -1048,6 +1070,52 @@ void OpenCLCalcNonbondedForceKernel::initialize(const System& system, const Nonb
     source = cl.replaceStrings(source, replacements);
     cl.getNonbondedUtilities().addInteraction(useCutoff, usePeriodic, true, force.getCutoffDistance(), exclusionList, source, force.getForceGroup());
 
+
+    #pragma region DRILL
+    // string source_drl_coulomb = cl.replaceStrings(CommonKernelSources::coulomb_drl, defines);
+    // charges.initialize(cl, cl.getPaddedNumAtoms(), cl.getUseDoublePrecision() ? sizeof(double) : sizeof(float), "charges");
+    // baseParticleParams.initialize<mm_float4>(cl, cl.getPaddedNumAtoms(), "baseParticleParams");
+    // baseParticleParams.upload(baseParticleParamVec);
+    // map<string, string> replacements_drl_coulomb;
+    // replacements_drl_coulomb["ONE_4PI_EPS0"] = cl.doubleToString(ONE_4PI_EPS0);
+    // if (usePosqCharges) {
+    //     replacements_drl_coulomb["CHARGE1"] = "posq1.w";
+    //     replacements_drl_coulomb["CHARGE2"] = "posq2.w";
+    // }
+    // else {
+    //     replacements_drl_coulomb["CHARGE1"] = prefix+"charge1";
+    //     replacements_drl_coulomb["CHARGE2"] = prefix+"charge2";
+    // }
+    // if (hasCoulomb)
+    //     cl.getNonbondedUtilities().addParameter(OpenCLNonbondedUtilities::ParameterInfo(prefix+"charge", "real", 1, charges.getElementSize(), charges.getDeviceBuffer()));
+    // sigmaEpsilon.initialize<mm_float2>(cl, cl.getPaddedNumAtoms(), "sigmaEpsilon");
+    // if (hasLJ) {
+    //     replacements_drl_coulomb["SIGMA_EPSILON1"] = prefix+"sigmaEpsilon1";
+    //     replacements_drl_coulomb["SIGMA_EPSILON2"] = prefix+"sigmaEpsilon2";
+    //     cl.getNonbondedUtilities().addParameter(OpenCLNonbondedUtilities::ParameterInfo(prefix+"sigmaEpsilon", "float", 2, sizeof(cl_float2), sigmaEpsilon.getDeviceBuffer()));
+    // }
+    // source_drl_coulomb = cl.replaceStrings(source_drl_coulomb, replacements_drl_coulomb);
+    // cl.getNonbondedUtilities().addInteraction(useCutoff, usePeriodic, true, force.getCutoffDistance(), exclusionList, source_drl_coulomb, force.getForceGroup());
+    // std::cout << "drl_OpenCL:" <<__FILE__<<":"<<__LINE__<<"OpenCLCalcNonbondedForceKernel::initialize\n"<<std::flush;
+    #pragma endregion DRILL
+
+    #pragma region DRILLforChatGPT
+    string source_drl_coulomb = cl.replaceStrings(CommonKernelSources::coulomb_drl, defines);
+    map<string, string> replacements_drl_coulomb;
+    replacements_drl_coulomb["ONE_4PI_EPS0"] = cl.doubleToString(ONE_4PI_EPS0);
+    if (usePosqCharges) {
+        replacements_drl_coulomb["CHARGE1"] = "posq1.w";
+        replacements_drl_coulomb["CHARGE2"] = "posq2.w";
+    }
+    else {
+        replacements_drl_coulomb["CHARGE1"] = prefix+"charge1";
+        replacements_drl_coulomb["CHARGE2"] = prefix+"charge2";
+    }
+    source_drl_coulomb = cl.replaceStrings(source_drl_coulomb, replacements_drl_coulomb);
+    cl.getNonbondedUtilities().addInteraction(useCutoff, usePeriodic, true, force.getCutoffDistance(), exclusionList, source_drl_coulomb, force.getForceGroup());
+    #pragma endregion DRILLforChatGPT
+
+    
     // Initialize the exceptions.
 
     int numContexts = cl.getPlatformData().contexts.size();
@@ -1072,7 +1140,6 @@ void OpenCLCalcNonbondedForceKernel::initialize(const System& system, const Nonb
         replacements["APPLY_PERIODIC"] = (usePeriodic && force.getExceptionsUsePeriodicBoundaryConditions() ? "1" : "0");
         replacements["PARAMS"] = cl.getBondedUtilities().addArgument(exceptionParams.getDeviceBuffer(), "float4");
         cl.getBondedUtilities().addInteraction(atoms, cl.replaceStrings(CommonKernelSources::nonbondedExceptions, replacements), force.getForceGroup());
-        std::cout << "drl_OpenCL:" <<__FILE__<<":"<<__LINE__<<"OpenCLCalcNonbondedForceKernel::initialize\n"<<std::flush;
 
     }
     
@@ -1158,6 +1225,10 @@ double OpenCLCalcNonbondedForceKernel::execute(ContextImpl& context, bool includ
         hasInitializedKernel = true;
         int index = 0;
         computeParamsKernel.setArg<cl::Buffer>(index++, cl.getEnergyBuffer().getDeviceBuffer());
+
+        //std::cout<< "drl_OpenCL:" <<__FILE__<<":"<<__LINE__<<":"<<"OpenCLCalcNonbondedForceKernel::execute"<<std::endl<<std::flush; // drl_drl_drl
+        //computeParamsKernel.setArg<cl::Buffer>(index++, cl.getEnergyBuffer_drl_cou().getDeviceBuffer()); // drl_drl_drl
+        
         index++;
         computeParamsKernel.setArg<cl::Buffer>(index++, globalParams.getDeviceBuffer());
         computeParamsKernel.setArg<cl_int>(index++, cl.getPaddedNumAtoms());
@@ -1186,6 +1257,7 @@ double OpenCLCalcNonbondedForceKernel::execute(ContextImpl& context, bool includ
             ewaldSumsKernel.setArg<cl::Buffer>(0, cl.getEnergyBuffer().getDeviceBuffer());
             ewaldSumsKernel.setArg<cl::Buffer>(1, cl.getPosq().getDeviceBuffer());
             ewaldSumsKernel.setArg<cl::Buffer>(2, cosSinSums.getDeviceBuffer());
+            //ewaldSumsKernel.setArg<cl::Buffer>(3, cl.getEnergyBuffer_drl_cou().getDeviceBuffer()); // drl_drl_drl
             ewaldForcesKernel.setArg<cl::Buffer>(0, cl.getLongForceBuffer().getDeviceBuffer());
             ewaldForcesKernel.setArg<cl::Buffer>(1, cl.getPosq().getDeviceBuffer());
             ewaldForcesKernel.setArg<cl::Buffer>(2, cosSinSums.getDeviceBuffer());

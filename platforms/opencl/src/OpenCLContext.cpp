@@ -499,23 +499,35 @@ void OpenCLContext::initialize() {
     numForceBuffers = std::max(numForceBuffers, bonded->getNumForceBuffers());
     numForceBuffers = std::max(numForceBuffers, nonbonded->getNumForceBuffers());
     int energyBufferSize = max(numThreadBlocks*ThreadBlockSize, nonbonded->getNumEnergyBuffers());
+
+    int energyBufferSize_drl = max(numThreadBlocks*ThreadBlockSize, nonbonded->getNumEnergyBuffers()); // drl_drl_drl
+    
     if (useDoublePrecision) {
         forceBuffers.initialize<mm_double4>(*this, paddedNumAtoms*numForceBuffers, "forceBuffers");
         force.initialize<mm_double4>(*this, &forceBuffers.getDeviceBuffer(), paddedNumAtoms, "force");
         energyBuffer.initialize<cl_double>(*this, energyBufferSize, "energyBuffer");
         energySum.initialize<cl_double>(*this, 1, "energySum");
+
+        energyBuffers_drl_cou.initialize<cl_double>(*this, energyBufferSize, "energyBuffers_drl_cou"); // drl_drl_drl
+
     }
     else if (useMixedPrecision) {
         forceBuffers.initialize<mm_float4>(*this, paddedNumAtoms*numForceBuffers, "forceBuffers");
         force.initialize<mm_float4>(*this, &forceBuffers.getDeviceBuffer(), paddedNumAtoms, "force");
         energyBuffer.initialize<cl_double>(*this, energyBufferSize, "energyBuffer");
         energySum.initialize<cl_double>(*this, 1, "energySum");
+
+        energyBuffers_drl_cou.initialize<cl_double>(*this, energyBufferSize, "energyBuffers_drl_cou"); // drl_drl_drl
+
     }
     else {
         forceBuffers.initialize<mm_float4>(*this, paddedNumAtoms*numForceBuffers, "forceBuffers");
         force.initialize<mm_float4>(*this, &forceBuffers.getDeviceBuffer(), paddedNumAtoms, "force");
         energyBuffer.initialize<cl_float>(*this, energyBufferSize, "energyBuffer");
         energySum.initialize<cl_float>(*this, 1, "energySum");
+
+        energyBuffers_drl_cou.initialize<cl_float>(*this, energyBufferSize, "energyBuffers_drl_cou"); // drl_drl_drl
+
     }
     reduceForcesKernel.setArg<cl::Buffer>(0, longForceBuffer.getDeviceBuffer());
     reduceForcesKernel.setArg<cl::Buffer>(1, forceBuffers.getDeviceBuffer());
@@ -524,6 +536,9 @@ void OpenCLContext::initialize() {
     addAutoclearBuffer(longForceBuffer);
     addAutoclearBuffer(forceBuffers);
     addAutoclearBuffer(energyBuffer);
+
+    addAutoclearBuffer(energyBuffers_drl_cou); // drl
+    
     int numEnergyParamDerivs = energyParamDerivNames.size();
     if (numEnergyParamDerivs > 0) {
         if (useDoublePrecision || useMixedPrecision)

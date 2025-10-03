@@ -268,6 +268,7 @@ public:
     OpenCLArray& getLongForceBuffer() {
         return longForceBuffer;
     }
+
     /**
      * Get the array which contains the buffer in which energy is computed.
      */
@@ -280,6 +281,30 @@ public:
     OpenCLArray& getEnergyParamDerivBuffer() {
         return energyParamDerivBuffer;
     }
+
+    
+    #pragma region DRILL // drl BEGIN
+    /**
+     * Get the array which contains the force on each atom computed by DRILL.
+     */
+    OpenCLArray& getForce_drl_bon() {
+        return force_drl_bon;
+    }
+    /**
+     * Get the array which contains the buffers in which drl_bon_forces are computed
+     */
+    OpenCLArray& getForceBuffers_drl_bon() {
+        return forceBuffers_drl_bon;
+    }
+    /**
+     * Get the array which contains the bond energy computed by DRILL.
+     */
+    OpenCLArray& getEnergyBuffer_drl_cou() {
+        return energyBuffers_drl_cou;
+    }
+    #pragma endregion DRILL // drl END
+
+
     /**
      * Get a pointer to a block of pinned memory that can be used for efficient transfers between host and device.
      * This is guaranteed to be at least as large as any of the arrays returned by methods of this class.
@@ -678,11 +703,18 @@ private:
     OpenCLArray posq;
     OpenCLArray posqCorrection;
     OpenCLArray velm;
+
     OpenCLArray force;
     OpenCLArray forceBuffers;
     OpenCLArray longForceBuffer;
     OpenCLArray energyBuffer;
     OpenCLArray energySum;
+
+    OpenCLArray force_drl_bon; // drl
+    OpenCLArray forceBuffers_drl_bon; // drl
+    OpenCLArray energy_drl_cou; // drl
+    OpenCLArray energyBuffers_drl_cou; // drl
+
     OpenCLArray energyParamDerivBuffer;
     OpenCLArray atomIndexDevice;
     OpenCLArray chargeBuffer;
