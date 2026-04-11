@@ -22,10 +22,10 @@
 #define BLOCK_SIZE64 50000
 #define COUNT 1000
 
-void check32(void);
-void speed32(void);
-void check64(void);
-void speed64(void);
+void check32();
+void speed32();
+void check64();
+void speed64();
 
 #if defined(HAVE_ALTIVEC)
 static vector unsigned int array1[BLOCK_SIZE / 4];
@@ -39,7 +39,7 @@ static uint64_t array2[10000 / 4][2];
 #endif
 
 #ifndef ONLY64
-void check32(void) {
+void check32() {
     int i;
     uint32_t *array32 = (uint32_t *)array1;
     uint32_t *array32_2 = (uint32_t *)array2;
@@ -109,7 +109,7 @@ void check32(void) {
     }
 }
 
-void speed32(void) {
+void speed32() {
     int i, j;
     clock_t clo;
     clock_t min = LONG_MAX;
@@ -152,7 +152,7 @@ void speed32(void) {
 }
 #endif
 
-void check64(void) {
+void check64() {
     int i;
     uint64_t *array64;
     uint64_t *array64_2;
@@ -226,7 +226,7 @@ void check64(void) {
     }
 }
 
-void speed64(void) {
+void speed64() {
     int i, j;
     uint64_t clo;
     uint64_t min = LONG_MAX;

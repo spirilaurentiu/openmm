@@ -9,9 +9,9 @@
 #include "../core/api-config.h"
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/compiler.h"
-#include "../core/type.h"
-#include "../x86/x86emitter.h"
+#    include "../core/compiler.h"
+#    include "../core/type.h"
+#    include "../x86/x86emitter.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
@@ -22,8 +22,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! ### Compiler Basics
 //!
-//! The first \ref x86::Compiler example shows how to generate a function that simply returns an integer value. It's
-//! an analogy to the first Assembler example:
+//! The first \ref x86::Compiler example shows how to generate a function that simply returns an integer
+//! value. It's an analogy to the first Assembler example:
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -32,7 +32,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! using namespace asmjit;
 //!
 //! // Signature of the generated function.
-//! typedef int (*Func)(void);
+//! typedef int (*Func)();
 //!
 //! int main() {
 //!   JitRuntime rt;                    // Runtime specialized for JIT code execution.
@@ -41,7 +41,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   code.init(rt.environment());      // Initialize code to match the JIT environment.
 //!   x86::Compiler cc(&code);          // Create and attach x86::Compiler to code.
 //!
-//!   cc.addFunc(FuncSignatureT<int>());// Begin a function of `int fn(void)` signature.
+//!   cc.addFunc(FuncSignatureT<int>());// Begin a function of `int fn()` signature.
 //!
 //!   x86::Gp vReg = cc.newGpd();       // Create a 32-bit general purpose register.
 //!   cc.mov(vReg, 1);                  // Move one to our virtual register `vReg`.
@@ -64,10 +64,11 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! }
 //! ```
 //!
-//! The \ref BaseCompiler::addFunc() and \ref BaseCompiler::endFunc() functions are used to define the function and
-//! its end. Both must be called per function, but the body doesn't have to be generated in sequence. An example of
-//! generating two functions will be shown later. The next example shows more complicated code that contain a loop
-//! and generates a simple memory copy function that uses `uint32_t` items:
+//! The \ref BaseCompiler::addFunc() and \ref BaseCompiler::endFunc() functions are used to define the
+//! function and its end. Both must be called per function, but the body doesn't have to be generated in
+//! sequence. An example of generating two functions will be shown later. The next example shows more
+//! complicated code that contain a loop and generates a simple memory copy function that uses `uint32_t`
+//! items:
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -147,9 +148,10 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! ### AVX and AVX-512
 //!
-//! AVX and AVX-512 code generation must be explicitly enabled via \ref FuncFrame to work properly. If it's not setup
-//! correctly then Prolog & Epilog would use SSE instead of AVX instructions to work with SIMD registers. In addition,
-//! Compiler requires explicitly enable AVX-512 via \ref FuncFrame in order to use all 32 SIMD registers.
+//! AVX and AVX-512 code generation must be explicitly enabled via \ref FuncFrame to work properly. If it's
+//! not setup correctly then Prolog & Epilog would use SSE instead of AVX instructions to work with SIMD
+//! registers. In addition, Compiler requires explicitly enable AVX-512 via \ref FuncFrame in order to use all
+//! 32 SIMD registers.
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -204,8 +206,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! ### Recursive Functions
 //!
-//! It's possible to create more functions by using the same \ref x86::Compiler instance and make links between them.
-//! In such case it's important to keep the pointer to \ref FuncNode.
+//! It's possible to create more functions by using the same \ref x86::Compiler instance and make links
+//! between them. In such case it's important to keep the pointer to \ref FuncNode.
 //!
 //! The example below creates a simple Fibonacci function that calls itself recursively:
 //!
@@ -274,8 +276,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! Function's stack-frame is managed automatically, which is used by the register allocator to spill virtual
 //! registers. It also provides an interface to allocate user-defined block of the stack, which can be used as
-//! a temporary storage by the generated function. In the following example a stack of 256 bytes size is allocated,
-//! filled by bytes starting from 0 to 255 and then iterated again to sum all the values.
+//! a temporary storage by the generated function. In the following example a stack of 256 bytes size is
+//! allocated, filled by bytes starting from 0 to 255 and then iterated again to sum all the values.
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -284,7 +286,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! using namespace asmjit;
 //!
 //! // Signature of the generated function.
-//! typedef int (*Func)(void);
+//! typedef int (*Func)();
 //!
 //! int main() {
 //!   JitRuntime rt;                    // Runtime specialized for JIT code execution.
@@ -394,14 +396,14 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! ### Jump Tables
 //!
-//! x86::Compiler supports `jmp` instruction with reg/mem operand, which is a commonly used pattern to implement
-//! indirect jumps within a function, for example to implement `switch()` statement in a programming languages.
-//! By default AsmJit assumes that every basic block can be a possible jump target as it's unable to deduce targets
-//! from instruction's operands. This is a very pessimistic default that should be avoided if possible as it's costly
-//! and very unfriendly to liveness analysis and register allocation.
+//! x86::Compiler supports `jmp` instruction with reg/mem operand, which is a commonly used pattern to
+//! implement indirect jumps within a function, for example to implement `switch()` statement in a programming
+//! languages. By default AsmJit assumes that every basic block can be a possible jump target as it's unable
+//! to deduce targets from instruction's operands. This is a very pessimistic default that should be avoided
+//! if possible as it's costly and very unfriendly to liveness analysis and register allocation.
 //!
-//! Instead of relying on such pessimistic default behavior, let's use \ref JumpAnnotation to annotate a jump where
-//! all targets are known:
+//! Instead of relying on such pessimistic default behavior, let's use \ref JumpAnnotation to annotate a jump
+//! where all targets are known:
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -479,238 +481,287 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! }
 //! ```
 class ASMJIT_VIRTAPI Compiler
-  : public BaseCompiler,
-    public EmitterExplicitT<Compiler> {
-public:
-  ASMJIT_NONCOPYABLE(Compiler)
-  typedef BaseCompiler Base;
+    : public BaseCompiler
+    , public EmitterExplicitT<Compiler> {
+    public:
+    ASMJIT_NONCOPYABLE(Compiler)
+    typedef BaseCompiler Base;
 
-  //! \name Construction & Destruction
-  //! \{
+    //! \name Construction & Destruction
+    //! \{
 
-  ASMJIT_API explicit Compiler(CodeHolder* code = nullptr) noexcept;
-  ASMJIT_API virtual ~Compiler() noexcept;
+    ASMJIT_API explicit Compiler(CodeHolder* code = nullptr) noexcept;
+    ASMJIT_API virtual ~Compiler() noexcept;
 
-  //! \}
+    //! \}
 
-  //! \name Virtual Registers
-  //! \{
+    //! \name Virtual Registers
+    //! \{
 
-#ifndef ASMJIT_NO_LOGGING
-# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                         \
-    _newRegFmt(&OUT, PARAM, FORMAT, ARGS)
-#else
-# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                         \
-    DebugUtils::unused(FORMAT);                                               \
-    DebugUtils::unused(std::forward<Args>(args)...);                          \
-    _newReg(&OUT, PARAM)
-#endif
+#    ifndef ASMJIT_NO_LOGGING
+#        define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS) _newRegFmt(&OUT, PARAM, FORMAT, ARGS)
+#    else
+#        define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS) \
+            DebugUtils::unused(FORMAT);                      \
+            DebugUtils::unused(std::forward<Args>(args)...); \
+            _newReg(&OUT, PARAM)
+#    endif
 
-#define ASMJIT_NEW_REG_CUSTOM(FUNC, REG)                                      \
-    inline REG FUNC(TypeId typeId) {                                          \
-      REG reg(Globals::NoInit);                                               \
-      _newReg(&reg, typeId);                                                  \
-      return reg;                                                             \
-    }                                                                         \
-                                                                              \
-    template<typename... Args>                                                \
-    inline REG FUNC(TypeId typeId, const char* fmt, Args&&... args) {         \
-      REG reg(Globals::NoInit);                                               \
-      ASMJIT_NEW_REG_FMT(reg, typeId, fmt, std::forward<Args>(args)...);      \
-      return reg;                                                             \
+#    define ASMJIT_NEW_REG_CUSTOM(FUNC, REG)                                   \
+        inline REG FUNC(TypeId typeId) {                                       \
+            REG reg(Globals::NoInit);                                          \
+            _newReg(&reg, typeId);                                             \
+            return reg;                                                        \
+        }                                                                      \
+                                                                               \
+        template <typename... Args>                                            \
+        inline REG FUNC(TypeId typeId, const char* fmt, Args&&... args) {      \
+            REG reg(Globals::NoInit);                                          \
+            ASMJIT_NEW_REG_FMT(reg, typeId, fmt, std::forward<Args>(args)...); \
+            return reg;                                                        \
+        }
+
+#    define ASMJIT_NEW_REG_TYPED(FUNC, REG, TYPE_ID)                            \
+        inline REG FUNC() {                                                     \
+            REG reg(Globals::NoInit);                                           \
+            _newReg(&reg, TYPE_ID);                                             \
+            return reg;                                                         \
+        }                                                                       \
+                                                                                \
+        template <typename... Args>                                             \
+        inline REG FUNC(const char* fmt, Args&&... args) {                      \
+            REG reg(Globals::NoInit);                                           \
+            ASMJIT_NEW_REG_FMT(reg, TYPE_ID, fmt, std::forward<Args>(args)...); \
+            return reg;                                                         \
+        }
+
+    template <typename RegT>
+    inline RegT newSimilarReg(const RegT& ref) {
+        RegT reg(Globals::NoInit);
+        _newReg(reg, ref);
+        return reg;
     }
 
-#define ASMJIT_NEW_REG_TYPED(FUNC, REG, TYPE_ID)                              \
-    inline REG FUNC() {                                                       \
-      REG reg(Globals::NoInit);                                               \
-      _newReg(&reg, TYPE_ID);                                                 \
-      return reg;                                                             \
-    }                                                                         \
-                                                                              \
-    template<typename... Args>                                                \
-    inline REG FUNC(const char* fmt, Args&&... args) {                        \
-      REG reg(Globals::NoInit);                                               \
-      ASMJIT_NEW_REG_FMT(reg, TYPE_ID, fmt, std::forward<Args>(args)...);     \
-      return reg;                                                             \
+    template <typename RegT, typename... Args>
+    inline RegT newSimilarReg(const RegT& ref, const char* fmt, Args&&... args) {
+        RegT reg(Globals::NoInit);
+        ASMJIT_NEW_REG_FMT(reg, ref, fmt, std::forward<Args>(args)...);
+        return reg;
     }
 
-  template<typename RegT>
-  inline RegT newSimilarReg(const RegT& ref) {
-    RegT reg(Globals::NoInit);
-    _newReg(reg, ref);
-    return reg;
-  }
+    ASMJIT_NEW_REG_CUSTOM(newReg, Reg)
+    ASMJIT_NEW_REG_CUSTOM(newGp, Gp)
+    ASMJIT_NEW_REG_CUSTOM(newVec, Vec)
+    ASMJIT_NEW_REG_CUSTOM(newK, KReg)
 
-  template<typename RegT, typename... Args>
-  inline RegT newSimilarReg(const RegT& ref, const char* fmt, Args&&... args) {
-    RegT reg(Globals::NoInit);
-    ASMJIT_NEW_REG_FMT(reg, ref, fmt, std::forward<Args>(args)...);
-    return reg;
-  }
+    ASMJIT_NEW_REG_TYPED(newInt8, Gp, TypeId::kInt8)
+    ASMJIT_NEW_REG_TYPED(newUInt8, Gp, TypeId::kUInt8)
+    ASMJIT_NEW_REG_TYPED(newInt16, Gp, TypeId::kInt16)
+    ASMJIT_NEW_REG_TYPED(newUInt16, Gp, TypeId::kUInt16)
+    ASMJIT_NEW_REG_TYPED(newInt32, Gp, TypeId::kInt32)
+    ASMJIT_NEW_REG_TYPED(newUInt32, Gp, TypeId::kUInt32)
+    ASMJIT_NEW_REG_TYPED(newInt64, Gp, TypeId::kInt64)
+    ASMJIT_NEW_REG_TYPED(newUInt64, Gp, TypeId::kUInt64)
+    ASMJIT_NEW_REG_TYPED(newIntPtr, Gp, TypeId::kIntPtr)
+    ASMJIT_NEW_REG_TYPED(newUIntPtr, Gp, TypeId::kUIntPtr)
 
-  ASMJIT_NEW_REG_CUSTOM(newReg    , Reg )
-  ASMJIT_NEW_REG_CUSTOM(newGp     , Gp  )
-  ASMJIT_NEW_REG_CUSTOM(newVec    , Vec )
-  ASMJIT_NEW_REG_CUSTOM(newK      , KReg)
+    ASMJIT_NEW_REG_TYPED(newGpb, Gp, TypeId::kUInt8)
+    ASMJIT_NEW_REG_TYPED(newGpw, Gp, TypeId::kUInt16)
+    ASMJIT_NEW_REG_TYPED(newGpd, Gp, TypeId::kUInt32)
+    ASMJIT_NEW_REG_TYPED(newGpq, Gp, TypeId::kUInt64)
+    ASMJIT_NEW_REG_TYPED(newGpz, Gp, TypeId::kUIntPtr)
+    ASMJIT_NEW_REG_TYPED(newXmm, Xmm, TypeId::kInt32x4)
+    ASMJIT_NEW_REG_TYPED(newXmmSs, Xmm, TypeId::kFloat32x1)
+    ASMJIT_NEW_REG_TYPED(newXmmSd, Xmm, TypeId::kFloat64x1)
+    ASMJIT_NEW_REG_TYPED(newXmmPs, Xmm, TypeId::kFloat32x4)
+    ASMJIT_NEW_REG_TYPED(newXmmPd, Xmm, TypeId::kFloat64x2)
+    ASMJIT_NEW_REG_TYPED(newYmm, Ymm, TypeId::kInt32x8)
+    ASMJIT_NEW_REG_TYPED(newYmmPs, Ymm, TypeId::kFloat32x8)
+    ASMJIT_NEW_REG_TYPED(newYmmPd, Ymm, TypeId::kFloat64x4)
+    ASMJIT_NEW_REG_TYPED(newZmm, Zmm, TypeId::kInt32x16)
+    ASMJIT_NEW_REG_TYPED(newZmmPs, Zmm, TypeId::kFloat32x16)
+    ASMJIT_NEW_REG_TYPED(newZmmPd, Zmm, TypeId::kFloat64x8)
+    ASMJIT_NEW_REG_TYPED(newMm, Mm, TypeId::kMmx64)
+    ASMJIT_NEW_REG_TYPED(newKb, KReg, TypeId::kMask8)
+    ASMJIT_NEW_REG_TYPED(newKw, KReg, TypeId::kMask16)
+    ASMJIT_NEW_REG_TYPED(newKd, KReg, TypeId::kMask32)
+    ASMJIT_NEW_REG_TYPED(newKq, KReg, TypeId::kMask64)
 
-  ASMJIT_NEW_REG_TYPED(newInt8   , Gp  , TypeId::kInt8)
-  ASMJIT_NEW_REG_TYPED(newUInt8  , Gp  , TypeId::kUInt8)
-  ASMJIT_NEW_REG_TYPED(newInt16  , Gp  , TypeId::kInt16)
-  ASMJIT_NEW_REG_TYPED(newUInt16 , Gp  , TypeId::kUInt16)
-  ASMJIT_NEW_REG_TYPED(newInt32  , Gp  , TypeId::kInt32)
-  ASMJIT_NEW_REG_TYPED(newUInt32 , Gp  , TypeId::kUInt32)
-  ASMJIT_NEW_REG_TYPED(newInt64  , Gp  , TypeId::kInt64)
-  ASMJIT_NEW_REG_TYPED(newUInt64 , Gp  , TypeId::kUInt64)
-  ASMJIT_NEW_REG_TYPED(newIntPtr , Gp  , TypeId::kIntPtr)
-  ASMJIT_NEW_REG_TYPED(newUIntPtr, Gp  , TypeId::kUIntPtr)
+#    undef ASMJIT_NEW_REG_TYPED
+#    undef ASMJIT_NEW_REG_CUSTOM
+#    undef ASMJIT_NEW_REG_FMT
 
-  ASMJIT_NEW_REG_TYPED(newGpb    , Gp  , TypeId::kUInt8)
-  ASMJIT_NEW_REG_TYPED(newGpw    , Gp  , TypeId::kUInt16)
-  ASMJIT_NEW_REG_TYPED(newGpd    , Gp  , TypeId::kUInt32)
-  ASMJIT_NEW_REG_TYPED(newGpq    , Gp  , TypeId::kUInt64)
-  ASMJIT_NEW_REG_TYPED(newGpz    , Gp  , TypeId::kUIntPtr)
-  ASMJIT_NEW_REG_TYPED(newXmm    , Xmm , TypeId::kInt32x4)
-  ASMJIT_NEW_REG_TYPED(newXmmSs  , Xmm , TypeId::kFloat32x1)
-  ASMJIT_NEW_REG_TYPED(newXmmSd  , Xmm , TypeId::kFloat64x1)
-  ASMJIT_NEW_REG_TYPED(newXmmPs  , Xmm , TypeId::kFloat32x4)
-  ASMJIT_NEW_REG_TYPED(newXmmPd  , Xmm , TypeId::kFloat64x2)
-  ASMJIT_NEW_REG_TYPED(newYmm    , Ymm , TypeId::kInt32x8)
-  ASMJIT_NEW_REG_TYPED(newYmmPs  , Ymm , TypeId::kFloat32x8)
-  ASMJIT_NEW_REG_TYPED(newYmmPd  , Ymm , TypeId::kFloat64x4)
-  ASMJIT_NEW_REG_TYPED(newZmm    , Zmm , TypeId::kInt32x16)
-  ASMJIT_NEW_REG_TYPED(newZmmPs  , Zmm , TypeId::kFloat32x16)
-  ASMJIT_NEW_REG_TYPED(newZmmPd  , Zmm , TypeId::kFloat64x8)
-  ASMJIT_NEW_REG_TYPED(newMm     , Mm  , TypeId::kMmx64)
-  ASMJIT_NEW_REG_TYPED(newKb     , KReg, TypeId::kMask8)
-  ASMJIT_NEW_REG_TYPED(newKw     , KReg, TypeId::kMask16)
-  ASMJIT_NEW_REG_TYPED(newKd     , KReg, TypeId::kMask32)
-  ASMJIT_NEW_REG_TYPED(newKq     , KReg, TypeId::kMask64)
+    //! \}
 
-#undef ASMJIT_NEW_REG_TYPED
-#undef ASMJIT_NEW_REG_CUSTOM
-#undef ASMJIT_NEW_REG_FMT
+    //! \name Stack
+    //! \{
 
-  //! \}
+    //! Creates a new memory chunk allocated on the current function's stack.
+    inline Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
+        Mem m(Globals::NoInit);
+        _newStack(&m, size, alignment, name);
+        return m;
+    }
 
-  //! \name Stack
-  //! \{
+    //! \}
 
-  //! Creates a new memory chunk allocated on the current function's stack.
-  inline Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
-    Mem m(Globals::NoInit);
-    _newStack(&m, size, alignment, name);
-    return m;
-  }
+    //! \name Constants
+    //! \{
 
-  //! \}
+    //! Put data to a constant-pool and get a memory reference to it.
+    inline Mem newConst(ConstPoolScope scope, const void* data, size_t size) {
+        Mem m(Globals::NoInit);
+        _newConst(&m, scope, data, size);
+        return m;
+    }
 
-  //! \name Constants
-  //! \{
+    //! Put a BYTE `val` to a constant-pool.
+    inline Mem newByteConst(ConstPoolScope scope, uint8_t val) noexcept {
+        return newConst(scope, &val, 1);
+    }
+    //! Put a WORD `val` to a constant-pool.
+    inline Mem newWordConst(ConstPoolScope scope, uint16_t val) noexcept {
+        return newConst(scope, &val, 2);
+    }
+    //! Put a DWORD `val` to a constant-pool.
+    inline Mem newDWordConst(ConstPoolScope scope, uint32_t val) noexcept {
+        return newConst(scope, &val, 4);
+    }
+    //! Put a QWORD `val` to a constant-pool.
+    inline Mem newQWordConst(ConstPoolScope scope, uint64_t val) noexcept {
+        return newConst(scope, &val, 8);
+    }
 
-  //! Put data to a constant-pool and get a memory reference to it.
-  inline Mem newConst(ConstPoolScope scope, const void* data, size_t size) {
-    Mem m(Globals::NoInit);
-    _newConst(&m, scope, data, size);
-    return m;
-  }
+    //! Put a WORD `val` to a constant-pool.
+    inline Mem newInt16Const(ConstPoolScope scope, int16_t val) noexcept {
+        return newConst(scope, &val, 2);
+    }
+    //! Put a WORD `val` to a constant-pool.
+    inline Mem newUInt16Const(ConstPoolScope scope, uint16_t val) noexcept {
+        return newConst(scope, &val, 2);
+    }
+    //! Put a DWORD `val` to a constant-pool.
+    inline Mem newInt32Const(ConstPoolScope scope, int32_t val) noexcept {
+        return newConst(scope, &val, 4);
+    }
+    //! Put a DWORD `val` to a constant-pool.
+    inline Mem newUInt32Const(ConstPoolScope scope, uint32_t val) noexcept {
+        return newConst(scope, &val, 4);
+    }
+    //! Put a QWORD `val` to a constant-pool.
+    inline Mem newInt64Const(ConstPoolScope scope, int64_t val) noexcept {
+        return newConst(scope, &val, 8);
+    }
+    //! Put a QWORD `val` to a constant-pool.
+    inline Mem newUInt64Const(ConstPoolScope scope, uint64_t val) noexcept {
+        return newConst(scope, &val, 8);
+    }
 
-  //! Put a BYTE `val` to a constant-pool.
-  inline Mem newByteConst(ConstPoolScope scope, uint8_t val) noexcept { return newConst(scope, &val, 1); }
-  //! Put a WORD `val` to a constant-pool.
-  inline Mem newWordConst(ConstPoolScope scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
-  //! Put a DWORD `val` to a constant-pool.
-  inline Mem newDWordConst(ConstPoolScope scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
-  //! Put a QWORD `val` to a constant-pool.
-  inline Mem newQWordConst(ConstPoolScope scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
+    //! Put a SP-FP `val` to a constant-pool.
+    inline Mem newFloatConst(ConstPoolScope scope, float val) noexcept {
+        return newConst(scope, &val, 4);
+    }
+    //! Put a DP-FP `val` to a constant-pool.
+    inline Mem newDoubleConst(ConstPoolScope scope, double val) noexcept {
+        return newConst(scope, &val, 8);
+    }
 
-  //! Put a WORD `val` to a constant-pool.
-  inline Mem newInt16Const(ConstPoolScope scope, int16_t val) noexcept { return newConst(scope, &val, 2); }
-  //! Put a WORD `val` to a constant-pool.
-  inline Mem newUInt16Const(ConstPoolScope scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
-  //! Put a DWORD `val` to a constant-pool.
-  inline Mem newInt32Const(ConstPoolScope scope, int32_t val) noexcept { return newConst(scope, &val, 4); }
-  //! Put a DWORD `val` to a constant-pool.
-  inline Mem newUInt32Const(ConstPoolScope scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
-  //! Put a QWORD `val` to a constant-pool.
-  inline Mem newInt64Const(ConstPoolScope scope, int64_t val) noexcept { return newConst(scope, &val, 8); }
-  //! Put a QWORD `val` to a constant-pool.
-  inline Mem newUInt64Const(ConstPoolScope scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
+    //! \}
 
-  //! Put a SP-FP `val` to a constant-pool.
-  inline Mem newFloatConst(ConstPoolScope scope, float val) noexcept { return newConst(scope, &val, 4); }
-  //! Put a DP-FP `val` to a constant-pool.
-  inline Mem newDoubleConst(ConstPoolScope scope, double val) noexcept { return newConst(scope, &val, 8); }
+    //! \name Instruction Options
+    //! \{
 
-  //! \}
+    //! Force the compiler to not follow the conditional or unconditional jump.
+    inline Compiler& unfollow() noexcept {
+        addInstOptions(InstOptions::kUnfollow);
+        return *this;
+    }
+    //! Tell the compiler that the destination variable will be overwritten.
+    inline Compiler& overwrite() noexcept {
+        addInstOptions(InstOptions::kOverwrite);
+        return *this;
+    }
 
-  //! \name Instruction Options
-  //! \{
+    //! \}
 
-  //! Force the compiler to not follow the conditional or unconditional jump.
-  inline Compiler& unfollow() noexcept { addInstOptions(InstOptions::kUnfollow); return *this; }
-  //! Tell the compiler that the destination variable will be overwritten.
-  inline Compiler& overwrite() noexcept { addInstOptions(InstOptions::kOverwrite); return *this; }
+    //! \name Function Call & Ret Intrinsics
+    //! \{
 
-  //! \}
+    //! Invoke a function call without `target` type enforcement.
+    inline Error invoke_(InvokeNode** out, const Operand_& target, const FuncSignature& signature) {
+        return addInvokeNode(out, Inst::kIdCall, target, signature);
+    }
 
-  //! \name Function Call & Ret Intrinsics
-  //! \{
+    //! Invoke a function call of the given `target` and `signature` and store the added node to `out`.
+    //!
+    //! Creates a new \ref InvokeNode, initializes all the necessary members to match the given function
+    //! `signature`, adds the node to the compiler, and stores its pointer to `out`. The operation is atomic,
+    //! if anything fails nullptr is stored in `out` and error code is returned.
+    inline Error invoke(InvokeNode** out, const Gp& target, const FuncSignature& signature) {
+        return invoke_(out, target, signature);
+    }
+    //! \overload
+    inline Error invoke(InvokeNode** out, const Mem& target, const FuncSignature& signature) {
+        return invoke_(out, target, signature);
+    }
+    //! \overload
+    inline Error invoke(InvokeNode** out, const Label& target, const FuncSignature& signature) {
+        return invoke_(out, target, signature);
+    }
+    //! \overload
+    inline Error invoke(InvokeNode** out, const Imm& target, const FuncSignature& signature) {
+        return invoke_(out, target, signature);
+    }
+    //! \overload
+    inline Error invoke(InvokeNode** out, uint64_t target, const FuncSignature& signature) {
+        return invoke_(out, Imm(int64_t(target)), signature);
+    }
 
-  //! Invoke a function call without `target` type enforcement.
-  inline Error invoke_(InvokeNode** out, const Operand_& target, const FuncSignature& signature) {
-    return addInvokeNode(out, Inst::kIdCall, target, signature);
-  }
+    //! Return from function.
+    inline Error ret() {
+        return addRet(Operand(), Operand());
+    }
+    //! \overload
+    inline Error ret(const BaseReg& o0) {
+        return addRet(o0, Operand());
+    }
+    //! \overload
+    inline Error ret(const BaseReg& o0, const BaseReg& o1) {
+        return addRet(o0, o1);
+    }
 
-  //! Invoke a function call of the given `target` and `signature` and store the added node to `out`.
-  //!
-  //! Creates a new \ref InvokeNode, initializes all the necessary members to match the given function `signature`,
-  //! adds the node to the compiler, and stores its pointer to `out`. The operation is atomic, if anything fails
-  //! nullptr is stored in `out` and error code is returned.
-  inline Error invoke(InvokeNode** out, const Gp& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
-  //! \overload
-  inline Error invoke(InvokeNode** out, const Mem& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
-  //! \overload
-  inline Error invoke(InvokeNode** out, const Label& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
-  //! \overload
-  inline Error invoke(InvokeNode** out, const Imm& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
-  //! \overload
-  inline Error invoke(InvokeNode** out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Imm(int64_t(target)), signature); }
+    //! \}
 
-  //! Return from function.
-  inline Error ret() { return addRet(Operand(), Operand()); }
-  //! \overload
-  inline Error ret(const BaseReg& o0) { return addRet(o0, Operand()); }
-  //! \overload
-  inline Error ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
+    //! \name Jump Tables Support
+    //! \{
 
-  //! \}
+    using EmitterExplicitT<Compiler>::jmp;
 
-  //! \name Jump Tables Support
-  //! \{
+    //! Adds a jump to the given `target` with the provided jump `annotation`.
+    inline Error jmp(const BaseReg& target, JumpAnnotation* annotation) {
+        return emitAnnotatedJump(Inst::kIdJmp, target, annotation);
+    }
+    //! \overload
+    inline Error jmp(const BaseMem& target, JumpAnnotation* annotation) {
+        return emitAnnotatedJump(Inst::kIdJmp, target, annotation);
+    }
 
-  using EmitterExplicitT<Compiler>::jmp;
+    //! \}
 
-  //! Adds a jump to the given `target` with the provided jump `annotation`.
-  inline Error jmp(const BaseReg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
-  //! \overload
-  inline Error jmp(const BaseMem& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
+    //! \name Events
+    //! \{
 
-  //! \}
+    ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
+    ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
 
-  //! \name Events
-  //! \{
+    //! \}
 
-  ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
-  ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
+    //! \name Finalize
+    //! \{
 
-  //! \}
+    ASMJIT_API Error finalize() override;
 
-  //! \name Finalize
-  //! \{
-
-  ASMJIT_API Error finalize() override;
-
-  //! \}
+    //! \}
 };
 
 //! \}

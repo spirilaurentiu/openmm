@@ -22,6 +22,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.      *
  * -------------------------------------------------------------------------- */
 
+#include "openmm/common/ComputeContext.h"
 #include "openmm/internal/timer.h"
 #include "lepton/ExpressionTreeNode.h"
 #include "lepton/Operation.h"

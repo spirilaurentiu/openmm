@@ -30,13 +30,13 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "openmm/Force.h"
-#include "openmm/OpenMMException.h"
-#include "internal/windowsExportAmoeba.h"
-#include "openmm/Vec3.h"
-
 #include <sstream>
 #include <vector>
+
+#include "internal/windowsExportAmoeba.h"
+#include "openmm/Force.h"
+#include "openmm/OpenMMException.h"
+#include "openmm/Vec3.h"
 
 namespace OpenMM {
 
@@ -49,53 +49,66 @@ namespace OpenMM {
  */
 
 class OPENMM_EXPORT_AMOEBA AmoebaMultipoleForce : public Force {
-
-public:
-
+    public:
     enum NonbondedMethod {
-
         /**
-         * No cutoff is applied to nonbonded interactions.  The full set of N^2 interactions is computed exactly.
-         * This necessarily means that periodic boundary conditions cannot be used.  This is the default.
+         * No cutoff is applied to nonbonded interactions.  The full set of N^2 interactions is computed
+         * exactly. This necessarily means that periodic boundary conditions cannot be used.  This is the
+         * default.
          */
         NoCutoff = 0,
 
         /**
-         * Periodic boundary conditions are used, and Particle-Mesh Ewald (PME) summation is used to compute the interaction of each particle
-         * with all periodic copies of every other particle.
+         * Periodic boundary conditions are used, and Particle-Mesh Ewald (PME) summation is used to compute
+         * the interaction of each particle with all periodic copies of every other particle.
          */
         PME = 1
     };
 
     enum PolarizationType {
-
         /**
-         * Full mutually induced polarization.  The dipoles are iterated until the converge to the accuracy specified
-         * by getMutualInducedTargetEpsilon().
+         * Full mutually induced polarization.  The dipoles are iterated until the converge to the accuracy
+         * specified by getMutualInducedTargetEpsilon().
          */
         Mutual = 0,
 
         /**
-         * Direct polarization approximation.  The induced dipoles depend only on the fixed multipoles, not on other
-         * induced dipoles.
+         * Direct polarization approximation.  The induced dipoles depend only on the fixed multipoles, not on
+         * other induced dipoles.
          */
         Direct = 1,
 
         /**
-         * Extrapolated perturbation theory approximation.  The dipoles are iterated a few times, and then an analytic
-         * approximation is used to extrapolate to the fully converged values.  Call setExtrapolationCoefficients()
-         * to set the coefficients used for the extrapolation.  The default coefficients used in this release are
+         * Extrapolated perturbation theory approximation.  The dipoles are iterated a few times, and then an
+         * analytic approximation is used to extrapolate to the fully converged values.  Call
+         * setExtrapolationCoefficients() to set the coefficients used for the extrapolation.  The default
+         * coefficients used in this release are
          * [-0.154, 0.017, 0.658, 0.474], but be aware that those may change in a future release.
          */
         Extrapolated = 2
-
     };
 
-    enum MultipoleAxisTypes { ZThenX = 0, Bisector = 1, ZBisect = 2, ThreeFold = 3, ZOnly = 4, NoAxisType = 5, LastAxisTypeIndex = 6 };
+    enum MultipoleAxisTypes {
+        ZThenX = 0,
+        Bisector = 1,
+        ZBisect = 2,
+        ThreeFold = 3,
+        ZOnly = 4,
+        NoAxisType = 5,
+        LastAxisTypeIndex = 6
+    };
 
     enum CovalentType {
-                          Covalent12 = 0, Covalent13 = 1, Covalent14 = 2, Covalent15 = 3,
-                          PolarizationCovalent11 = 4, PolarizationCovalent12 = 5, PolarizationCovalent13 = 6, PolarizationCovalent14 = 7, CovalentEnd = 8 };
+        Covalent12 = 0,
+        Covalent13 = 1,
+        Covalent14 = 2,
+        Covalent15 = 3,
+        PolarizationCovalent11 = 4,
+        PolarizationCovalent12 = 5,
+        PolarizationCovalent13 = 6,
+        PolarizationCovalent14 = 7,
+        CovalentEnd = 8
+    };
 
     /**
      * Create an AmoebaMultipoleForce.
@@ -201,7 +214,7 @@ public:
      */
     void getPmeGridDimensions(std::vector<int>& gridDimension) const;
 
-   /**
+    /**
      * Set the PME grid dimensions.  If Ewald alpha is 0 (the default), this is ignored and grid dimensions
      * are chosen automatically based on the Ewald error tolerance.
      *
@@ -211,10 +224,10 @@ public:
     void setPmeGridDimensions(const std::vector<int>& gridDimension);
 
     /**
-     * Get the parameters being used for PME in a particular Context.  Because some platforms have restrictions
-     * on the allowed grid sizes, the values that are actually used may be slightly different from those
-     * specified with setPmeGridDimensions(), or the standard values calculated based on the Ewald error tolerance.
-     * See the manual for details.
+     * Get the parameters being used for PME in a particular Context.  Because some platforms have
+     * restrictions on the allowed grid sizes, the values that are actually used may be slightly different
+     * from those specified with setPmeGridDimensions(), or the standard values calculated based on the Ewald
+     * error tolerance. See the manual for details.
      *
      * @param context      the Context for which to get the parameters
      * @param[out] alpha   the separation parameter
@@ -240,8 +253,16 @@ public:
      *
      * @return the index of the particle that was added
      */
-    int addMultipole(double charge, const std::vector<double>& molecularDipole, const std::vector<double>& molecularQuadrupole, int axisType,
-                     int multipoleAtomZ, int multipoleAtomX, int multipoleAtomY, double thole, double dampingFactor, double polarity);
+    int addMultipole(double charge,
+                     const std::vector<double>& molecularDipole,
+                     const std::vector<double>& molecularQuadrupole,
+                     int axisType,
+                     int multipoleAtomZ,
+                     int multipoleAtomX,
+                     int multipoleAtomY,
+                     double thole,
+                     double dampingFactor,
+                     double polarity);
 
     /**
      * Get the multipole parameters for a particle.
@@ -258,8 +279,17 @@ public:
      * @param[out] dampingFactor        dampingFactor parameter
      * @param[out] polarity             polarity parameter
      */
-    void getMultipoleParameters(int index, double& charge, std::vector<double>& molecularDipole, std::vector<double>& molecularQuadrupole,
-                                int& axisType, int& multipoleAtomZ, int& multipoleAtomX, int& multipoleAtomY, double& thole, double& dampingFactor, double& polarity) const;
+    void getMultipoleParameters(int index,
+                                double& charge,
+                                std::vector<double>& molecularDipole,
+                                std::vector<double>& molecularQuadrupole,
+                                int& axisType,
+                                int& multipoleAtomZ,
+                                int& multipoleAtomX,
+                                int& multipoleAtomY,
+                                double& thole,
+                                double& dampingFactor,
+                                double& polarity) const;
 
     /**
      * Set the multipole parameters for a particle.
@@ -276,8 +306,17 @@ public:
      * @param dampingFactor        damping factor parameter
      * @param polarity             polarity parameter
      */
-    void setMultipoleParameters(int index, double charge, const std::vector<double>& molecularDipole, const std::vector<double>& molecularQuadrupole,
-                                int axisType, int multipoleAtomZ, int multipoleAtomX, int multipoleAtomY, double thole, double dampingFactor, double polarity);
+    void setMultipoleParameters(int index,
+                                double charge,
+                                const std::vector<double>& molecularDipole,
+                                const std::vector<double>& molecularQuadrupole,
+                                int axisType,
+                                int multipoleAtomZ,
+                                int multipoleAtomX,
+                                int multipoleAtomY,
+                                double thole,
+                                double dampingFactor,
+                                double polarity);
 
     /**
      * Set the CovalentMap for an atom
@@ -303,14 +342,14 @@ public:
      * @param index                the index of the atom for which to set parameters
      * @param[out] covalentLists   output vector of covalent lists of atoms
      */
-    void getCovalentMaps(int index, std::vector < std::vector<int> >& covalentLists) const;
+    void getCovalentMaps(int index, std::vector<std::vector<int>>& covalentLists) const;
 
     /**
      * Get the max number of iterations to be used in calculating the mutual induced dipoles
      *
      * @return max number of iterations
      */
-    int getMutualInducedMaxIterations(void) const;
+    int getMutualInducedMaxIterations() const;
 
     /**
      * Set the max number of iterations to be used in calculating the mutual induced dipoles
@@ -320,14 +359,16 @@ public:
     void setMutualInducedMaxIterations(int inputMutualInducedMaxIterations);
 
     /**
-     * Get the target epsilon to be used to test for convergence of iterative method used in calculating the mutual induced dipoles
+     * Get the target epsilon to be used to test for convergence of iterative method used in calculating the
+     * mutual induced dipoles
      *
      * @return target epsilon
      */
-    double getMutualInducedTargetEpsilon(void) const;
+    double getMutualInducedTargetEpsilon() const;
 
     /**
-     * Set the target epsilon to be used to test for convergence of iterative method used in calculating the mutual induced dipoles
+     * Set the target epsilon to be used to test for convergence of iterative method used in calculating the
+     * mutual induced dipoles
      *
      * @param inputMutualInducedTargetEpsilon   target epsilon
      */
@@ -337,11 +378,11 @@ public:
      * Set the coefficients for the mu_0, mu_1, mu_2, ..., mu_n terms in the extrapolation
      * algorithm for induced dipoles.
      *
-     * @param coefficients      a vector whose mth entry specifies the coefficient for mu_m.  The length of this
-     *                          vector determines how many iterations are performed.
+     * @param coefficients      a vector whose mth entry specifies the coefficient for mu_m.  The length of
+     * this vector determines how many iterations are performed.
      *
      */
-    void setExtrapolationCoefficients(const std::vector<double> &coefficients);
+    void setExtrapolationCoefficients(const std::vector<double>& coefficients);
 
     /**
      * Get the coefficients for the mu_0, mu_1, mu_2, ..., mu_n terms in the extrapolation
@@ -399,8 +440,9 @@ public:
      * @param[out] outputElectrostaticPotential output potential
      */
 
-    void getElectrostaticPotential(const std::vector< Vec3 >& inputGrid,
-                                    Context& context, std::vector< double >& outputElectrostaticPotential);
+    void getElectrostaticPotential(const std::vector<Vec3>& inputGrid,
+                                   Context& context,
+                                   std::vector<double>& outputElectrostaticPotential);
 
     /**
      * Get the system multipole moments.
@@ -418,17 +460,17 @@ public:
                                            quadrupole_yx, quadrupole_yy, quadrupole_yz,
                                            quadrupole_zx, quadrupole_zy, quadrupole_zz)
      */
-    void getSystemMultipoleMoments(Context& context, std::vector< double >& outputMultipoleMoments);
+    void getSystemMultipoleMoments(Context& context, std::vector<double>& outputMultipoleMoments);
     /**
      * Update the multipole parameters in a Context to match those stored in this Force object.  This method
-     * provides an efficient method to update certain parameters in an existing Context without needing to reinitialize it.
-     * Simply call setMultipoleParameters() to modify this object's parameters, then call updateParametersInContext() to
-     * copy them over to the Context.
+     * provides an efficient method to update certain parameters in an existing Context without needing to
+     * reinitialize it. Simply call setMultipoleParameters() to modify this object's parameters, then call
+     * updateParametersInContext() to copy them over to the Context.
      *
      * This method has several limitations.  The only information it updates is the parameters of multipoles.
-     * All other aspects of the Force (the nonbonded method, the cutoff distance, etc.) are unaffected and can only be
-     * changed by reinitializing the Context.  Furthermore, this method cannot be used to add new multipoles,
-     * only to change the parameters of existing ones.
+     * All other aspects of the Force (the nonbonded method, the cutoff distance, etc.) are unaffected and can
+     * only be changed by reinitializing the Context.  Furthermore, this method cannot be used to add new
+     * multipoles, only to change the parameters of existing ones.
      */
     void updateParametersInContext(Context& context);
     /**
@@ -440,9 +482,11 @@ public:
     bool usesPeriodicBoundaryConditions() const {
         return nonbondedMethod == AmoebaMultipoleForce::PME;
     }
-protected:
+
+    protected:
     ForceImpl* createImpl() const;
-private:
+
+    private:
     NonbondedMethod nonbondedMethod;
     PolarizationType polarizationType;
     double cutoffDistance;
@@ -464,46 +508,57 @@ private:
  * @private
  */
 class AmoebaMultipoleForce::MultipoleInfo {
-public:
-
+    public:
     int axisType, multipoleAtomZ, multipoleAtomX, multipoleAtomY;
     double charge, thole, dampingFactor, polarity;
 
     std::vector<double> molecularDipole;
     std::vector<double> molecularQuadrupole;
-    std::vector< std::vector<int> > covalentInfo;
+    std::vector<std::vector<int>> covalentInfo;
 
     MultipoleInfo() {
         axisType = multipoleAtomZ = multipoleAtomX = multipoleAtomY = -1;
-        charge   = thole          = dampingFactor  = 0.0;
+        charge = thole = dampingFactor = 0.0;
 
         molecularDipole.resize(3);
         molecularQuadrupole.resize(9);
-
     }
 
-    MultipoleInfo(double charge, const std::vector<double>& inputMolecularDipole, const std::vector<double>& inputMolecularQuadrupole,
-                   int axisType, int multipoleAtomZ, int multipoleAtomX, int multipoleAtomY, double thole, double dampingFactor, double polarity) :
-        axisType(axisType), multipoleAtomZ(multipoleAtomZ), multipoleAtomX(multipoleAtomX), multipoleAtomY(multipoleAtomY),
-        charge(charge), thole(thole), dampingFactor(dampingFactor), polarity(polarity) {
+    MultipoleInfo(double charge,
+                  const std::vector<double>& inputMolecularDipole,
+                  const std::vector<double>& inputMolecularQuadrupole,
+                  int axisType,
+                  int multipoleAtomZ,
+                  int multipoleAtomX,
+                  int multipoleAtomY,
+                  double thole,
+                  double dampingFactor,
+                  double polarity)
+        : axisType(axisType)
+        , multipoleAtomZ(multipoleAtomZ)
+        , multipoleAtomX(multipoleAtomX)
+        , multipoleAtomY(multipoleAtomY)
+        , charge(charge)
+        , thole(thole)
+        , dampingFactor(dampingFactor)
+        , polarity(polarity) {
+        covalentInfo.resize(CovalentEnd);
 
-       covalentInfo.resize(CovalentEnd);
+        molecularDipole.resize(3);
+        molecularDipole[0] = inputMolecularDipole[0];
+        molecularDipole[1] = inputMolecularDipole[1];
+        molecularDipole[2] = inputMolecularDipole[2];
 
-       molecularDipole.resize(3);
-       molecularDipole[0]          = inputMolecularDipole[0];
-       molecularDipole[1]          = inputMolecularDipole[1];
-       molecularDipole[2]          = inputMolecularDipole[2];
-
-       molecularQuadrupole.resize(9);
-       molecularQuadrupole[0]      = inputMolecularQuadrupole[0];
-       molecularQuadrupole[1]      = inputMolecularQuadrupole[1];
-       molecularQuadrupole[2]      = inputMolecularQuadrupole[2];
-       molecularQuadrupole[3]      = inputMolecularQuadrupole[3];
-       molecularQuadrupole[4]      = inputMolecularQuadrupole[4];
-       molecularQuadrupole[5]      = inputMolecularQuadrupole[5];
-       molecularQuadrupole[6]      = inputMolecularQuadrupole[6];
-       molecularQuadrupole[7]      = inputMolecularQuadrupole[7];
-       molecularQuadrupole[8]      = inputMolecularQuadrupole[8];
+        molecularQuadrupole.resize(9);
+        molecularQuadrupole[0] = inputMolecularQuadrupole[0];
+        molecularQuadrupole[1] = inputMolecularQuadrupole[1];
+        molecularQuadrupole[2] = inputMolecularQuadrupole[2];
+        molecularQuadrupole[3] = inputMolecularQuadrupole[3];
+        molecularQuadrupole[4] = inputMolecularQuadrupole[4];
+        molecularQuadrupole[5] = inputMolecularQuadrupole[5];
+        molecularQuadrupole[6] = inputMolecularQuadrupole[6];
+        molecularQuadrupole[7] = inputMolecularQuadrupole[7];
+        molecularQuadrupole[8] = inputMolecularQuadrupole[8];
     }
 };
 

@@ -28,25 +28,25 @@
  * -------------------------------------------------------------------------- */
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#include <windows.h>
+#    include <windows.h>
 static HCRYPTPROV hCryptProv = 0;
-#pragma comment(lib, "advapi32.lib")
+#    pragma comment(lib, "advapi32.lib")
 #else
-#include <fcntl.h>
-#include <unistd.h>
+#    include <fcntl.h>
+#    include <unistd.h>
 #endif
 #include "openmm/OpenMMException.h"
 #include "openmm/internal/OSRngSeed.h"
 
 using OpenMM::OpenMMException;
 
-int osrngseed(void) {
+int osrngseed() {
     int value;
 #if defined(_WIN32) || defined(__CYGWIN__)
     if (!::CryptAcquireContextW(&hCryptProv, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
         throw OpenMMException("Failed to initialize Windows random API (CryptoGen)");
     }
-    if (!CryptGenRandom(hCryptProv, sizeof(int), (BYTE*) &value)) {
+    if (!CryptGenRandom(hCryptProv, sizeof(int), (BYTE*)&value)) {
         ::CryptReleaseContext(hCryptProv, 0);
         throw OpenMMException("Failed to get random numbers");
     }

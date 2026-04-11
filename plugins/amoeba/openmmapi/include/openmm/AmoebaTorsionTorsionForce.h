@@ -30,43 +30,43 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "openmm/Force.h"
-#include "internal/windowsExportAmoeba.h"
-
-#include <vector>
 #include <cmath>
+#include <vector>
+
+#include "internal/windowsExportAmoeba.h"
+#include "openmm/Force.h"
 
 namespace OpenMM {
 
-typedef std::vector< std::vector< std::vector<double> > > TorsionTorsionGrid;
-typedef std::vector< std::vector< std::vector<float> > > TorsionTorsionGridFloat;
+typedef std::vector<std::vector<std::vector<double>>> TorsionTorsionGrid;
+typedef std::vector<std::vector<std::vector<float>>> TorsionTorsionGridFloat;
 
 /**
  * This class implements the Amoeba torsion-torsion interaction.
  *
- * To use it, create an AmoebaTorsionTorsionForce object then call addTorsionTorsion() once for each torsion-torsion.  After
- * a torsion-torsion has been added, you can modify its force field parameters by calling setTorsionTorsionParameters().
+ * To use it, create an AmoebaTorsionTorsionForce object then call addTorsionTorsion() once for each
+ * torsion-torsion.  After a torsion-torsion has been added, you can modify its force field parameters by
+ * calling setTorsionTorsionParameters().
  */
 
 class OPENMM_EXPORT_AMOEBA AmoebaTorsionTorsionForce : public Force {
-
-public:
+    public:
     /**
      * Create an AmoebaTorsionTorsionForce.
      */
-    AmoebaTorsionTorsionForce(void);
+    AmoebaTorsionTorsionForce();
 
     /**
      * Get the number of torsion-torsion terms in the potential function
      */
-    int getNumTorsionTorsions(void) const {
+    int getNumTorsionTorsions() const {
         return torsionTorsions.size();
     }
 
     /**
      * Get the number of torsion-torsion grids
      */
-    int getNumTorsionTorsionGrids(void) const {
+    int getNumTorsionTorsionGrids() const {
         return torsionTorsionGrids.size();
     }
 
@@ -78,11 +78,18 @@ public:
      * @param particle3                 the index of the third particle connected by the torsion-torsion
      * @param particle4                 the index of the fourth particle connected by the torsion-torsion
      * @param particle5                 the index of the fifth particle connected by the torsion-torsion
-     * @param chiralCheckAtomIndex      the index of the particle connected to particle3, but not particle2 or particle4 to be used in chirality check
+     * @param chiralCheckAtomIndex      the index of the particle connected to particle3, but not particle2 or
+     * particle4 to be used in chirality check
      * @param gridIndex                 the index to the grid to be used
      * @return                          the index of the torsion-torsion that was added
      */
-    int addTorsionTorsion(int particle1, int particle2, int particle3, int particle4, int particle5, int chiralCheckAtomIndex, int gridIndex);
+    int addTorsionTorsion(int particle1,
+                          int particle2,
+                          int particle3,
+                          int particle4,
+                          int particle5,
+                          int chiralCheckAtomIndex,
+                          int gridIndex);
 
     /**
      * Get the force field parameters for a torsion-torsion term.
@@ -93,10 +100,18 @@ public:
      * @param[out] particle3                 the index of the third particle connected by the torsion-torsion
      * @param[out] particle4                 the index of the fourth particle connected by the torsion-torsion
      * @param[out] particle5                 the index of the fifth particle connected by the torsion-torsion
-     * @param[out] chiralCheckAtomIndex      the index of the particle connected to particle3, but not particle2 or particle4 to be used in chirality check
+     * @param[out] chiralCheckAtomIndex      the index of the particle connected to particle3, but not
+     * particle2 or particle4 to be used in chirality check
      * @param[out] gridIndex                 the grid index
      */
-    void getTorsionTorsionParameters(int index, int& particle1, int& particle2, int& particle3, int& particle4, int& particle5, int& chiralCheckAtomIndex, int& gridIndex) const;
+    void getTorsionTorsionParameters(int index,
+                                     int& particle1,
+                                     int& particle2,
+                                     int& particle3,
+                                     int& particle4,
+                                     int& particle5,
+                                     int& chiralCheckAtomIndex,
+                                     int& gridIndex) const;
 
     /**
      * Set the force field parameters for a torsion-torsion term.
@@ -107,10 +122,18 @@ public:
      * @param particle3                 the index of the third particle connected by the torsion-torsion
      * @param particle4                 the index of the fourth particle connected by the torsion-torsion
      * @param particle5                 the index of the fifth particle connected by the torsion-torsion
-     * @param chiralCheckAtomIndex      the index of the particle connected to particle3, but not particle2 or particle4 to be used in chirality check
+     * @param chiralCheckAtomIndex      the index of the particle connected to particle3, but not particle2 or
+     * particle4 to be used in chirality check
      * @param gridIndex                 the grid index
      */
-    void setTorsionTorsionParameters(int index, int particle1, int particle2, int particle3, int particle4, int particle5, int chiralCheckAtomIndex, int gridIndex);
+    void setTorsionTorsionParameters(int index,
+                                     int particle1,
+                                     int particle2,
+                                     int particle3,
+                                     int particle4,
+                                     int particle5,
+                                     int chiralCheckAtomIndex,
+                                     int gridIndex);
 
     /**
      * Get the torsion-torsion grid at the specified index
@@ -118,7 +141,7 @@ public:
      * @param  index        the grid index
      * @return grid         return grid reference
      */
-    const std::vector<std::vector<std::vector<double> > >& getTorsionTorsionGrid(int index) const;
+    const std::vector<std::vector<std::vector<double>>>& getTorsionTorsionGrid(int index) const;
 
     /**
      * Set the torsion-torsion grid at the specified index
@@ -134,7 +157,7 @@ public:
      *                         grid[x][y][4] = dEdy value
      *                         grid[x][y][5] = dEd(xy) value
      */
-    void setTorsionTorsionGrid(int index, const std::vector<std::vector<std::vector<double> > >& grid);
+    void setTorsionTorsionGrid(int index, const std::vector<std::vector<std::vector<double>>>& grid);
     /**
      * Set whether this force should apply periodic boundary conditions when calculating displacements.
      * Usually this is not appropriate for bonded forces, but there are situations when it can be useful.
@@ -147,9 +170,11 @@ public:
      * @returns true if force uses PBC and false otherwise
      */
     bool usesPeriodicBoundaryConditions() const;
-protected:
+
+    protected:
     ForceImpl* createImpl() const;
-private:
+
+    private:
     class TorsionTorsionInfo;
     class TorsionTorsionGridInfo;
     std::vector<TorsionTorsionInfo> torsionTorsions;
@@ -162,20 +187,28 @@ private:
  * @private
  */
 class AmoebaTorsionTorsionForce::TorsionTorsionInfo {
-
-public:
-
+    public:
     int particle1, particle2, particle3, particle4, particle5;
     int chiralCheckAtomIndex;
     int gridIndex;
     TorsionTorsionInfo() {
-        particle1 = particle2  = particle3 = particle4 = particle5 = chiralCheckAtomIndex = -1;
+        particle1 = particle2 = particle3 = particle4 = particle5 = chiralCheckAtomIndex = -1;
         gridIndex = 0;
     }
-    TorsionTorsionInfo(int particle1, int particle2, int particle3, int particle4, int particle5, int chiralCheckAtomIndex, int gridIndex) :
-                       particle1(particle1), particle2(particle2), particle3(particle3),
-                       particle4(particle4), particle5(particle5), chiralCheckAtomIndex(chiralCheckAtomIndex), gridIndex(gridIndex) {
-
+    TorsionTorsionInfo(int particle1,
+                       int particle2,
+                       int particle3,
+                       int particle4,
+                       int particle5,
+                       int chiralCheckAtomIndex,
+                       int gridIndex)
+        : particle1(particle1)
+        , particle2(particle2)
+        , particle3(particle3)
+        , particle4(particle4)
+        , particle5(particle5)
+        , chiralCheckAtomIndex(chiralCheckAtomIndex)
+        , gridIndex(gridIndex) {
     }
 };
 
@@ -184,18 +217,16 @@ public:
  * @private
  */
 class AmoebaTorsionTorsionForce::TorsionTorsionGridInfo {
-
-public:
-
+    public:
     TorsionTorsionGridInfo() {
-        _size[0]        = _size[1]        = 0;
+        _size[0] = _size[1] = 0;
         _startValues[0] = _startValues[1] = 0.0;
-        _spacing[0]     = _spacing[1]     = 1.0;
+        _spacing[0] = _spacing[1] = 1.0;
     }
 
     TorsionTorsionGridInfo(const TorsionTorsionGrid& grid);
 
-    const TorsionTorsionGrid& getTorsionTorsionGrid(void) const {
+    const TorsionTorsionGrid& getTorsionTorsionGrid() const {
         return _grid;
     }
     int getDimensionSize(int index) const {
@@ -208,8 +239,7 @@ public:
         return _spacing[index];
     }
 
-private:
-
+    private:
     TorsionTorsionGrid _grid;
     int _size[2];
     double _startValues[2];

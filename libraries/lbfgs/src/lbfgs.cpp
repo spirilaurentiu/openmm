@@ -61,42 +61,41 @@ distributing the effieicnt and explanatory implementation in an open source
 licence.
 */
 
-#ifdef  HAVE_CONFIG_H
-#include <config.h>
-#endif/*HAVE_CONFIG_H*/
+#ifdef HAVE_CONFIG_H
+#    include <config.h>
+#endif /*HAVE_CONFIG_H*/
 
+#include <lbfgs.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
-#include <lbfgs.h>
+#ifdef _MSC_VER
+#    define inline __inline
+#endif /*_MSC_VER*/
 
-#ifdef  _MSC_VER
-#define inline  __inline
-#endif/*_MSC_VER*/
-
-#if     defined(USE_SSE) && defined(__SSE2__) && LBFGS_FLOAT == 64
+#if defined(USE_SSE) && defined(__SSE2__) && LBFGS_FLOAT == 64
 /* Use SSE2 optimization for 64bit double precision. */
-#include "arithmetic_sse_double.h"
+#    include "arithmetic_sse_double.h"
 
-#elif   defined(USE_SSE) && defined(__SSE__) && LBFGS_FLOAT == 32
+#elif defined(USE_SSE) && defined(__SSE__) && LBFGS_FLOAT == 32
 /* Use SSE optimization for 32bit float precision. */
-#include "arithmetic_sse_float.h"
+#    include "arithmetic_sse_float.h"
 
 #else
 /* No CPU specific optimization. */
-#include "arithmetic_ansi.h"
+#    include "arithmetic_ansi.h"
 
 #endif
 
-#define min2(a, b)      ((a) <= (b) ? (a) : (b))
-#define max2(a, b)      ((a) >= (b) ? (a) : (b))
-#define max3(a, b, c)   max2(max2((a), (b)), (c));
+#define min2(a, b) ((a) <= (b) ? (a) : (b))
+#define max2(a, b) ((a) >= (b) ? (a) : (b))
+#define max3(a, b, c) max2(max2((a), (b)), (c));
 
 struct tag_callback_data {
     int n;
-    void *instance;
+    void* instance;
     lbfgs_evaluate_t proc_evaluate;
     lbfgs_progress_t proc_progress;
 };
@@ -104,158 +103,142 @@ typedef struct tag_callback_data callback_data_t;
 
 struct tag_iteration_data {
     lbfgsfloatval_t alpha;
-    lbfgsfloatval_t *s;     /* [n] */
-    lbfgsfloatval_t *y;     /* [n] */
-    lbfgsfloatval_t ys;     /* vecdot(y, s) */
+    lbfgsfloatval_t* s; /* [n] */
+    lbfgsfloatval_t* y; /* [n] */
+    lbfgsfloatval_t ys; /* vecdot(y, s) */
 };
 typedef struct tag_iteration_data iteration_data_t;
 
 static const lbfgs_parameter_t _defparam = {
-    6, 1e-5, 0, 1e-5,
-    0, LBFGS_LINESEARCH_DEFAULT, 40,
-    1e-20, 1e20, 1e-4, 0.9, 0.9, 1.0e-16,
-    0.0, 0, -1,
+    6,
+    1e-5,
+    0,
+    1e-5,
+    0,
+    LBFGS_LINESEARCH_DEFAULT,
+    40,
+    1e-20,
+    1e20,
+    1e-4,
+    0.9,
+    0.9,
+    1.0e-16,
+    0.0,
+    0,
+    -1,
 };
 
 /* Forward function declarations. */
 
-typedef int (*line_search_proc)(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *f,
-    lbfgsfloatval_t *g,
-    lbfgsfloatval_t *s,
-    lbfgsfloatval_t *stp,
-    const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wa,
-    callback_data_t *cd,
-    const lbfgs_parameter_t *param
-    );
-    
-static int line_search_backtracking(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *f,
-    lbfgsfloatval_t *g,
-    lbfgsfloatval_t *s,
-    lbfgsfloatval_t *stp,
-    const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wa,
-    callback_data_t *cd,
-    const lbfgs_parameter_t *param
-    );
+typedef int (*line_search_proc)(int n,
+                                lbfgsfloatval_t* x,
+                                lbfgsfloatval_t* f,
+                                lbfgsfloatval_t* g,
+                                lbfgsfloatval_t* s,
+                                lbfgsfloatval_t* stp,
+                                const lbfgsfloatval_t* xp,
+                                const lbfgsfloatval_t* gp,
+                                lbfgsfloatval_t* wa,
+                                callback_data_t* cd,
+                                const lbfgs_parameter_t* param);
 
-static int line_search_backtracking_owlqn(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *f,
-    lbfgsfloatval_t *g,
-    lbfgsfloatval_t *s,
-    lbfgsfloatval_t *stp,
-    const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wp,
-    callback_data_t *cd,
-    const lbfgs_parameter_t *param
-    );
+static int line_search_backtracking(int n,
+                                    lbfgsfloatval_t* x,
+                                    lbfgsfloatval_t* f,
+                                    lbfgsfloatval_t* g,
+                                    lbfgsfloatval_t* s,
+                                    lbfgsfloatval_t* stp,
+                                    const lbfgsfloatval_t* xp,
+                                    const lbfgsfloatval_t* gp,
+                                    lbfgsfloatval_t* wa,
+                                    callback_data_t* cd,
+                                    const lbfgs_parameter_t* param);
 
-static int line_search_morethuente(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *f,
-    lbfgsfloatval_t *g,
-    lbfgsfloatval_t *s,
-    lbfgsfloatval_t *stp,
-    const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wa,
-    callback_data_t *cd,
-    const lbfgs_parameter_t *param
-    );
+static int line_search_backtracking_owlqn(int n,
+                                          lbfgsfloatval_t* x,
+                                          lbfgsfloatval_t* f,
+                                          lbfgsfloatval_t* g,
+                                          lbfgsfloatval_t* s,
+                                          lbfgsfloatval_t* stp,
+                                          const lbfgsfloatval_t* xp,
+                                          const lbfgsfloatval_t* gp,
+                                          lbfgsfloatval_t* wp,
+                                          callback_data_t* cd,
+                                          const lbfgs_parameter_t* param);
 
-static int update_trial_interval(
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *fx,
-    lbfgsfloatval_t *dx,
-    lbfgsfloatval_t *y,
-    lbfgsfloatval_t *fy,
-    lbfgsfloatval_t *dy,
-    lbfgsfloatval_t *t,
-    lbfgsfloatval_t *ft,
-    lbfgsfloatval_t *dt,
-    const lbfgsfloatval_t tmin,
-    const lbfgsfloatval_t tmax,
-    int *brackt
-    );
+static int line_search_morethuente(int n,
+                                   lbfgsfloatval_t* x,
+                                   lbfgsfloatval_t* f,
+                                   lbfgsfloatval_t* g,
+                                   lbfgsfloatval_t* s,
+                                   lbfgsfloatval_t* stp,
+                                   const lbfgsfloatval_t* xp,
+                                   const lbfgsfloatval_t* gp,
+                                   lbfgsfloatval_t* wa,
+                                   callback_data_t* cd,
+                                   const lbfgs_parameter_t* param);
 
-static lbfgsfloatval_t owlqn_x1norm(
-    const lbfgsfloatval_t* x,
-    const int start,
-    const int n
-    );
+static int update_trial_interval(lbfgsfloatval_t* x,
+                                 lbfgsfloatval_t* fx,
+                                 lbfgsfloatval_t* dx,
+                                 lbfgsfloatval_t* y,
+                                 lbfgsfloatval_t* fy,
+                                 lbfgsfloatval_t* dy,
+                                 lbfgsfloatval_t* t,
+                                 lbfgsfloatval_t* ft,
+                                 lbfgsfloatval_t* dt,
+                                 const lbfgsfloatval_t tmin,
+                                 const lbfgsfloatval_t tmax,
+                                 int* brackt);
 
-static void owlqn_pseudo_gradient(
-    lbfgsfloatval_t* pg,
-    const lbfgsfloatval_t* x,
-    const lbfgsfloatval_t* g,
-    const int n,
-    const lbfgsfloatval_t c,
-    const int start,
-    const int end
-    );
+static lbfgsfloatval_t owlqn_x1norm(const lbfgsfloatval_t* x, const int start, const int n);
 
-static void owlqn_project(
-    lbfgsfloatval_t* d,
-    const lbfgsfloatval_t* sign,
-    const int start,
-    const int end
-    );
+static void owlqn_pseudo_gradient(lbfgsfloatval_t* pg,
+                                  const lbfgsfloatval_t* x,
+                                  const lbfgsfloatval_t* g,
+                                  const int n,
+                                  const lbfgsfloatval_t c,
+                                  const int start,
+                                  const int end);
+
+static void owlqn_project(lbfgsfloatval_t* d, const lbfgsfloatval_t* sign, const int start, const int end);
 
 
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
-static int round_out_variables(int n)
-{
+#if defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+static int round_out_variables(int n) {
     n += 7;
     n /= 8;
     n *= 8;
     return n;
 }
-#endif/*defined(USE_SSE)*/
+#endif /*defined(USE_SSE)*/
 
-lbfgsfloatval_t* lbfgs_malloc(int n)
-{
+lbfgsfloatval_t* lbfgs_malloc(int n) {
     if (n < 0) {
-       return NULL;
+        return NULL;
     }
 
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+#if defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
     n = round_out_variables(n);
-#endif/*defined(USE_SSE)*/
+#endif /*defined(USE_SSE)*/
     return (lbfgsfloatval_t*)vecalloc(sizeof(lbfgsfloatval_t) * (size_t)n);
 }
 
-void lbfgs_free(lbfgsfloatval_t *x)
-{
+void lbfgs_free(lbfgsfloatval_t* x) {
     vecfree(x);
 }
 
-void lbfgs_parameter_init(lbfgs_parameter_t *param)
-{
+void lbfgs_parameter_init(lbfgs_parameter_t* param) {
     memcpy(param, &_defparam, sizeof(*param));
 }
 
-int lbfgs(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *ptr_fx,
-    lbfgs_evaluate_t proc_evaluate,
-    lbfgs_progress_t proc_progress,
-    void *instance,
-    lbfgs_parameter_t *_param
-    )
-{
+int lbfgs(int n,
+          lbfgsfloatval_t* x,
+          lbfgsfloatval_t* ptr_fx,
+          lbfgs_evaluate_t proc_evaluate,
+          lbfgs_progress_t proc_progress,
+          void* instance,
+          lbfgs_parameter_t* _param) {
     int ret;
     int i, j, k, ls, end, bound;
     lbfgsfloatval_t step;
@@ -264,7 +247,7 @@ int lbfgs(
     lbfgs_parameter_t param = (_param != NULL) ? (*_param) : _defparam;
     const int m = param.m;
 
-    lbfgsfloatval_t *xp = NULL;
+    lbfgsfloatval_t* xp = NULL;
     lbfgsfloatval_t *g = NULL, *gp = NULL, *pg = NULL;
     lbfgsfloatval_t *d = NULL, *w = NULL, *pf = NULL;
     iteration_data_t *lm = NULL, *it = NULL;
@@ -281,23 +264,23 @@ int lbfgs(
     cd.proc_evaluate = proc_evaluate;
     cd.proc_progress = proc_progress;
 
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+#if defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
     /* Round out the number of variables. */
     n = round_out_variables(n);
-#endif/*defined(USE_SSE)*/
+#endif /*defined(USE_SSE)*/
 
     /* Check the input parameters for errors. */
     if (n <= 0) {
         return LBFGSERR_INVALID_N;
     }
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+#if defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
     if (n % 8 != 0) {
         return LBFGSERR_INVALID_N_SSE;
     }
     if ((uintptr_t)(const void*)x % 16 != 0) {
         return LBFGSERR_INVALID_X_SSE;
     }
-#endif/*defined(USE_SSE)*/
+#endif /*defined(USE_SSE)*/
     if (param.epsilon < 0.) {
         return LBFGSERR_INVALID_EPSILON;
     }
@@ -316,8 +299,8 @@ int lbfgs(
     if (param.ftol < 0.) {
         return LBFGSERR_INVALID_FTOL;
     }
-    if (param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_WOLFE ||
-        param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE) {
+    if (param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_WOLFE
+        || param.linesearch == LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE) {
         if (param.wolfe <= param.ftol || 1. <= param.wolfe) {
             return LBFGSERR_INVALID_WOLFE;
         }
@@ -345,25 +328,25 @@ int lbfgs(
     }
     if (param.orthantwise_c != 0.) {
         switch (param.linesearch) {
-        case LBFGS_LINESEARCH_BACKTRACKING:
-            linesearch = line_search_backtracking_owlqn;
-            break;
-        default:
-            /* Only the backtracking method is available. */
-            return LBFGSERR_INVALID_LINESEARCH;
+            case LBFGS_LINESEARCH_BACKTRACKING:
+                linesearch = line_search_backtracking_owlqn;
+                break;
+            default:
+                /* Only the backtracking method is available. */
+                return LBFGSERR_INVALID_LINESEARCH;
         }
     } else {
         switch (param.linesearch) {
-        case LBFGS_LINESEARCH_MORETHUENTE:
-            linesearch = line_search_morethuente;
-            break;
-        case LBFGS_LINESEARCH_BACKTRACKING_ARMIJO:
-        case LBFGS_LINESEARCH_BACKTRACKING_WOLFE:
-        case LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE:
-            linesearch = line_search_backtracking;
-            break;
-        default:
-            return LBFGSERR_INVALID_LINESEARCH;
+            case LBFGS_LINESEARCH_MORETHUENTE:
+                linesearch = line_search_morethuente;
+                break;
+            case LBFGS_LINESEARCH_BACKTRACKING_ARMIJO:
+            case LBFGS_LINESEARCH_BACKTRACKING_WOLFE:
+            case LBFGS_LINESEARCH_BACKTRACKING_STRONG_WOLFE:
+                linesearch = line_search_backtracking;
+                break;
+            default:
+                return LBFGSERR_INVALID_LINESEARCH;
         }
     }
 
@@ -395,7 +378,7 @@ int lbfgs(
     }
 
     /* Initialize the limited memory. */
-    for (i = 0;i < m;++i) {
+    for (i = 0; i < m; ++i) {
         it = &lm[i];
         it->alpha = 0;
         it->ys = 0;
@@ -419,10 +402,13 @@ int lbfgs(
             /* Compute the L1 norm of the variable and add it to the object value. */
             xnorm = owlqn_x1norm(x, param.orthantwise_start, param.orthantwise_end);
             fx += xnorm * param.orthantwise_c;
-            owlqn_pseudo_gradient(
-                pg, x, g, n,
-                param.orthantwise_c, param.orthantwise_start, param.orthantwise_end
-                );
+            owlqn_pseudo_gradient(pg,
+                                  x,
+                                  g,
+                                  n,
+                                  param.orthantwise_c,
+                                  param.orthantwise_start,
+                                  param.orthantwise_end);
         }
 
         /* Store the initial value of the objective function. */
@@ -449,7 +435,9 @@ int lbfgs(
         } else {
             vec2norm(&gnorm, pg, n);
         }
-        if (xnorm < 1.0) xnorm = 1.0;
+        if (xnorm < 1.0) {
+            xnorm = 1.0;
+        }
         if (gnorm / xnorm <= param.epsilon) {
             ret = LBFGS_ALREADY_MINIMIZED;
             goto lbfgs_exit;
@@ -475,10 +463,13 @@ int lbfgs(
                 ls = linesearch(n, x, &fx, g, d, &step, xp, gp, w, &cd, &param);
             } else {
                 ls = linesearch(n, x, &fx, g, d, &step, xp, pg, w, &cd, &param);
-                owlqn_pseudo_gradient(
-                    pg, x, g, n,
-                    param.orthantwise_c, param.orthantwise_start, param.orthantwise_end
-                    );
+                owlqn_pseudo_gradient(pg,
+                                      x,
+                                      g,
+                                      n,
+                                      param.orthantwise_c,
+                                      param.orthantwise_start,
+                                      param.orthantwise_end);
             }
             if (ls < 0) {
                 /* Revert to the previous point. */
@@ -508,7 +499,9 @@ int lbfgs(
                 The criterion is given by the following formula:
                     |g(x)| / \max(1, |x|) < \epsilon
              */
-            if (xnorm < 1.0) xnorm = 1.0;
+            if (xnorm < 1.0) {
+                xnorm = 1.0;
+            }
             if (gnorm / xnorm <= param.epsilon) {
                 /* Convergence. */
                 ret = LBFGS_SUCCESS;
@@ -537,7 +530,7 @@ int lbfgs(
                 pf[k % param.past] = fx;
             }
 
-            if (param.max_iterations != 0 && param.max_iterations < k+1) {
+            if (param.max_iterations != 0 && param.max_iterations < k + 1) {
                 /* Maximum number of iterations. */
                 ret = LBFGSERR_MAXIMUMITERATION;
                 break;
@@ -583,8 +576,8 @@ int lbfgs(
             }
 
             j = end;
-            for (i = 0;i < bound;++i) {
-                j = (j + m - 1) % m;    /* if (--j == -1) j = m-1; */
+            for (i = 0; i < bound; ++i) {
+                j = (j + m - 1) % m; /* if (--j == -1) j = m-1; */
                 it = &lm[j];
                 /* \alpha_{j} = \rho_{j} s^{t}_{j} \cdot q_{k+1}. */
                 vecdot(&it->alpha, it->s, d, n);
@@ -595,21 +588,21 @@ int lbfgs(
 
             vecscale(d, ys / yy, n);
 
-            for (i = 0;i < bound;++i) {
+            for (i = 0; i < bound; ++i) {
                 it = &lm[j];
                 /* \beta_{j} = \rho_{j} y^t_{j} \cdot \gamma_{i}. */
                 vecdot(&beta, it->y, d, n);
                 beta /= it->ys;
                 /* \gamma_{i+1} = \gamma_{i} + (\alpha_{j} - \beta_{j}) s_{j}. */
                 vecadd(d, it->s, it->alpha - beta, n);
-                j = (j + 1) % m;        /* if (++j == m) j = 0; */
+                j = (j + 1) % m; /* if (++j == m) j = 0; */
             }
 
             /*
                 Constrain the search direction for orthant-wise updates.
              */
             if (param.orthantwise_c != 0.) {
-                for (i = param.orthantwise_start;i < param.orthantwise_end;++i) {
+                for (i = param.orthantwise_start; i < param.orthantwise_end; ++i) {
                     if (d[i] * pg[i] >= 0) {
                         d[i] = 0;
                     }
@@ -621,13 +614,12 @@ int lbfgs(
              */
             step = 1.0;
         }
-    }
-    catch (...) {
+    } catch (...) {
         vecfree(pf);
 
         /* Free memory blocks used by this function. */
         if (lm != NULL) {
-            for (i = 0;i < m;++i) {
+            for (i = 0; i < m; ++i) {
                 vecfree(lm[i].s);
                 vecfree(lm[i].y);
             }
@@ -652,7 +644,7 @@ lbfgs_exit:
 
     /* Free memory blocks used by this function. */
     if (lm != NULL) {
-        for (i = 0;i < m;++i) {
+        for (i = 0; i < m; ++i) {
             vecfree(lm[i].s);
             vecfree(lm[i].y);
         }
@@ -668,9 +660,8 @@ lbfgs_exit:
     return ret;
 }
 
-const char* lbfgs_strerror(int err)
-{
-    switch(err) {
+const char* lbfgs_strerror(int err) {
+    switch (err) {
         case LBFGS_SUCCESS:
             /* Also handles LBFGS_CONVERGENCE. */
             return "Success: reached convergence (gtol).";
@@ -783,20 +774,17 @@ const char* lbfgs_strerror(int err)
 }
 
 
-static int line_search_backtracking(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *f,
-    lbfgsfloatval_t *g,
-    lbfgsfloatval_t *s,
-    lbfgsfloatval_t *stp,
-    const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wp,
-    callback_data_t *cd,
-    const lbfgs_parameter_t *param
-    )
-{
+static int line_search_backtracking(int n,
+                                    lbfgsfloatval_t* x,
+                                    lbfgsfloatval_t* f,
+                                    lbfgsfloatval_t* g,
+                                    lbfgsfloatval_t* s,
+                                    lbfgsfloatval_t* stp,
+                                    const lbfgsfloatval_t* xp,
+                                    const lbfgsfloatval_t* gp,
+                                    lbfgsfloatval_t* wp,
+                                    callback_data_t* cd,
+                                    const lbfgs_parameter_t* param) {
     (void)gp;
     (void)wp;
 
@@ -838,25 +826,25 @@ static int line_search_backtracking(
             if (param->linesearch == LBFGS_LINESEARCH_BACKTRACKING_ARMIJO) {
                 /* Exit with the Armijo condition. */
                 return count;
-	        }
+            }
 
-	        /* Check the Wolfe condition. */
-	        vecdot(&dg, g, s, n);
-	        if (dg < param->wolfe * dginit) {
-    		    width = inc;
-	        } else {
-		        if(param->linesearch == LBFGS_LINESEARCH_BACKTRACKING_WOLFE) {
-		            /* Exit with the regular Wolfe condition. */
-		            return count;
-		        }
+            /* Check the Wolfe condition. */
+            vecdot(&dg, g, s, n);
+            if (dg < param->wolfe * dginit) {
+                width = inc;
+            } else {
+                if (param->linesearch == LBFGS_LINESEARCH_BACKTRACKING_WOLFE) {
+                    /* Exit with the regular Wolfe condition. */
+                    return count;
+                }
 
-		        /* Check the strong Wolfe condition. */
-		        if(dg > -param->wolfe * dginit) {
-		            width = dec;
-		        } else {
-		            /* Exit with the strong Wolfe condition. */
-		            return count;
-		        }
+                /* Check the strong Wolfe condition. */
+                if (dg > -param->wolfe * dginit) {
+                    width = dec;
+                } else {
+                    /* Exit with the strong Wolfe condition. */
+                    return count;
+                }
             }
         }
 
@@ -878,21 +866,17 @@ static int line_search_backtracking(
 }
 
 
-
-static int line_search_backtracking_owlqn(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *f,
-    lbfgsfloatval_t *g,
-    lbfgsfloatval_t *s,
-    lbfgsfloatval_t *stp,
-    const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wp,
-    callback_data_t *cd,
-    const lbfgs_parameter_t *param
-    )
-{
+static int line_search_backtracking_owlqn(int n,
+                                          lbfgsfloatval_t* x,
+                                          lbfgsfloatval_t* f,
+                                          lbfgsfloatval_t* g,
+                                          lbfgsfloatval_t* s,
+                                          lbfgsfloatval_t* stp,
+                                          const lbfgsfloatval_t* xp,
+                                          const lbfgsfloatval_t* gp,
+                                          lbfgsfloatval_t* wp,
+                                          callback_data_t* cd,
+                                          const lbfgs_parameter_t* param) {
     int i, count = 0;
     lbfgsfloatval_t width = 0.5, norm = 0.;
     lbfgsfloatval_t finit = *f, dgtest;
@@ -903,7 +887,7 @@ static int line_search_backtracking_owlqn(
     }
 
     /* Choose the orthant for the new point. */
-    for (i = 0;i < n;++i) {
+    for (i = 0; i < n; ++i) {
         wp[i] = (xp[i] == 0.) ? -gp[i] : xp[i];
     }
 
@@ -925,7 +909,7 @@ static int line_search_backtracking_owlqn(
         ++count;
 
         dgtest = 0.;
-        for (i = 0;i < n;++i) {
+        for (i = 0; i < n; ++i) {
             dgtest += (x[i] - xp[i]) * gp[i];
         }
 
@@ -952,21 +936,17 @@ static int line_search_backtracking_owlqn(
 }
 
 
-
-static int line_search_morethuente(
-    int n,
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *f,
-    lbfgsfloatval_t *g,
-    lbfgsfloatval_t *s,
-    lbfgsfloatval_t *stp,
-    const lbfgsfloatval_t* xp,
-    const lbfgsfloatval_t* gp,
-    lbfgsfloatval_t *wa,
-    callback_data_t *cd,
-    const lbfgs_parameter_t *param
-    )
-{
+static int line_search_morethuente(int n,
+                                   lbfgsfloatval_t* x,
+                                   lbfgsfloatval_t* f,
+                                   lbfgsfloatval_t* g,
+                                   lbfgsfloatval_t* s,
+                                   lbfgsfloatval_t* stp,
+                                   const lbfgsfloatval_t* xp,
+                                   const lbfgsfloatval_t* gp,
+                                   lbfgsfloatval_t* wa,
+                                   callback_data_t* cd,
+                                   const lbfgs_parameter_t* param) {
     (void)gp;
     (void)wa;
 
@@ -1028,14 +1008,19 @@ static int line_search_morethuente(
         }
 
         /* Clip the step in the range of [stpmin, stpmax]. */
-        if (*stp < param->min_step) *stp = param->min_step;
-        if (param->max_step < *stp) *stp = param->max_step;
+        if (*stp < param->min_step) {
+            *stp = param->min_step;
+        }
+        if (param->max_step < *stp) {
+            *stp = param->max_step;
+        }
 
         /*
             If an unusual termination is to occur then let
             stp be the lowest point obtained so far.
          */
-        if ((brackt && ((*stp <= stmin || stmax <= *stp) || param->max_linesearch <= count + 1 || uinfo != 0)) || (brackt && (stmax - stmin <= param->xtol * stmax))) {
+        if ((brackt && ((*stp <= stmin || stmax <= *stp) || param->max_linesearch <= count + 1 || uinfo != 0))
+            || (brackt && (stmax - stmin <= param->xtol * stmax))) {
             *stp = stx;
         }
 
@@ -1107,12 +1092,18 @@ static int line_search_morethuente(
                 Call update_trial_interval() to update the interval of
                 uncertainty and to compute the new step.
              */
-            uinfo = update_trial_interval(
-                &stx, &fxm, &dgxm,
-                &sty, &fym, &dgym,
-                stp, &fm, &dgm,
-                stmin, stmax, &brackt
-                );
+            uinfo = update_trial_interval(&stx,
+                                          &fxm,
+                                          &dgxm,
+                                          &sty,
+                                          &fym,
+                                          &dgym,
+                                          stp,
+                                          &fm,
+                                          &dgm,
+                                          stmin,
+                                          stmax,
+                                          &brackt);
 
             /* Reset the function and gradient values for f. */
             fx = fxm + stx * dgtest;
@@ -1124,12 +1115,8 @@ static int line_search_morethuente(
                 Call update_trial_interval() to update the interval of
                 uncertainty and to compute the new step.
              */
-            uinfo = update_trial_interval(
-                &stx, &fx, &dgx,
-                &sty, &fy, &dgy,
-                stp, f, &dg,
-                stmin, stmax, &brackt
-                );
+            uinfo =
+                update_trial_interval(&stx, &fx, &dgx, &sty, &fy, &dgy, stp, f, &dg, stmin, stmax, &brackt);
         }
 
         /*
@@ -1146,12 +1133,10 @@ static int line_search_morethuente(
 }
 
 
-
 /**
  * Define the local variables for computing minimizers.
  */
-#define USES_MINIMIZER \
-    lbfgsfloatval_t a, d, gamma, theta, p, q, r, s;
+#define USES_MINIMIZER lbfgsfloatval_t a, d, gamma, theta, p, q, r, s;
 
 /**
  * Find a minimizer of an interpolated cubic function.
@@ -1163,20 +1148,21 @@ static int line_search_morethuente(
  *  @param  fv      The value of f(v).
  *  @param  du      The value of f'(v).
  */
-#define CUBIC_MINIMIZER(cm, u, fu, du, v, fv, dv) \
-    d = (v) - (u); \
-    theta = ((fu) - (fv)) * 3 / d + (du) + (dv); \
-    p = fabs(theta); \
-    q = fabs(du); \
-    r = fabs(dv); \
-    s = max3(p, q, r); \
+#define CUBIC_MINIMIZER(cm, u, fu, du, v, fv, dv)        \
+    d = (v) - (u);                                       \
+    theta = ((fu) - (fv)) * 3 / d + (du) + (dv);         \
+    p = fabs(theta);                                     \
+    q = fabs(du);                                        \
+    r = fabs(dv);                                        \
+    s = max3(p, q, r);                                   \
     /* gamma = s*sqrt((theta/s)**2 - (du/s) * (dv/s)) */ \
-    a = theta / s; \
-    gamma = s * sqrt(a * a - ((du) / s) * ((dv) / s)); \
-    if ((v) < (u)) gamma = -gamma; \
-    p = gamma - (du) + theta; \
-    q = gamma - (du) + gamma + (dv); \
-    r = p / q; \
+    a = theta / s;                                       \
+    gamma = s * sqrt(a * a - ((du) / s) * ((dv) / s));   \
+    if ((v) < (u))                                       \
+        gamma = -gamma;                                  \
+    p = gamma - (du) + theta;                            \
+    q = gamma - (du) + gamma + (dv);                     \
+    r = p / q;                                           \
     (cm) = (u) + r * d;
 
 /**
@@ -1191,26 +1177,27 @@ static int line_search_morethuente(
  *  @param  xmin    The minimum value.
  *  @param  xmax    The maximum value.
  */
-#define CUBIC_MINIMIZER2(cm, u, fu, du, v, fv, dv, xmin, xmax) \
-    d = (v) - (u); \
-    theta = ((fu) - (fv)) * 3 / d + (du) + (dv); \
-    p = fabs(theta); \
-    q = fabs(du); \
-    r = fabs(dv); \
-    s = max3(p, q, r); \
-    /* gamma = s*sqrt((theta/s)**2 - (du/s) * (dv/s)) */ \
-    a = theta / s; \
+#define CUBIC_MINIMIZER2(cm, u, fu, du, v, fv, dv, xmin, xmax)  \
+    d = (v) - (u);                                              \
+    theta = ((fu) - (fv)) * 3 / d + (du) + (dv);                \
+    p = fabs(theta);                                            \
+    q = fabs(du);                                               \
+    r = fabs(dv);                                               \
+    s = max3(p, q, r);                                          \
+    /* gamma = s*sqrt((theta/s)**2 - (du/s) * (dv/s)) */        \
+    a = theta / s;                                              \
     gamma = s * sqrt(max2(0, a * a - ((du) / s) * ((dv) / s))); \
-    if ((u) < (v)) gamma = -gamma; \
-    p = gamma - (dv) + theta; \
-    q = gamma - (dv) + gamma + (du); \
-    r = p / q; \
-    if (r < 0. && gamma != 0.) { \
-        (cm) = (v) - r * d; \
-    } else if (d > 0) { \
-        (cm) = (xmax); \
-    } else { \
-        (cm) = (xmin); \
+    if ((u) < (v))                                              \
+        gamma = -gamma;                                         \
+    p = gamma - (dv) + theta;                                   \
+    q = gamma - (dv) + gamma + (du);                            \
+    r = p / q;                                                  \
+    if (r < 0. && gamma != 0.) {                                \
+        (cm) = (v) - r * d;                                     \
+    } else if (d > 0) {                                         \
+        (cm) = (xmax);                                          \
+    } else {                                                    \
+        (cm) = (xmin);                                          \
     }
 
 /**
@@ -1223,7 +1210,7 @@ static int line_search_morethuente(
  *  @param  fv      The value of f(v).
  */
 #define QUAD_MINIMIZER(qm, u, fu, du, v, fv) \
-    a = (v) - (u); \
+    a = (v) - (u);                           \
     (qm) = (u) + (du) / (((fu) - (fv)) / a + (du)) / 2 * a;
 
 /**
@@ -1235,7 +1222,7 @@ static int line_search_morethuente(
  *  @param  dv      The value of f'(v).
  */
 #define QUAD_MINIMIZER2(qm, u, du, v, dv) \
-    a = (u) - (v); \
+    a = (u) - (v);                        \
     (qm) = (v) + (dv) / ((dv) - (du)) * a;
 
 /**
@@ -1261,33 +1248,30 @@ static int line_search_morethuente(
  *  @param  brackt  The pointer to the predicate if the trial value is
  *                  bracketed.
  *  @retval int     Status value. Zero indicates a normal termination.
- *  
+ *
  *  @see
  *      Jorge J. More and David J. Thuente. Line search algorithm with
  *      guaranteed sufficient decrease. ACM Transactions on Mathematical
  *      Software (TOMS), Vol 20, No 3, pp. 286-307, 1994.
  */
-static int update_trial_interval(
-    lbfgsfloatval_t *x,
-    lbfgsfloatval_t *fx,
-    lbfgsfloatval_t *dx,
-    lbfgsfloatval_t *y,
-    lbfgsfloatval_t *fy,
-    lbfgsfloatval_t *dy,
-    lbfgsfloatval_t *t,
-    lbfgsfloatval_t *ft,
-    lbfgsfloatval_t *dt,
-    const lbfgsfloatval_t tmin,
-    const lbfgsfloatval_t tmax,
-    int *brackt
-    )
-{
+static int update_trial_interval(lbfgsfloatval_t* x,
+                                 lbfgsfloatval_t* fx,
+                                 lbfgsfloatval_t* dx,
+                                 lbfgsfloatval_t* y,
+                                 lbfgsfloatval_t* fy,
+                                 lbfgsfloatval_t* dy,
+                                 lbfgsfloatval_t* t,
+                                 lbfgsfloatval_t* ft,
+                                 lbfgsfloatval_t* dt,
+                                 const lbfgsfloatval_t tmin,
+                                 const lbfgsfloatval_t tmax,
+                                 int* brackt) {
     int bound;
     int dsign = fsigndiff(dt, dx);
-    lbfgsfloatval_t mc; /* minimizer of an interpolated cubic. */
-    lbfgsfloatval_t mq; /* minimizer of an interpolated quadratic. */
-    lbfgsfloatval_t newt;   /* new trial value. */
-    USES_MINIMIZER;     /* for CUBIC_MINIMIZER and QUAD_MINIMIZER. */
+    lbfgsfloatval_t mc;   /* minimizer of an interpolated cubic. */
+    lbfgsfloatval_t mq;   /* minimizer of an interpolated quadratic. */
+    lbfgsfloatval_t newt; /* new trial value. */
+    USES_MINIMIZER;       /* for CUBIC_MINIMIZER and QUAD_MINIMIZER. */
 
     /* Check the input parameters for errors. */
     if (*brackt) {
@@ -1393,7 +1377,7 @@ static int update_trial_interval(
             x <- x, y <- t.
         - Case b: if f(t) <= f(x) && f'(t)*f'(x) > 0,
             x <- t, y <- y.
-        - Case c: if f(t) <= f(x) && f'(t)*f'(x) < 0, 
+        - Case c: if f(t) <= f(x) && f'(t)*f'(x) < 0,
             x <- t, y <- x.
      */
     if (*fx < *ft) {
@@ -1415,8 +1399,12 @@ static int update_trial_interval(
     }
 
     /* Clip the new trial value in [tmin, tmax]. */
-    if (tmax < newt) newt = tmax;
-    if (newt < tmin) newt = tmin;
+    if (tmax < newt) {
+        newt = tmax;
+    }
+    if (newt < tmin) {
+        newt = tmin;
+    }
 
     /*
         Redefine the new trial value if it is close to the upper bound
@@ -1425,9 +1413,13 @@ static int update_trial_interval(
     if (*brackt && bound) {
         mq = *x + 0.66 * (*y - *x);
         if (*x < *y) {
-            if (mq < newt) newt = mq;
+            if (mq < newt) {
+                newt = mq;
+            }
         } else {
-            if (newt < mq) newt = mq;
+            if (newt < mq) {
+                newt = mq;
+            }
         }
     }
 
@@ -1437,44 +1429,33 @@ static int update_trial_interval(
 }
 
 
-
-
-
-static lbfgsfloatval_t owlqn_x1norm(
-    const lbfgsfloatval_t* x,
-    const int start,
-    const int n
-    )
-{
+static lbfgsfloatval_t owlqn_x1norm(const lbfgsfloatval_t* x, const int start, const int n) {
     int i;
     lbfgsfloatval_t norm = 0.;
 
-    for (i = start;i < n;++i) {
+    for (i = start; i < n; ++i) {
         norm += fabs(x[i]);
     }
 
     return norm;
 }
 
-static void owlqn_pseudo_gradient(
-    lbfgsfloatval_t* pg,
-    const lbfgsfloatval_t* x,
-    const lbfgsfloatval_t* g,
-    const int n,
-    const lbfgsfloatval_t c,
-    const int start,
-    const int end
-    )
-{
+static void owlqn_pseudo_gradient(lbfgsfloatval_t* pg,
+                                  const lbfgsfloatval_t* x,
+                                  const lbfgsfloatval_t* g,
+                                  const int n,
+                                  const lbfgsfloatval_t c,
+                                  const int start,
+                                  const int end) {
     int i;
 
     /* Compute the negative of gradients. */
-    for (i = 0;i < start;++i) {
+    for (i = 0; i < start; ++i) {
         pg[i] = g[i];
     }
 
     /* Compute the psuedo-gradients. */
-    for (i = start;i < end;++i) {
+    for (i = start; i < end; ++i) {
         if (x[i] < 0.) {
             /* Differentiable. */
             pg[i] = g[i] - c;
@@ -1494,21 +1475,15 @@ static void owlqn_pseudo_gradient(
         }
     }
 
-    for (i = end;i < n;++i) {
+    for (i = end; i < n; ++i) {
         pg[i] = g[i];
     }
 }
 
-static void owlqn_project(
-    lbfgsfloatval_t* d,
-    const lbfgsfloatval_t* sign,
-    const int start,
-    const int end
-    )
-{
+static void owlqn_project(lbfgsfloatval_t* d, const lbfgsfloatval_t* sign, const int start, const int end) {
     int i;
 
-    for (i = start;i < end;++i) {
+    for (i = start; i < end; ++i) {
         if (d[i] * sign[i] <= 0) {
             d[i] = 0;
         }

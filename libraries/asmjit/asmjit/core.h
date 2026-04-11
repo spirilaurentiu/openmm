@@ -19,37 +19,43 @@ namespace asmjit {
 //!
 //! \section main_groups Documentation Groups
 //!
-//! AsmJit documentation is structured into groups. Groups can be followed in order to learn AsmJit, but knowledge
-//! from multiple groups is required to use AsmJit properly:
+//! AsmJit documentation is structured into groups. Groups can be followed in order to learn AsmJit, but
+//! knowledge from multiple groups is required to use AsmJit properly:
 //!
 //! $$DOCS_GROUP_OVERVIEW$$
 //!
-//! \note It's important to understand that in order to learn AsmJit all groups are important. Some groups can be
-//! omitted if a particular tool is out of interest - for example \ref asmjit_assembler users don't need to know
-//! about \ref asmjit_builder, but it's not the opposite. \ref asmjit_builder users should know about \ref
-//! asmjit_assembler as it also uses operands, labels, and other concepts. Similarly \ref asmjit_compiler users
-//! should know how both \ref asmjit_assembler and \ref asmjit_builder tools work.
+//! \note It's important to understand that in order to learn AsmJit all groups are important. Some groups can
+//! be omitted if a particular tool is out of interest - for example \ref asmjit_assembler users don't need to
+//! know about \ref asmjit_builder, but it's not the opposite. \ref asmjit_builder users should know about
+//! \ref asmjit_assembler as it also uses operands, labels, and other concepts. Similarly \ref asmjit_compiler
+//! users should know how both \ref asmjit_assembler and \ref asmjit_builder tools work.
 //!
 //! \section where_to_start Where To Start
 //!
-//! AsmJit \ref asmjit_core provides the following two classes that are essential from the code generation perspective:
+//! AsmJit \ref asmjit_core provides the following two classes that are essential from the code generation
+//! perspective:
 //!
-//!   - \ref CodeHolder provides functionality to temporarily hold the generated code. It stores all the necessary
-//!     information about the code - code buffers, sections, labels, symbols, and information about relocations.
+//!   - \ref CodeHolder provides functionality to temporarily hold the generated code. It stores all the
+//!   necessary
+//!     information about the code - code buffers, sections, labels, symbols, and information about
+//!     relocations.
 //!
-//!   - \ref BaseEmitter provides interface used by emitter implementations. The interface provides basic building
+//!   - \ref BaseEmitter provides interface used by emitter implementations. The interface provides basic
+//!   building
 //!     blocks that are then implemented by \ref BaseAssembler, \ref BaseBuilder, and \ref BaseCompiler.
 //!
 //! Code emitters:
 //!
 //!  - \ref asmjit_assembler - provides direct machine code generation.
 //!
-//!  - \ref asmjit_builder - provides intermediate code generation that can be processed before it's serialized to
+//!  - \ref asmjit_builder - provides intermediate code generation that can be processed before it's
+//!  serialized to
 //!    \ref BaseAssembler.
 //!
 //!  - \ref asmjit_compiler - provides high-level code generation with built-in register allocation.
 //!
-//!  - \ref FuncNode - provides insight into how function looks from the Compiler perspective and how it's stored in
+//!  - \ref FuncNode - provides insight into how function looks from the Compiler perspective and how it's
+//!  stored in
 //!     a node-list.
 //!
 //! \section main_recommendations Recommendations
@@ -60,23 +66,27 @@ namespace asmjit {
 //!
 //!   - Make sure that you use \ref ErrorHandler, see \ref asmjit_error_handling.
 //!
-//!   - Instruction validation in your debug builds can reveal problems too. AsmJit provides validation at instruction
-//!     level that can be enabled via \ref BaseEmitter::addDiagnosticOptions(). See \ref DiagnosticOptions for more
-//!     details.
+//!   - Instruction validation in your debug builds can reveal problems too. AsmJit provides validation at
+//!   instruction
+//!     level that can be enabled via \ref BaseEmitter::addDiagnosticOptions(). See \ref DiagnosticOptions for
+//!     more details.
 //!
 //!   - If you are a Compiler user, use diagnostic options and read carefully if anything suspicious pops out.
-//!     Diagnostic options can be enabled via \ref BaseEmitter::addDiagnosticOptions(). If unsure which ones to use,
-//!     enable annotations and all debug options: `DiagnosticOptions::kRAAnnotate | DiagnosticOptions::kRADebugAll`.
+//!     Diagnostic options can be enabled via \ref BaseEmitter::addDiagnosticOptions(). If unsure which ones
+//!     to use, enable annotations and all debug options: `DiagnosticOptions::kRAAnnotate |
+//!     DiagnosticOptions::kRADebugAll`.
 //!
-//!   - Make sure you put a breakpoint into \ref DebugUtils::errored() function if you have a problem with AsmJit
-//!     returning errors during instruction encoding or register allocation. Having an active breakpoint there can
-//!     help to reveal the origin of the error, to inspect variables and other conditions that caused it.
+//!   - Make sure you put a breakpoint into \ref DebugUtils::errored() function if you have a problem with
+//!   AsmJit
+//!     returning errors during instruction encoding or register allocation. Having an active breakpoint there
+//!     can help to reveal the origin of the error, to inspect variables and other conditions that caused it.
 //!
-//! The reason for using \ref Logger and \ref ErrorHandler is that they provide a very useful information about what's
-//! happening inside emitters. In many cases the information provided by these two is crucial to quickly identify and
-//! fix issues that happen during development (for example wrong instruction, address, or register used). In addition,
-//! output from \ref Logger is always necessary when filling bug reports. In other words, using logging and proper error
-//! handling can save a lot of time during the development and can also save users from submitting issues.
+//! The reason for using \ref Logger and \ref ErrorHandler is that they provide a very useful information
+//! about what's happening inside emitters. In many cases the information provided by these two is crucial to
+//! quickly identify and fix issues that happen during development (for example wrong instruction, address, or
+//! register used). In addition, output from \ref Logger is always necessary when filling bug reports. In
+//! other words, using logging and proper error handling can save a lot of time during the development and can
+//! also save users from submitting issues.
 //!
 //! \section main_other Other Pages
 //!
@@ -89,23 +99,26 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit is designed to be easy embeddable in any project. However, it depends on some compile-time definitions that
-//! can be used to enable or disable features to decrease the resulting binary size. A typical way of building AsmJit
-//! is to use [cmake](https://www.cmake.org), but it's also possible to just include AsmJit source code in your project
-//! and to just build it. The easiest way to include AsmJit in your project is to just include **src** directory in
-//! your project and to define \ref ASMJIT_STATIC. AsmJit can be just updated from time to time without any changes to
-//! this integration process. Do not embed AsmJit's `test` files in such case as these are used exclusively for testing.
+//! AsmJit is designed to be easy embeddable in any project. However, it depends on some compile-time
+//! definitions that can be used to enable or disable features to decrease the resulting binary size. A
+//! typical way of building AsmJit is to use [cmake](https://www.cmake.org), but it's also possible to just
+//! include AsmJit source code in your project and to just build it. The easiest way to include AsmJit in your
+//! project is to just include **src** directory in your project and to define \ref ASMJIT_STATIC. AsmJit can
+//! be just updated from time to time without any changes to this integration process. Do not embed AsmJit's
+//! `test` files in such case as these are used exclusively for testing.
 //!
 //! ### Supported C++ Compilers
 //!
 //!   - Requirements:
 //!
-//!     - AsmJit won't build without C++11 enabled. If you use older GCC or Clang you would have to enable at least
+//!     - AsmJit won't build without C++11 enabled. If you use older GCC or Clang you would have to enable at
+//!     least
 //!       C++11 standard through compiler flags.
 //!
 //!   - Tested:
 //!
-//!     - **Clang** - Tested by GitHub Actions - Clang 3.9+ (with C++11 enabled) is officially supported (older Clang
+//!     - **Clang** - Tested by GitHub Actions - Clang 3.9+ (with C++11 enabled) is officially supported
+//!     (older Clang
 //!       versions having C++11 support are probably fine, but are not regularly tested).
 //!
 //!     - **GNU** - Tested by GitHub Actions - GCC 4.8+ (with C++11 enabled) is officially supported.
@@ -131,12 +144,14 @@ namespace asmjit {
 //!
 //!     - **Windows** - Tested by GitHub Actions - (Windows 7+ is officially supported).
 //!
-//!     - **Emscripten** - Works if compiled with \ref ASMJIT_NO_JIT. AsmJit cannot generate WASM code, but can be
+//!     - **Emscripten** - Works if compiled with \ref ASMJIT_NO_JIT. AsmJit cannot generate WASM code, but
+//!     can be
 //!       used to generate X86/X64 code within a browser, for example.
 //!
 //!   - Untested:
 //!
-//!     - **BSDs** - No maintainers, no CI environment to regularly test BSDs, but they should work out of box.
+//!     - **BSDs** - No maintainers, no CI environment to regularly test BSDs, but they should work out of
+//!     box.
 //!
 //!     - **Haiku** - Not regularly tested, but reported to work.
 //!
@@ -148,52 +163,56 @@ namespace asmjit {
 //! ### Supported Backends / Architectures
 //!
 //!   - **X86** and **X86_64** - Both 32-bit and 64-bit backends tested on CI.
-//!   - **AArch64** - AArch64 backend is currently only partially tested (there is no native AArch64 runner to test
+//!   - **AArch64** - AArch64 backend is currently only partially tested (there is no native AArch64 runner to
+//!   test
 //!     AsmJit Builder/Compiler)
 //!
 //! ### Static Builds and Embedding
 //!
-//! These definitions can be used to enable static library build. Embed is used when AsmJit's source code is embedded
-//! directly in another project, implies static build as well.
+//! These definitions can be used to enable static library build. Embed is used when AsmJit's source code is
+//! embedded directly in another project, implies static build as well.
 //!
 //!   - \ref ASMJIT_EMBED - Asmjit is embedded, implies \ref ASMJIT_STATIC.
 //!   - \ref ASMJIT_STATIC - Enable static-library build.
 //!
-//! \note Projects that use AsmJit statically must define \ref ASMJIT_STATIC in all compilation units that use AsmJit,
-//! otherwise AsmJit would use dynamic library imports in \ref ASMJIT_API decorator. The recommendation is to define
-//! this macro across the whole project that uses AsmJit this way.
+//! \note Projects that use AsmJit statically must define \ref ASMJIT_STATIC in all compilation units that use
+//! AsmJit, otherwise AsmJit would use dynamic library imports in \ref ASMJIT_API decorator. The
+//! recommendation is to define this macro across the whole project that uses AsmJit this way.
 //!
 //! ### Build Configuration
 //!
-//! These definitions control whether asserts are active or not. By default AsmJit would autodetect build configuration
-//! from existing pre-processor definitions, but this behavior can be overridden, for example to enable debug asserts
-//! in release configuration.
+//! These definitions control whether asserts are active or not. By default AsmJit would autodetect build
+//! configuration from existing pre-processor definitions, but this behavior can be overridden, for example to
+//! enable debug asserts in release configuration.
 //!
-//!   - \ref ASMJIT_BUILD_DEBUG - Overrides build configuration to debug, asserts will be enabled in this case.
-//!   - \ref ASMJIT_BUILD_RELEASE - Overrides build configuration to release, asserts will be disabled in this case.
+//!   - \ref ASMJIT_BUILD_DEBUG - Overrides build configuration to debug, asserts will be enabled in this
+//!   case.
+//!   - \ref ASMJIT_BUILD_RELEASE - Overrides build configuration to release, asserts will be disabled in this
+//!   case.
 //!
-//! \note There is usually no need to override the build configuration. AsmJit detects the build configuration by
-//! checking whether `NDEBUG` is defined and automatically defines \ref ASMJIT_BUILD_RELEASE if configuration overrides
-//! were not used. We only recommend using build configuration overrides in special situations, like using AsmJit in
-//! release configuration with asserts enabled for whatever reason.
+//! \note There is usually no need to override the build configuration. AsmJit detects the build configuration
+//! by checking whether `NDEBUG` is defined and automatically defines \ref ASMJIT_BUILD_RELEASE if
+//! configuration overrides were not used. We only recommend using build configuration overrides in special
+//! situations, like using AsmJit in release configuration with asserts enabled for whatever reason.
 //!
 //! ### AsmJit Backends
 //!
-//! AsmJit currently supports only X86/X64 backend, but the plan is to add more backends in the future. By default
-//! AsmJit builds only the host backend, which is autodetected at compile-time, but this can be overridden.
+//! AsmJit currently supports only X86/X64 backend, but the plan is to add more backends in the future. By
+//! default AsmJit builds only the host backend, which is autodetected at compile-time, but this can be
+//! overridden.
 //!
 //!   - \ref ASMJIT_NO_X86 - Disable X86/X64 backends.
 //!   - \ref ASMJIT_NO_FOREIGN - Disables the support for foreign architectures.
 //!
 //! ### Features Selection
 //!
-//! AsmJit builds by defaults all supported features, which includes all emitters, logging, instruction validation and
-//! introspection, and JIT memory allocation. Features can be disabled at compile time by using `ASMJIT_NO_...`
-//! definitions.
+//! AsmJit builds by defaults all supported features, which includes all emitters, logging, instruction
+//! validation and introspection, and JIT memory allocation. Features can be disabled at compile time by using
+//! `ASMJIT_NO_...` definitions.
 //!
 //!   - \ref ASMJIT_NO_DEPRECATED - Disables deprecated API at compile time so it won't be available and the
-//!     compilation will fail if there is attempt to use such API. This includes deprecated classes, namespaces,
-//!     enumerations, and functions.
+//!     compilation will fail if there is attempt to use such API. This includes deprecated classes,
+//!     namespaces, enumerations, and functions.
 //!
 //!   - \ref ASMJIT_NO_BUILDER - Disables \ref asmjit_builder functionality completely. This implies \ref
 //!     ASMJIT_NO_COMPILER as \ref asmjit_compiler cannot be used without \ref asmjit_builder.
@@ -204,19 +223,20 @@ namespace asmjit {
 //!
 //!   - \ref ASMJIT_NO_LOGGING - Disables \ref Logger and \ref Formatter.
 //!
-//!   - \ref ASMJIT_NO_TEXT - Disables everything that contains string representation of AsmJit constants, should
-//!     be used together with \ref ASMJIT_NO_LOGGING as logging doesn't make sense without the ability to query
-//!     instruction names, register names, etc...
+//!   - \ref ASMJIT_NO_TEXT - Disables everything that contains string representation of AsmJit constants,
+//!   should
+//!     be used together with \ref ASMJIT_NO_LOGGING as logging doesn't make sense without the ability to
+//!     query instruction names, register names, etc...
 //!
 //!   - \ref ASMJIT_NO_VALIDATION - Disables validation API.
 //!
 //!   - \ref ASMJIT_NO_INTROSPECTION - Disables instruction introspection API, must be used together with \ref
-//!     ASMJIT_NO_COMPILER as \ref asmjit_compiler requires introspection for its liveness analysis and register
-//!     allocation.
+//!     ASMJIT_NO_COMPILER as \ref asmjit_compiler requires introspection for its liveness analysis and
+//!     register allocation.
 //!
-//! \note It's not recommended to disable features if you plan to build AsmJit as a shared library that will be
-//! used by multiple projects that you don't control how AsmJit was built (for example AsmJit in a Linux distribution).
-//! The possibility to disable certain features exists mainly for customized AsmJit builds.
+//! \note It's not recommended to disable features if you plan to build AsmJit as a shared library that will
+//! be used by multiple projects that you don't control how AsmJit was built (for example AsmJit in a Linux
+//! distribution). The possibility to disable certain features exists mainly for customized AsmJit builds.
 
 
 //! \defgroup asmjit_breaking_changes Breaking Changes
@@ -227,8 +247,8 @@ namespace asmjit {
 //! AsmJit is a live project that is being actively developed. Deprecating the existing API in favor of a new
 //! one is preferred, but it's not always possible if the changes are significant. AsmJit authors prefer to do
 //! accumulated breaking changes at once instead of breaking the API often. This page documents deprecated and
-//! removed APIs and should serve as a how-to guide for people that want to port existing code to work with the
-//! newest AsmJit.
+//! removed APIs and should serve as a how-to guide for people that want to port existing code to work with
+//! the newest AsmJit.
 //!
 //! ### Tips
 //!
@@ -237,10 +257,10 @@ namespace asmjit {
 //!   - Visit our [Public Gitter Channel](https://gitter.im/asmjit/asmjit) if you need a quick help.
 //!
 //!   - Build AsmJit with `ASMJIT_NO_DEPRECATED` macro defined to make sure that you are not using deprecated
-//!     functionality at all. Deprecated functions are decorated with `ASMJIT_DEPRECATED()` macro, but sometimes
-//!     it's not possible to decorate everything like classes, which are used by deprecated functions as well,
-//!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
-//!     it's not using anything, which was deprecated.
+//!     functionality at all. Deprecated functions are decorated with `ASMJIT_DEPRECATED()` macro, but
+//!     sometimes it's not possible to decorate everything like classes, which are used by deprecated
+//!     functions as well, because some compilers would warn about that. If your project compiles fine with
+//!     `ASMJIT_NO_DEPRECATED` it's not using anything, which was deprecated.
 //!
 //! ### Changes committed at 2021-12-13
 //!
@@ -248,11 +268,13 @@ namespace asmjit {
 //!
 //!   - Removed old deprecated API.
 //!
-//!   - Many enumerations were changed to enum class, and many public APIs were changed to use such enums instead
+//!   - Many enumerations were changed to enum class, and many public APIs were changed to use such enums
+//!   instead
 //!     of uint32_t. This change makes some APIs backward incompatible - there are no deprecations this time.
 //!
 //!   - Extracted operand signature manipulation to `OperandSignature`.
-//!   - Setting function arguments through `Compiler::setArg()` was deprecated, use FuncNode::setArg() instead.
+//!   - Setting function arguments through `Compiler::setArg()` was deprecated, use FuncNode::setArg()
+//!   instead.
 //!   - Moved `{arch}::Features::k` to `CpuFeatures::{arch}::k`.
 //!   - Moved `BaseEmitter::kEncodingOption` to `EncodingOptions::k`.
 //!   - Moved `BaseEmitter::kFlag` to `EmitterFlags::k`.
@@ -275,7 +297,8 @@ namespace asmjit {
 //!   - Moved `Environment::kPlatform` to `Platform::k`.
 //!   - Moved `Environment::kAbi` to `PlatformABI::k`.
 //!   - Moved `Environment::kVendor` to `Vendor::k`.
-//!   - Moved `FormatOptions::kFlag` to `FormatFlags::k` and `DiagnosticOptions::k` (Compiler diagnostics flags).
+//!   - Moved `FormatOptions::kFlag` to `FormatFlags::k` and `DiagnosticOptions::k` (Compiler diagnostics
+//!   flags).
 //!   - Moved `FormatOptions::kIndentation` to `FormatIndentationGroup::k`.
 //!   - Moved `FuncFrame::kAttr` to `FuncAttributes::k`.
 //!   - Moved `Globals::kReset` to `ResetPolicy::k`.
@@ -293,87 +316,104 @@ namespace asmjit {
 //!
 //! ### Changes committed at 2020-05-30
 //!
-//! AsmJit has been cleaned up significantly, many todo items have been fixed and many functions and classes have
-//! been redesigned, some in an incompatible way.
+//! AsmJit has been cleaned up significantly, many todo items have been fixed and many functions and classes
+//! have been redesigned, some in an incompatible way.
 //!
 //! Core changes:
 //!
-//!   - `Imm` operand has now only `Imm::value()` and `Imm::valueAs()` functions that return its value content,
-//!     and `Imm::setValue()` function that sets the content. Functions like `setI8()`, `setU8()` were deprecated.
+//!   - `Imm` operand has now only `Imm::value()` and `Imm::valueAs()` functions that return its value
+//!   content,
+//!     and `Imm::setValue()` function that sets the content. Functions like `setI8()`, `setU8()` were
+//!     deprecated.
 //!
 //!     Old functions were deprecated, but code using them should still compile.
 //!
-//!   - `ArchInfo` has been replaced with `Environment`. Environment provides more details about the architecture,
-//!     but drops some properties that were used by arch info - `gpSize(`) and `gpCount()`. `gpSize()` can be replaced
-//!     with `registerSize()` getter, which returns a native register size of the architecture the environment uses.
-//!     However, `gpCount()` was removed - at the moment `ArchTraits` can be used to access such properties.
+//!   - `ArchInfo` has been replaced with `Environment`. Environment provides more details about the
+//!   architecture,
+//!     but drops some properties that were used by arch info - `gpSize(`) and `gpCount()`. `gpSize()` can be
+//!     replaced with `registerSize()` getter, which returns a native register size of the architecture the
+//!     environment uses. However, `gpCount()` was removed - at the moment `ArchTraits` can be used to access
+//!     such properties.
 //!
-//!     Some other functions were renamed, like `ArchInfo::isX86Family()` is now `Environment::isFamilyX86()`, etc.
-//!     The reason for changing the order was support for more propertries and all the accessors now start with the
-//!     type of the property, like `Environment::isPlatformWindows()`.
+//!     Some other functions were renamed, like `ArchInfo::isX86Family()` is now `Environment::isFamilyX86()`,
+//!     etc. The reason for changing the order was support for more propertries and all the accessors now
+//!     start with the type of the property, like `Environment::isPlatformWindows()`.
 //!
-//!     This function causes many other classes to provide `environment()` getter instead of `archInfo()` getter.
-//!     In addition, AsmJit now uses `arch()` to get an architecture instead of `archId()`. `ArchInfo::kIdXXX` was
-//!     renamed to `Environment::kArchXXX`.
+//!     This function causes many other classes to provide `environment()` getter instead of `archInfo()`
+//!     getter. In addition, AsmJit now uses `arch()` to get an architecture instead of `archId()`.
+//!     `ArchInfo::kIdXXX` was renamed to `Environment::kArchXXX`.
 //!
 //!     Some functions were deprecated, some removed...
 //!
-//!   - `CodeInfo` has been removed in favor of `Environment`. If you used `CodeInfo` to set architecture and base
-//!     address, this is now possible with `Environment` and setting base address explicitly by `CodeHolder::init()`
+//!   - `CodeInfo` has been removed in favor of `Environment`. If you used `CodeInfo` to set architecture and
+//!   base
+//!     address, this is now possible with `Environment` and setting base address explicitly by
+//!     `CodeHolder::init()`
 //!     - the first argument is `Environment`, and the second argument is base address, which defaults to
 //!     `Globals::kNoBaseAddress`.
 //!
 //!     CodeInfo class was deprecated, but the code using it should still compile with warnings.
 //!
-//!   - `CallConv` has been updated to offer a more unified way of representing calling conventions - many calling
-//!     conventions were abstracted to follow standard naming like `CallConvId::kCDecl` or `CallConvId::kStdCall`.
+//!   - `CallConv` has been updated to offer a more unified way of representing calling conventions - many
+//!   calling
+//!     conventions were abstracted to follow standard naming like `CallConvId::kCDecl` or
+//!     `CallConvId::kStdCall`.
 //!
-//!     This change means that other APIs like `FuncDetail::init()` now require both, calling convention and target
-//!     `Environment`.
+//!     This change means that other APIs like `FuncDetail::init()` now require both, calling convention and
+//!     target `Environment`.
 //!
-//!   - `Logging` namespace has been renamed to `Formatter`, which now provides general functionality for formatting
+//!   - `Logging` namespace has been renamed to `Formatter`, which now provides general functionality for
+//!   formatting
 //!     in AsmJit.
 //!
-//!     Logging namespace should still work, but its use is deprecated. Unfortunately this will be without deprecation
-//!     warnings, so make sure you don't use it.
+//!     Logging namespace should still work, but its use is deprecated. Unfortunately this will be without
+//!     deprecation warnings, so make sure you don't use it.
 //!
-//!   - `Data64`, `Data128`, and `Data256` structs were deprecated and should no longer be used. There is no replacement,
-//!     AsmJit users should simply create their own structures if they need them or use the new repeated embed API in
-//!     emitters, see `BaseEmitter::embedDataArray()`.
+//!   - `Data64`, `Data128`, and `Data256` structs were deprecated and should no longer be used. There is no
+//!   replacement,
+//!     AsmJit users should simply create their own structures if they need them or use the new repeated embed
+//!     API in emitters, see `BaseEmitter::embedDataArray()`.
 //!
 //! Emitter changes:
 //!
-//!   - `BaseEmitter::emit()` function signature has been changed to accept 3 operands by reference and the rest 3
-//!     operands as a continuous array. This change is purely cosmetic and shouldn't affect users as emit() has many
-//!     overloads that dispatch to the right function.
+//!   - `BaseEmitter::emit()` function signature has been changed to accept 3 operands by reference and the
+//!   rest 3
+//!     operands as a continuous array. This change is purely cosmetic and shouldn't affect users as emit()
+//!     has many overloads that dispatch to the right function.
 //!
-//!   - `x86::Emitter` (Assembler, Builder, Compiler) deprecates embed utilities like `dint8()`, `duint8()`, `duint16()`,
-//!     `dxmm()`, etc... in favor of a new and more powerful `BaseEmitter::embedDataArray()`. This function also allows
-//!     emitting repeated values and/or patterns, which is used by helpers `BaseEmitter::embedUInt8()`, and others...
+//!   - `x86::Emitter` (Assembler, Builder, Compiler) deprecates embed utilities like `dint8()`, `duint8()`,
+//!   `duint16()`,
+//!     `dxmm()`, etc... in favor of a new and more powerful `BaseEmitter::embedDataArray()`. This function
+//!     also allows emitting repeated values and/or patterns, which is used by helpers
+//!     `BaseEmitter::embedUInt8()`, and others...
 //!
-//!   - Validation is now available through `BaseEmitter::DiagnosticOptions`, which can be enabled/disabled through
-//!     `BaseEmitter::addDiagnosticOptions()` and `BaseEmitter::clearDiagnosticOptions()`, respectively. Validation
-//!     options now separate between encoding and Builder/Compiler so it's possible to choose the granularity required.
+//!   - Validation is now available through `BaseEmitter::DiagnosticOptions`, which can be enabled/disabled
+//!   through
+//!     `BaseEmitter::addDiagnosticOptions()` and `BaseEmitter::clearDiagnosticOptions()`, respectively.
+//!     Validation options now separate between encoding and Builder/Compiler so it's possible to choose the
+//!     granularity required.
 //!
 //! Builder changes:
 //!
-//!   - Internal functions for creating nodes were redesigned. They now accept a pointer to the node created as
-//!     a first parameter. These changes should not affect AsmJit users as these functions were used internally.
+//!   - Internal functions for creating nodes were redesigned. They now accept a pointer to the node created
+//!   as
+//!     a first parameter. These changes should not affect AsmJit users as these functions were used
+//!     internally.
 //!
 //! Compiler changes:
 //!
 //!   - `FuncCallNode` has been renamed to `InvokeNode`. Additionally, function calls should now use
-//!     `x86::Compiler::invoke()` instead of `call()`. The reason behind this is to remove the confusion between a
-//!     `call` instruction and AsmJit's `call()` intrinsic, which is now `invoke()`.
+//!     `x86::Compiler::invoke()` instead of `call()`. The reason behind this is to remove the confusion
+//!     between a `call` instruction and AsmJit's `call()` intrinsic, which is now `invoke()`.
 //!
 //!   - Creating new nodes also changed. Now the preferred way of invoking a function is to call
-//!     `x86::Compiler::invoke()` where the first argument is `InvokeNode**`. The function now returns an error and
-//!     would call `ErrorHandler` in case of a failure. Error handling was unspecified in the past - the function was
-//!     marked noexcept, but called error handler, which could throw.
+//!     `x86::Compiler::invoke()` where the first argument is `InvokeNode**`. The function now returns an
+//!     error and would call `ErrorHandler` in case of a failure. Error handling was unspecified in the past -
+//!     the function was marked noexcept, but called error handler, which could throw.
 //!
-//!     The reason behind this change is to make the API consistent with other changes and to also make it possible
-//!     to inspect the possible error. In  the previous API it returned a new node or `nullptr` in case of error,
-//!     which the user couldn't inspect unless there was an attached `ErrorHandler`.
+//!     The reason behind this change is to make the API consistent with other changes and to also make it
+//!     possible to inspect the possible error. In  the previous API it returned a new node or `nullptr` in
+//!     case of error, which the user couldn't inspect unless there was an attached `ErrorHandler`.
 //!
 //! Samples:
 //!
@@ -407,7 +447,8 @@ namespace asmjit {
 //!
 //!   - \ref Section - stores information about a code or data section.
 //!   - \ref CodeBuffer - stores actual code or data, part of \ref Section.
-//!   - \ref LabelEntry - stores information about a label - its name, offset, section where it belongs to, and
+//!   - \ref LabelEntry - stores information about a label - its name, offset, section where it belongs to,
+//!   and
 //!     other bits.
 //!   - \ref LabelLink - stores information about yet unbound label, which was  already used by the assembler.
 //!   - \ref RelocEntry - stores information about a relocation.
@@ -418,16 +459,21 @@ namespace asmjit {
 //!
 //!   - \ref CodeHolder - to hold code during code generation.
 //!   - \ref BaseEmitter - to emit code into \ref CodeHolder.
-//!   - \ref Target (optional) - most likely \ref JitRuntime to keep the generated code in executable memory. \ref
+//!   - \ref Target (optional) - most likely \ref JitRuntime to keep the generated code in executable memory.
+//!   \ref
 //!     Target can be customized by inheriting from it.
 //!
 //! There are also other core classes that are important:
 //!
-//!   - \ref Environment - describes where the code will run. Environment brings the concept of target triples or
+//!   - \ref Environment - describes where the code will run. Environment brings the concept of target triples
+//!   or
 //!     tuples into AsmJit, which means that users can specify target architecture, platform, and ABI.
-//!   - \ref TypeId - encapsulates lightweight type functionality that can be used to describe primitive and vector
-//!     types. Types are used by higher level utilities, for example by \ref asmjit_function and \ref asmjit_compiler.
-//!   - \ref CpuInfo - encapsulates CPU information - stores both CPU information and CPU features described by \ref
+//!   - \ref TypeId - encapsulates lightweight type functionality that can be used to describe primitive and
+//!   vector
+//!     types. Types are used by higher level utilities, for example by \ref asmjit_function and \ref
+//!     asmjit_compiler.
+//!   - \ref CpuInfo - encapsulates CPU information - stores both CPU information and CPU features described
+//!   by \ref
 //!     CpuFeatures.
 //!
 //! AsmJit also provides global constants:
@@ -448,7 +494,7 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! // Signature of the generated function.
-//! typedef int (*Func)(void);
+//! typedef int (*Func)();
 //!
 //! int main() {
 //!   JitRuntime rt;                    // Runtime specialized for JIT code execution.
@@ -478,8 +524,8 @@ namespace asmjit {
 //! }
 //! ```
 //!
-//! The example above used \ref x86::Assembler as an emitter. AsmJit provides the following emitters that offer various
-//! levels of abstraction:
+//! The example above used \ref x86::Assembler as an emitter. AsmJit provides the following emitters that
+//! offer various levels of abstraction:
 //!
 //!   - \ref asmjit_assembler - Low-level emitter that emits directly to \ref CodeBuffer.
 //!   - \ref asmjit_builder - Low-level emitter that emits to a \ref BaseNode list.
@@ -487,25 +533,25 @@ namespace asmjit {
 //!
 //! ### Targets and JitRuntime
 //!
-//! AsmJit's \ref Target is an interface that provides basic target abstraction. At the moment AsmJit provides only
-//! one implementation called \ref JitRuntime, which as the name suggests provides JIT code target and execution
-//! runtime. \ref JitRuntime provides all the necessary stuff to implement a simple JIT compiler with basic memory
-//! management. It only provides \ref JitRuntime::add() and \ref JitRuntime::release() functions that are used to
-//! either add code to the runtime or release it. \ref JitRuntime doesn't do any decisions on when the code should be
-//! released, the decision is up to the developer.
+//! AsmJit's \ref Target is an interface that provides basic target abstraction. At the moment AsmJit provides
+//! only one implementation called \ref JitRuntime, which as the name suggests provides JIT code target and
+//! execution runtime. \ref JitRuntime provides all the necessary stuff to implement a simple JIT compiler
+//! with basic memory management. It only provides \ref JitRuntime::add() and \ref JitRuntime::release()
+//! functions that are used to either add code to the runtime or release it. \ref JitRuntime doesn't do any
+//! decisions on when the code should be released, the decision is up to the developer.
 //!
 //! See more at \ref asmjit_virtual_memory group.
 //!
 //! ### More About Environment
 //!
-//! In the previous example the \ref Environment is retrieved from \ref JitRuntime. It's logical as \ref JitRuntime
-//! always returns an \ref Environment that is compatible with the host. For example if your application runs on X86_64
-//! CPU the \ref Environment returned will use \ref Arch::kX64 architecture in contrast to \ref Arch::kX86, which will
-//! be used in 32-bit mode on an X86 target.
+//! In the previous example the \ref Environment is retrieved from \ref JitRuntime. It's logical as \ref
+//! JitRuntime always returns an \ref Environment that is compatible with the host. For example if your
+//! application runs on X86_64 CPU the \ref Environment returned will use \ref Arch::kX64 architecture in
+//! contrast to \ref Arch::kX86, which will be used in 32-bit mode on an X86 target.
 //!
-//! AsmJit allows to setup the \ref Environment manually and to select a different architecture and ABI when necessary.
-//! So let's do something else this time, let's always generate a 32-bit code and print its binary representation. To
-//! do that, we can create our own \ref Environment and initialize it to \ref Arch::kX86.
+//! AsmJit allows to setup the \ref Environment manually and to select a different architecture and ABI when
+//! necessary. So let's do something else this time, let's always generate a 32-bit code and print its binary
+//! representation. To do that, we can create our own \ref Environment and initialize it to \ref Arch::kX86.
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -556,37 +602,40 @@ namespace asmjit {
 //!
 //! ### Explicit Code Relocation
 //!
-//! In addition to \ref Environment, \ref CodeHolder can be configured to specify a base-address (or a virtual base
-//! address in a linker terminology), which could be static (useful when you know the location where the target's
-//! machine code will be) or dynamic. AsmJit assumes dynamic base-address by default and relocates the code held by
-//! \ref CodeHolder to a user provided address on-demand. To be able to relocate to a user provided address it needs
-//! to store some information about relocations, which is represented by \ref RelocEntry. Relocation entries are only
-//! required if you call external functions from the generated code that cannot be encoded by using a 32-bit
-//! displacement (64-bit displacements are not provided by aby supported architecture).
+//! In addition to \ref Environment, \ref CodeHolder can be configured to specify a base-address (or a virtual
+//! base address in a linker terminology), which could be static (useful when you know the location where the
+//! target's machine code will be) or dynamic. AsmJit assumes dynamic base-address by default and relocates
+//! the code held by
+//! \ref CodeHolder to a user provided address on-demand. To be able to relocate to a user provided address it
+//! needs to store some information about relocations, which is represented by \ref RelocEntry. Relocation
+//! entries are only required if you call external functions from the generated code that cannot be encoded by
+//! using a 32-bit displacement (64-bit displacements are not provided by aby supported architecture).
 //!
-//! There is also a concept called \ref LabelLink - label link is a lightweight data structure that doesn't have any
-//! identifier and is stored in \ref LabelEntry as a single-linked list. Label link represents either unbound yet used
-//! label and cross-sections links (only relevant to code that uses multiple sections). Since crossing sections is
-//! something that cannot be resolved immediately these links persist until offsets of these sections are assigned and
-//! until \ref CodeHolder::resolveUnresolvedLinks() is called. It's an error if you end up with code that has
-//! unresolved label links after flattening. You can verify it by calling \ref CodeHolder::hasUnresolvedLinks(), which
-//! inspects the value returned by \ref CodeHolder::unresolvedLinkCount().
+//! There is also a concept called \ref LabelLink - label link is a lightweight data structure that doesn't
+//! have any identifier and is stored in \ref LabelEntry as a single-linked list. Label link represents either
+//! unbound yet used label and cross-sections links (only relevant to code that uses multiple sections). Since
+//! crossing sections is something that cannot be resolved immediately these links persist until offsets of
+//! these sections are assigned and until \ref CodeHolder::resolveUnresolvedLinks() is called. It's an error
+//! if you end up with code that has unresolved label links after flattening. You can verify it by calling
+//! \ref CodeHolder::hasUnresolvedLinks(), which inspects the value returned by \ref
+//! CodeHolder::unresolvedLinkCount().
 //!
-//! AsmJit can flatten code that uses multiple sections by assigning each section an incrementing offset that respects
-//! its alignment. Use \ref CodeHolder::flatten() to do that. After the sections are flattened their offsets and
-//! virtual sizes are adjusted to respect each section's buffer size and alignment. The \ref
-//! CodeHolder::resolveUnresolvedLinks() function must be called before relocating the code held by \ref CodeHolder.
-//! You can also flatten your code manually by iterating over all sections and calculating their offsets (relative to
-//! base) by your own algorithm. In that case \ref CodeHolder::flatten() should not be called, however,
+//! AsmJit can flatten code that uses multiple sections by assigning each section an incrementing offset that
+//! respects its alignment. Use \ref CodeHolder::flatten() to do that. After the sections are flattened their
+//! offsets and virtual sizes are adjusted to respect each section's buffer size and alignment. The \ref
+//! CodeHolder::resolveUnresolvedLinks() function must be called before relocating the code held by \ref
+//! CodeHolder. You can also flatten your code manually by iterating over all sections and calculating their
+//! offsets (relative to base) by your own algorithm. In that case \ref CodeHolder::flatten() should not be
+//! called, however,
 //! \ref CodeHolder::resolveUnresolvedLinks() should be.
 //!
-//! The example below shows how to use a built-in virtual memory allocator \ref JitAllocator instead of using \ref
-//! JitRuntime (just in case you want to use your own memory management) and how to relocate the generated code
-//! into your own memory block - you can use your own virtual memory allocator if you prefer that, but that's OS
-//! specific and not covered by the documentation.
+//! The example below shows how to use a built-in virtual memory allocator \ref JitAllocator instead of using
+//! \ref JitRuntime (just in case you want to use your own memory management) and how to relocate the
+//! generated code into your own memory block - you can use your own virtual memory allocator if you prefer
+//! that, but that's OS specific and not covered by the documentation.
 //!
-//! The following code is similar to the previous one, but implements a function working in both 32-bit and 64-bit
-//! environments:
+//! The following code is similar to the previous one, but implements a function working in both 32-bit and
+//! 64-bit environments:
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -709,10 +758,11 @@ namespace asmjit {
 //! }
 //! ```
 //!
-//! If you know the base-address in advance (before the code generation) it can be passed as a second argument to
-//! \ref CodeHolder::init(). In that case the Assembler will know the absolute position of each instruction and
-//! would be able to use it during instruction encoding to prevent relocations where possible. The following example
-//! shows how to configure the base address:
+//! If you know the base-address in advance (before the code generation) it can be passed as a second argument
+//! to
+//! \ref CodeHolder::init(). In that case the Assembler will know the absolute position of each instruction
+//! and would be able to use it during instruction encoding to prevent relocations where possible. The
+//! following example shows how to configure the base address:
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -731,9 +781,10 @@ namespace asmjit {
 //!
 //! ### Label Offsets and Links
 //!
-//! When a label that is not yet bound is used by the Assembler, it creates a \ref LabelLink, which is then added to
-//! a \ref LabelEntry. These links are also created if a label is used in a different section than in which it was
-//! bound. Let's examine some functions that can be used to check whether there are any unresolved links.
+//! When a label that is not yet bound is used by the Assembler, it creates a \ref LabelLink, which is then
+//! added to a \ref LabelEntry. These links are also created if a label is used in a different section than in
+//! which it was bound. Let's examine some functions that can be used to check whether there are any
+//! unresolved links.
 //!
 //! ```
 //! #include <asmjit/core.h>
@@ -756,9 +807,9 @@ namespace asmjit {
 //! ```
 //!
 //! There is no function that would return the number of unbound labels as this is completely unimportant from
-//! CodeHolder's perspective. If a label is not used then it doesn't matter whether it's bound or not, only actually
-//! used labels matter. After a Label is bound it's possible to query its offset offset relative to the start of the
-//! section where it was bound:
+//! CodeHolder's perspective. If a label is not used then it doesn't matter whether it's bound or not, only
+//! actually used labels matter. After a Label is bound it's possible to query its offset offset relative to
+//! the start of the section where it was bound:
 //!
 //! ```
 //! #include <asmjit/core.h>
@@ -831,10 +882,10 @@ namespace asmjit {
 //! }
 //! ```
 //!
-//! The last line in the example above shows that a LabelLink would be created even for bound labels that cross
-//! sections. In this case a referenced label was bound in another section, which means that the link couldn't be
-//! resolved at that moment. If your code uses sections, but you wish AsmJit to flatten these sections (you don't
-//! plan to flatten them manually) then there is an API for that.
+//! The last line in the example above shows that a LabelLink would be created even for bound labels that
+//! cross sections. In this case a referenced label was bound in another section, which means that the link
+//! couldn't be resolved at that moment. If your code uses sections, but you wish AsmJit to flatten these
+//! sections (you don't plan to flatten them manually) then there is an API for that.
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -882,8 +933,8 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit's Assembler is used to emit machine code directly into a \ref CodeBuffer. In general, code generation
-//! with assembler requires the knowledge of the following:
+//! AsmJit's Assembler is used to emit machine code directly into a \ref CodeBuffer. In general, code
+//! generation with assembler requires the knowledge of the following:
 //!
 //!   - \ref BaseAssembler and architecture-specific assemblers:
 //!     - \ref x86::Assembler - Assembler specific to X86 architecture
@@ -899,54 +950,65 @@ namespace asmjit {
 //!
 //! ### Operand Basics
 //!
-//! Let's start with operands. \ref Operand is a data structure that defines a data layout of any operand. It can be
-//! inherited, but any class inheriting it cannot add any members to it, only the existing layout can be reused.
-//! AsmJit allows to construct operands dynamically, to store them, and to query a complete information about them
-//! at run-time. Operands are small (always 16 bytes per \ref Operand) and can be copied and passed by value. Please
-//! never allocate individual operands dynamically by using a `new` keyword - it would work, but then you would have
-//! to be responsible for deleting such operands. In AsmJit operands are always part of some other data structures
-//! like \ref InstNode, which is part of \ref asmjit_builder tool.
+//! Let's start with operands. \ref Operand is a data structure that defines a data layout of any operand. It
+//! can be inherited, but any class inheriting it cannot add any members to it, only the existing layout can
+//! be reused. AsmJit allows to construct operands dynamically, to store them, and to query a complete
+//! information about them at run-time. Operands are small (always 16 bytes per \ref Operand) and can be
+//! copied and passed by value. Please never allocate individual operands dynamically by using a `new` keyword
+//! - it would work, but then you would have to be responsible for deleting such operands. In AsmJit operands
+//! are always part of some other data structures like \ref InstNode, which is part of \ref asmjit_builder
+//! tool.
 //!
-//! Operands contain only identifiers, but not pointers to any code-generation data. For example \ref Label operand
-//! only provides label identifier, but not a pointer to \ref LabelEntry structure. In AsmJit such IDs are used to
-//! link stuff together without having to deal with pointers.
+//! Operands contain only identifiers, but not pointers to any code-generation data. For example \ref Label
+//! operand only provides label identifier, but not a pointer to \ref LabelEntry structure. In AsmJit such IDs
+//! are used to link stuff together without having to deal with pointers.
 //!
-//! AsmJit's operands all inherit from a base class called \ref Operand. Operands have the following properties that
-//! are commonly accessible by getters and setters:
+//! AsmJit's operands all inherit from a base class called \ref Operand. Operands have the following
+//! properties that are commonly accessible by getters and setters:
 //!
 //!   - \ref Operand - Base operand, which only provides accessors that are common to all operand types.
-//!   - \ref BaseReg - Describes either physical or virtual register. Physical registers have id that matches the
-//!     target's machine id directly whereas virtual registers must be allocated into physical registers by a register
-//!     allocator pass. Register operand provides:
-//!     - Register Type (\ref RegType) - Unique id that describes each possible register provided by the target
-//!       architecture - for example X86 backend provides general purpose registers (GPB-LO, GPB-HI, GPW, GPD, and GPQ)
-//!       and all types of other registers like K, MM, BND, XMM, YMM, ZMM, and TMM.
-//!     - Register Group (\ref RegGroup) - Groups multiple register types under a single group - for example all
-//!       general-purpose registers (of all sizes) on X86 are part of \ref RegGroup::kGp and all SIMD registers
+//!   - \ref BaseReg - Describes either physical or virtual register. Physical registers have id that matches
+//!   the
+//!     target's machine id directly whereas virtual registers must be allocated into physical registers by a
+//!     register allocator pass. Register operand provides:
+//!     - Register Type (\ref RegType) - Unique id that describes each possible register provided by the
+//!     target
+//!       architecture - for example X86 backend provides general purpose registers (GPB-LO, GPB-HI, GPW, GPD,
+//!       and GPQ) and all types of other registers like K, MM, BND, XMM, YMM, ZMM, and TMM.
+//!     - Register Group (\ref RegGroup) - Groups multiple register types under a single group - for example
+//!     all
+//!       general-purpose registers (of all sizes) on X86 are part of \ref RegGroup::kGp and all SIMD
+//!       registers
 //!      (XMM, YMM, ZMM) are part of \ref RegGroup::kVec.
-//!     - Register Size - Contains the size of the register in bytes. If the size depends on the mode (32-bit vs
+//!     - Register Size - Contains the size of the register in bytes. If the size depends on the mode (32-bit
+//!     vs
 //!       64-bit) then generally the higher size is used (for example RIP register has size 8 by default).
 //!     - Register Id - Contains physical or virtual id of the register.
 //!   - \ref BaseMem - Used to reference a memory location. Memory operand provides:
 //!     - Base Register - A base register type and id (physical or virtual).
 //!     - Index Register - An index register type and id (physical or virtual).
-//!     - Offset - Displacement or absolute address to be referenced (32-bit if base register is used and 64-bit if
+//!     - Offset - Displacement or absolute address to be referenced (32-bit if base register is used and
+//!     64-bit if
 //!       base register is not used).
-//!     - Flags that can describe various architecture dependent information (like scale and segment-override on X86).
-//!   - \ref Imm - Immediate values are usually part of instructions (encoded within the instruction itself) or data.
-//!   - \ref Label - used to reference a location in code or data. Labels must be created by the \ref BaseEmitter or
+//!     - Flags that can describe various architecture dependent information (like scale and segment-override
+//!     on X86).
+//!   - \ref Imm - Immediate values are usually part of instructions (encoded within the instruction itself)
+//!   or data.
+//!   - \ref Label - used to reference a location in code or data. Labels must be created by the \ref
+//!   BaseEmitter or
 //!     by \ref CodeHolder. Each label has its unique id per \ref CodeHolder instance.
 //!
 //! ### Operand Manipulation
 //!
-//! AsmJit allows to construct operands dynamically, to store them, and to query a complete information about them at
-//! run-time. Operands are small (always 16 bytes per `Operand`) and should be always copied (by value) if you intend
-//! to store them (don't create operands by using `new` keyword, it's not recommended). Operands are safe to be passed
-//! to `memcpy()` and `memset()`, which becomes handy when working with arrays of operands. If you set all members of
-//! an \ref Operand to zero the operand would become NONE operand, which is the same as a default constructed Operand.
+//! AsmJit allows to construct operands dynamically, to store them, and to query a complete information about
+//! them at run-time. Operands are small (always 16 bytes per `Operand`) and should be always copied (by
+//! value) if you intend to store them (don't create operands by using `new` keyword, it's not recommended).
+//! Operands are safe to be passed to `memcpy()` and `memset()`, which becomes handy when working with arrays
+//! of operands. If you set all members of an \ref Operand to zero the operand would become NONE operand,
+//! which is the same as a default constructed Operand.
 //!
-//! The example below illustrates how operands can be used and modified even without using any other code generation
-//! classes. The example uses X86 architecture-specific operands.
+//! The example below illustrates how operands can be used and modified even without using any other code
+//! generation classes. The example uses X86 architecture-specific operands.
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -1005,19 +1067,20 @@ namespace asmjit {
 //! ```
 //!
 //! Some operands have to be created explicitly by emitters. For example labels must be created by \ref
-//! BaseEmitter::newLabel(), which creates a label entry and returns a \ref Label operand with the id that refers
-//! to it. Such label then can be used by emitters.
+//! BaseEmitter::newLabel(), which creates a label entry and returns a \ref Label operand with the id that
+//! refers to it. Such label then can be used by emitters.
 //!
 //! ### Memory Operands
 //!
-//! Some architectures like X86 provide a complex memory addressing model that allows to encode addresses having a
-//! BASE register, INDEX register with a possible scale (left shift), and displacement (called offset in AsmJit).
-//! Memory address on X86 can also specify memory segment (segment-override in X86 terminology) and some instructions
-//! (gather / scatter) require INDEX to be a \ref x86::Vec register instead of a general-purpose register.
+//! Some architectures like X86 provide a complex memory addressing model that allows to encode addresses
+//! having a BASE register, INDEX register with a possible scale (left shift), and displacement (called offset
+//! in AsmJit). Memory address on X86 can also specify memory segment (segment-override in X86 terminology)
+//! and some instructions (gather / scatter) require INDEX to be a \ref x86::Vec register instead of a
+//! general-purpose register.
 //!
-//! AsmJit allows to encode and work with all forms of addresses mentioned and implemented by X86. In addition, it
-//! also allows to construct absolute 64-bit memory address operands, which is only allowed in one form of 'mov'
-//! instruction.
+//! AsmJit allows to encode and work with all forms of addresses mentioned and implemented by X86. In
+//! addition, it also allows to construct absolute 64-bit memory address operands, which is only allowed in
+//! one form of 'mov' instruction.
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -1060,8 +1123,8 @@ namespace asmjit {
 //! }
 //! ```
 //!
-//! Memory operands can optionally contain memory size. This is required by instructions where the memory size cannot
-//! be deduced from other operands, like `inc` and `dec` on X86:
+//! Memory operands can optionally contain memory size. This is required by instructions where the memory size
+//! cannot be deduced from other operands, like `inc` and `dec` on X86:
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -1151,20 +1214,21 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! Both \ref BaseBuilder and \ref BaseCompiler interfaces describe emitters that emit into a representation that
-//! allows further processing. The code stored in such representation is completely safe to be patched, simplified,
-//! reordered, obfuscated, removed, injected, analyzed, or processed some other way. Each instruction, label,
-//! directive, or other building block is stored as \ref BaseNode (or derived class like \ref InstNode or \ref
-//! LabelNode) and contains all the information necessary to pass that node later to the assembler.
+//! Both \ref BaseBuilder and \ref BaseCompiler interfaces describe emitters that emit into a representation
+//! that allows further processing. The code stored in such representation is completely safe to be patched,
+//! simplified, reordered, obfuscated, removed, injected, analyzed, or processed some other way. Each
+//! instruction, label, directive, or other building block is stored as \ref BaseNode (or derived class like
+//! \ref InstNode or \ref LabelNode) and contains all the information necessary to pass that node later to the
+//! assembler.
 //!
-//! \ref BaseBuilder is an emitter that inherits from \ref BaseEmitter interface. It was designed to provide a maximum
-//! compatibility with the existing \ref BaseAssembler emitter so users can move from assembler to builder when needed,
-//! for example to implement post-processing, which is not possible with Assembler.
+//! \ref BaseBuilder is an emitter that inherits from \ref BaseEmitter interface. It was designed to provide a
+//! maximum compatibility with the existing \ref BaseAssembler emitter so users can move from assembler to
+//! builder when needed, for example to implement post-processing, which is not possible with Assembler.
 //!
 //! ### Builder Nodes
 //!
-//! \ref BaseBuilder doesn't generate machine code directly, it uses an intermediate representation based on nodes,
-//! however, it allows to serialize to \ref BaseAssembler when the code is ready to be encoded.
+//! \ref BaseBuilder doesn't generate machine code directly, it uses an intermediate representation based on
+//! nodes, however, it allows to serialize to \ref BaseAssembler when the code is ready to be encoded.
 //!
 //! There are multiple node types used by both \ref BaseBuilder and \ref BaseCompiler :
 //!
@@ -1182,7 +1246,8 @@ namespace asmjit {
 //!
 //!   - Informative nodes:
 //!     - \ref CommentNode - Represents a comment string, doesn't affect code generation.
-//!     - \ref SentinelNode - A marker that can be used to remember certain position in code or data, doesn't affect
+//!     - \ref SentinelNode - A marker that can be used to remember certain position in code or data, doesn't
+//!     affect
 //!       code generation. Used by \ref FuncNode to mark the end of a function.
 //!
 //!   - Other nodes are provided by \ref asmjit_compiler infrastructure.
@@ -1197,21 +1262,21 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! \ref BaseCompiler is a high-level interface, which provides register allocation and support for defining and
-//! invoking functions, built on top of \ref BaseBuilder interface At the moment it's the easiest way of generating
-//! code in AsmJit as most architecture and OS specifics is properly abstracted and handled by AsmJit automatically.
-//! However, abstractions also mean restrictions, which means that \ref BaseCompiler has more limitations than \ref
-//! BaseAssembler or \ref BaseBuilder.
+//! \ref BaseCompiler is a high-level interface, which provides register allocation and support for defining
+//! and invoking functions, built on top of \ref BaseBuilder interface At the moment it's the easiest way of
+//! generating code in AsmJit as most architecture and OS specifics is properly abstracted and handled by
+//! AsmJit automatically. However, abstractions also mean restrictions, which means that \ref BaseCompiler has
+//! more limitations than \ref BaseAssembler or \ref BaseBuilder.
 //!
-//! Since \ref BaseCompiler provides register allocation it also establishes the concept of functions - a function
-//! in Compiler sense is a unit in which virtual registers are allocated into physical registers by the register
-//! allocator. In addition, it enables to use such virtual registers in function invocations.
+//! Since \ref BaseCompiler provides register allocation it also establishes the concept of functions - a
+//! function in Compiler sense is a unit in which virtual registers are allocated into physical registers by
+//! the register allocator. In addition, it enables to use such virtual registers in function invocations.
 //!
-//! \ref BaseCompiler automatically handles function calling conventions. It's still architecture dependent, but
-//! makes the code generation much easies. Functions are essential; the first-step to generate some code is to define
-//! a signature of the function to be generated (before generating the function body itself). Function arguments and
-//! return value(s) are handled by assigning virtual registers to them. Similarly, function calls are handled the same
-//! way.
+//! \ref BaseCompiler automatically handles function calling conventions. It's still architecture dependent,
+//! but makes the code generation much easies. Functions are essential; the first-step to generate some code
+//! is to define a signature of the function to be generated (before generating the function body itself).
+//! Function arguments and return value(s) are handled by assigning virtual registers to them. Similarly,
+//! function calls are handled the same way.
 //!
 //! ### Compiler Nodes
 //!
@@ -1221,8 +1286,8 @@ namespace asmjit {
 //!   - \ref FuncRetNode - Represents a function return.
 //!   - \ref InvokeNode - Represents a function invocation.
 //!
-//! \ref BaseCompiler also makes the use of passes (\ref Pass) and automatically adds an architecture-dependent
-//! register allocator pass to the list of passes when attached to \ref CodeHolder.
+//! \ref BaseCompiler also makes the use of passes (\ref Pass) and automatically adds an
+//! architecture-dependent register allocator pass to the list of passes when attached to \ref CodeHolder.
 //!
 //! ### Compiler Examples
 //!
@@ -1230,15 +1295,17 @@ namespace asmjit {
 //!
 //! ### Compiler Tips
 //!
-//! Users of AsmJit have done mistakes in the past, this section should provide some useful tips for beginners:
+//! Users of AsmJit have done mistakes in the past, this section should provide some useful tips for
+//! beginners:
 //!
 //!   - Virtual registers in compiler are bound to a single function. At the moment the implementation doesn't
-//!     care whether a single virtual register is used in multiple functions, but it sees it as two independent
-//!     virtual registers in that case. This means that virtual registers cannot be used to implement global
-//!     variables. Global variables are basically memory addresses which functions can read from and write to,
-//!     and they have to be implemented in the same way.
+//!     care whether a single virtual register is used in multiple functions, but it sees it as two
+//!     independent virtual registers in that case. This means that virtual registers cannot be used to
+//!     implement global variables. Global variables are basically memory addresses which functions can read
+//!     from and write to, and they have to be implemented in the same way.
 //!
-//!   - Compiler provides a useful debugging functionality, which can be turned on through \ref FormatFlags. Use
+//!   - Compiler provides a useful debugging functionality, which can be turned on through \ref FormatFlags.
+//!   Use
 //!     \ref Logger::addFlags() to turn on additional logging features when using Compiler.
 
 
@@ -1247,51 +1314,59 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit provides functionality that can be used to define function signatures and to calculate automatically
-//! optimal function frame that can be used directly by a prolog and epilog insertion. This feature was exclusive
-//! to AsmJit's Compiler for a very long time, but was abstracted out and is now available for all users regardless
-//! of the emitter they use. The following use cases are possible:
+//! AsmJit provides functionality that can be used to define function signatures and to calculate
+//! automatically optimal function frame that can be used directly by a prolog and epilog insertion. This
+//! feature was exclusive to AsmJit's Compiler for a very long time, but was abstracted out and is now
+//! available for all users regardless of the emitter they use. The following use cases are possible:
 //!
 //!   - Calculate function frame before the function is generated - this is the only way available to \ref
 //!     BaseAssembler users and it will be described in this section.
 //!
-//!   - Calculate function frame after the function is generated - this way is generally used by \ref BaseBuilder
+//!   - Calculate function frame after the function is generated - this way is generally used by \ref
+//!   BaseBuilder
 //!     and \ref BaseCompiler emitters and this way is generally described in \ref asmjit_compiler section.
 //!
 //! The following concepts are used to describe and create functions in AsmJit:
 //!
-//!   - \ref TypeId - Type-id is an 8-bit value that describes a platform independent type as we know from C/C++.
-//!     It provides abstractions for most common types like `int8_t`, `uint32_t`, `uintptr_t`, `float`, `double`,
-//!     and all possible vector types to match ISAs up to AVX512. \ref TypeId was introduced originally for \ref
-//!     asmjit_compiler, but it's now used by \ref FuncSignature as well.
+//!   - \ref TypeId - Type-id is an 8-bit value that describes a platform independent type as we know from
+//!   C/C++.
+//!     It provides abstractions for most common types like `int8_t`, `uint32_t`, `uintptr_t`, `float`,
+//!     `double`, and all possible vector types to match ISAs up to AVX512. \ref TypeId was introduced
+//!     originally for \ref asmjit_compiler, but it's now used by \ref FuncSignature as well.
 //!
-//!   - \ref CallConv - Describes a calling convention - this class contains instructions to assign registers and
-//!     stack addresses to function arguments and return value(s), but doesn't specify any function signature itself.
-//!     Calling conventions are architecture and OS dependent.
+//!   - \ref CallConv - Describes a calling convention - this class contains instructions to assign registers
+//!   and
+//!     stack addresses to function arguments and return value(s), but doesn't specify any function signature
+//!     itself. Calling conventions are architecture and OS dependent.
 //!
-//!   - \ref FuncSignature - Describes a function signature, for example `int func(int, int)`. FuncSignature contains
-//!     a function calling convention id, return value type, and function arguments. The signature itself is platform
-//!     independent and uses \ref TypeId to describe types of function arguments and function return value(s).
+//!   - \ref FuncSignature - Describes a function signature, for example `int func(int, int)`. FuncSignature
+//!   contains
+//!     a function calling convention id, return value type, and function arguments. The signature itself is
+//!     platform independent and uses \ref TypeId to describe types of function arguments and function return
+//!     value(s).
 //!
-//!   - \ref FuncDetail - Architecture and ABI dependent information that describes \ref CallConv and expanded \ref
-//!     FuncSignature. Each function argument and return value is represented as \ref FuncValue that contains the
-//!     original \ref TypeId enriched with additional information that specifies whether the value is passed or
-//!     returned by register (and which register) or by stack. Each value also contains some other metadata that
-//!     provide additional information required to handle it properly (for example whether a vector is passed
-//!     indirectly by a pointer as required by WIN64 calling convention).
+//!   - \ref FuncDetail - Architecture and ABI dependent information that describes \ref CallConv and expanded
+//!   \ref
+//!     FuncSignature. Each function argument and return value is represented as \ref FuncValue that contains
+//!     the original \ref TypeId enriched with additional information that specifies whether the value is
+//!     passed or returned by register (and which register) or by stack. Each value also contains some other
+//!     metadata that provide additional information required to handle it properly (for example whether a
+//!     vector is passed indirectly by a pointer as required by WIN64 calling convention).
 //!
-//!   - \ref FuncFrame - Contains information about the function frame that can be used by prolog/epilog inserter
-//!     (PEI). Holds call stack size size and alignment, local stack size and alignment, and various attributes that
-//!     describe how prolog and epilog should be constructed. `FuncFrame` doesn't know anything about function's
-//!     arguments or return values, it hold only information necessary to create a valid and ABI conforming function
-//!     prologs and epilogs.
+//!   - \ref FuncFrame - Contains information about the function frame that can be used by prolog/epilog
+//!   inserter
+//!     (PEI). Holds call stack size size and alignment, local stack size and alignment, and various
+//!     attributes that describe how prolog and epilog should be constructed. `FuncFrame` doesn't know
+//!     anything about function's arguments or return values, it hold only information necessary to create a
+//!     valid and ABI conforming function prologs and epilogs.
 //!
-//!   - \ref FuncArgsAssignment - A helper class that can be used to reassign function arguments into user specified
-//!     registers. It's architecture and ABI dependent mapping from function arguments described by \ref CallConv
-//!     and \ref FuncDetail into registers specified by the user.
+//!   - \ref FuncArgsAssignment - A helper class that can be used to reassign function arguments into user
+//!   specified
+//!     registers. It's architecture and ABI dependent mapping from function arguments described by \ref
+//!     CallConv and \ref FuncDetail into registers specified by the user.
 //!
-//! It's a lot of concepts where each represents one step in a function frame calculation. It can be used to create
-//! function prologs, epilogs, and also to calculate information necessary to perform function calls.
+//! It's a lot of concepts where each represents one step in a function frame calculation. It can be used to
+//! create function prologs, epilogs, and also to calculate information necessary to perform function calls.
 
 
 //! \defgroup asmjit_logging Logging
@@ -1299,33 +1374,37 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! The initial phase of a project that generates machine code is not always smooth. Failure cases are common not just
-//! at the beginning phase, but also during the development or refactoring. AsmJit provides logging functionality to
-//! address this issue. AsmJit does already a good job with function overloading to prevent from emitting unencodable
-//! instructions, but it can't prevent from emitting machine code that is correct at instruction level, but doesn't
-//! work when it's executed asa whole. Logging has always been an important part of AsmJit's infrastructure and looking
-//! at logs can sometimes reveal code generation issues quickly.
+//! The initial phase of a project that generates machine code is not always smooth. Failure cases are common
+//! not just at the beginning phase, but also during the development or refactoring. AsmJit provides logging
+//! functionality to address this issue. AsmJit does already a good job with function overloading to prevent
+//! from emitting unencodable instructions, but it can't prevent from emitting machine code that is correct at
+//! instruction level, but doesn't work when it's executed asa whole. Logging has always been an important
+//! part of AsmJit's infrastructure and looking at logs can sometimes reveal code generation issues quickly.
 //!
 //! AsmJit provides API for logging and formatting:
 //!
-//!   - \ref Logger - A logger that you can pass to \ref CodeHolder and all emitters that inherit from \ref BaseEmitter.
+//!   - \ref Logger - A logger that you can pass to \ref CodeHolder and all emitters that inherit from \ref
+//!   BaseEmitter.
 //!
 //!   - \ref FormatOptions - Formatting options that can change how instructions and operands are formatted.
 //!
-//!   - \ref Formatter - A namespace that provides functions that can format input data like \ref Operand, \ref BaseReg,
+//!   - \ref Formatter - A namespace that provides functions that can format input data like \ref Operand,
+//!   \ref BaseReg,
 //!     \ref Label, and \ref BaseNode into \ref String.
 //!
 //! AsmJit's \ref Logger serves the following purposes:
 //!
 //!   - Provides a basic foundation for logging.
 //!
-//!   - Abstract class leaving the implementation on users. The following built-in implementations are provided for
+//!   - Abstract class leaving the implementation on users. The following built-in implementations are
+//!   provided for
 //!     simplicity:
 //!
 //!     - \ref FileLogger implements logging into a standard `FILE` stream.
 //!     - \ref StringLogger serializes all logs into a \ref String instance.
 //!
-//! AsmJit's \ref FormatOptions provides the following to customize the formatting of instructions and operands through:
+//! AsmJit's \ref FormatOptions provides the following to customize the formatting of instructions and
+//! operands through:
 //!
 //!   - \ref FormatFlags
 //!   - \ref FormatIndentationGroup
@@ -1354,8 +1433,8 @@ namespace asmjit {
 //! }
 //! ```
 //!
-//! If output to FILE stream is not desired it's possible to use \ref StringLogger, which concatenates everything
-//! into a multi-line string:
+//! If output to FILE stream is not desired it's possible to use \ref StringLogger, which concatenates
+//! everything into a multi-line string:
 //!
 //! ```
 //! #include <asmjit/core.h>
@@ -1388,10 +1467,10 @@ namespace asmjit {
 //!
 //! ### Formatting
 //!
-//! AsmJit uses \ref Formatter to format inputs that are then passed to \ref Logger. Formatting is public and can be
-//! used by AsmJit users as well. The most important thing to know regarding formatting is that \ref Formatter always
-//! appends to the output string, so it can be used to build complex strings without having to concatenate
-//! intermediate strings.
+//! AsmJit uses \ref Formatter to format inputs that are then passed to \ref Logger. Formatting is public and
+//! can be used by AsmJit users as well. The most important thing to know regarding formatting is that \ref
+//! Formatter always appends to the output string, so it can be used to build complex strings without having
+//! to concatenate intermediate strings.
 //!
 //! The first example illustrates how to format operands:
 //!
@@ -1517,24 +1596,26 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit uses error codes to represent and return errors. Every function that can fail returns an \ref Error code.
-//! Exceptions are never thrown by AsmJit itself even in extreme conditions like out-of-memory, but it's possible to
-//! override \ref ErrorHandler::handleError() to throw, in that case no error will be returned and exception will be
-//! thrown instead. All functions where this can happen are not marked `noexcept`.
+//! AsmJit uses error codes to represent and return errors. Every function that can fail returns an \ref Error
+//! code. Exceptions are never thrown by AsmJit itself even in extreme conditions like out-of-memory, but it's
+//! possible to override \ref ErrorHandler::handleError() to throw, in that case no error will be returned and
+//! exception will be thrown instead. All functions where this can happen are not marked `noexcept`.
 //!
-//! Errors should never be ignored, however, checking errors after each AsmJit API call would simply overcomplicate
-//! the whole code generation experience. \ref ErrorHandler exists to make the use of AsmJit API simpler as it allows
-//! to customize how errors can be handled:
+//! Errors should never be ignored, however, checking errors after each AsmJit API call would simply
+//! overcomplicate the whole code generation experience. \ref ErrorHandler exists to make the use of AsmJit
+//! API simpler as it allows to customize how errors can be handled:
 //!
 //!   - Record the error and continue (the way how the error is user-implemented).
-//!   - Throw an exception. AsmJit doesn't use exceptions and is completely exception-safe, but it's perfectly legal
+//!   - Throw an exception. AsmJit doesn't use exceptions and is completely exception-safe, but it's perfectly
+//!   legal
 //!     to throw an exception from the error handler.
 //!   - Use plain old C's `setjmp()` and `longjmp()`. Asmjit always puts Assembler, Builder and Compiler to a
-//!     consistent state before calling \ref ErrorHandler::handleError(), so `longjmp()` can be used without issues
-//!     to cancel the code-generation if an error occurred. This method can be used if exception handling in your
-//!     project is turned off and you still want some comfort. In most cases it should be safe as AsmJit uses \ref
-//!     Zone memory and the ownership of memory it allocates always ends with the instance that allocated it. If
-//!     using this approach please never jump outside the life-time of \ref CodeHolder and \ref BaseEmitter.
+//!     consistent state before calling \ref ErrorHandler::handleError(), so `longjmp()` can be used without
+//!     issues to cancel the code-generation if an error occurred. This method can be used if exception
+//!     handling in your project is turned off and you still want some comfort. In most cases it should be
+//!     safe as AsmJit uses \ref Zone memory and the ownership of memory it allocates always ends with the
+//!     instance that allocated it. If using this approach please never jump outside the life-time of \ref
+//!     CodeHolder and \ref BaseEmitter.
 //!
 //! ### Using ErrorHandler
 //!
@@ -1582,10 +1663,11 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit provides a public instruction database that can be used to query information about a complete instruction.
-//! The instruction database requires the knowledge of the following:
+//! AsmJit provides a public instruction database that can be used to query information about a complete
+//! instruction. The instruction database requires the knowledge of the following:
 //!
-//!   - \ref BaseInst - Base instruction that contains instruction id, options, and a possible extra-register that
+//!   - \ref BaseInst - Base instruction that contains instruction id, options, and a possible extra-register
+//!   that
 //!     represents either REP prefix counter or AVX-512 selector (mask).
 //!
 //!   - \ref Operand - Represents operands of an instruction.
@@ -1596,30 +1678,34 @@ namespace asmjit {
 //!
 //!   - \ref CpuFeatures - CPU features required to execute the instruction.
 //!
-//! In addition to query functionality AsmJit is also able to validate whether an instruction and its operands are
-//! valid. This is useful for making sure that what user tries to emit is correct and it can be also used by other
-//! projects that parse user input, like AsmTK project.
+//! In addition to query functionality AsmJit is also able to validate whether an instruction and its operands
+//! are valid. This is useful for making sure that what user tries to emit is correct and it can be also used
+//! by other projects that parse user input, like AsmTK project.
 //!
 //! ### Query API
 //!
 //! The instruction query API is provided by \ref InstAPI namespace. The following queries are possible:
 //!
-//!   - \ref InstAPI::queryRWInfo() - queries read/write information of the given instruction and its operands.
+//!   - \ref InstAPI::queryRWInfo() - queries read/write information of the given instruction and its
+//!   operands.
 //!     Includes also CPU flags read/written.
 //!
-//!   - \ref InstAPI::queryFeatures() - queries CPU features that are required to execute the given instruction. A full
-//!     instruction with operands must be given as some architectures like X86 may require different features for the
-//!     same instruction based on its operands.
+//!   - \ref InstAPI::queryFeatures() - queries CPU features that are required to execute the given
+//!   instruction. A full
+//!     instruction with operands must be given as some architectures like X86 may require different features
+//!     for the same instruction based on its operands.
 //!
-//!   - <a href="https://github.com/asmjit/asmjit/blob/master/test/asmjit_test_instinfo.cpp">asmjit_test_instinfo.cpp</a>
+//!   - <a
+//!   href="https://github.com/asmjit/asmjit/blob/master/test/asmjit_test_instinfo.cpp">asmjit_test_instinfo.cpp</a>
 //!     can be also used as a reference about accessing instruction information.
 //!
 //! ### Validation API
 //!
-//! The instruction validation API is provided by \ref InstAPI namespace in the similar fashion like the Query API,
-//! however, validation can also be turned on at \ref BaseEmitter level. The following is possible:
+//! The instruction validation API is provided by \ref InstAPI namespace in the similar fashion like the Query
+//! API, however, validation can also be turned on at \ref BaseEmitter level. The following is possible:
 //!
-//!   - \ref InstAPI::validate() - low-level instruction validation function that is used internally by emitters
+//!   - \ref InstAPI::validate() - low-level instruction validation function that is used internally by
+//!   emitters
 //!     if strict validation is enabled.
 //!
 //!   - \ref BaseEmitter::addDiagnosticOptions() - can be used to enable validation at emitter level, see \ref
@@ -1636,7 +1722,8 @@ namespace asmjit {
 //!   - Low level API that provides cross-platform abstractions for virtual memory allocation. Implemented in
 //!     \ref VirtMem namespace.
 //!
-//!   - High level API that makes it very easy to store generated code for execution. See \ref JitRuntime, which is
+//!   - High level API that makes it very easy to store generated code for execution. See \ref JitRuntime,
+//!   which is
 //!     used by many examples for its simplicity and easy integration with \ref CodeHolder. There is also \ref
 //!     JitAllocator, which lays somewhere between RAW memory allocation and \ref JitRuntime.
 
@@ -1646,28 +1733,31 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit uses zone memory allocation (also known as Arena allocation) to allocate most of the data it uses. It's a
-//! fast allocator that allows AsmJit to allocate a lot of small data structures fast and without `malloc()` overhead.
-//! Since code generators and all related classes are usually short-lived this approach decreases memory usage and
-//! fragmentation as arena-based allocators always allocate larger blocks of memory, which are then split into smaller
-//! chunks.
+//! AsmJit uses zone memory allocation (also known as Arena allocation) to allocate most of the data it uses.
+//! It's a fast allocator that allows AsmJit to allocate a lot of small data structures fast and without
+//! `malloc()` overhead. Since code generators and all related classes are usually short-lived this approach
+//! decreases memory usage and fragmentation as arena-based allocators always allocate larger blocks of
+//! memory, which are then split into smaller chunks.
 //!
-//! Another advantage of zone memory allocation is that since the whole library uses this strategy it's very easy to
-//! deallocate everything that a particular instance is holding by simply releasing the memory the allocator holds.
-//! This improves destruction time of such objects as there is no destruction at all. Long-lived objects just reset
-//! its data in destructor or in their reset() member function for a future reuse. For this purpose all containers in
-//! AsmJit are also zone allocated.
+//! Another advantage of zone memory allocation is that since the whole library uses this strategy it's very
+//! easy to deallocate everything that a particular instance is holding by simply releasing the memory the
+//! allocator holds. This improves destruction time of such objects as there is no destruction at all.
+//! Long-lived objects just reset its data in destructor or in their reset() member function for a future
+//! reuse. For this purpose all containers in AsmJit are also zone allocated.
 //!
 //! ### Zone Allocation
 //!
-//!   - \ref Zone - Incremental zone memory allocator with minimum features. It can only allocate memory without the
+//!   - \ref Zone - Incremental zone memory allocator with minimum features. It can only allocate memory
+//!   without the
 //!     possibility to return it back to the allocator.
 //!
-//!   - \ref ZoneTmp - A temporary \ref Zone with some initial static storage. If the allocation requests fit the
-//!     static storage allocated then there will be no dynamic memory allocation during the lifetime of \ref ZoneTmp,
-//!     otherwise it would act as \ref Zone with one preallocated block on the stack.
+//!   - \ref ZoneTmp - A temporary \ref Zone with some initial static storage. If the allocation requests fit
+//!   the
+//!     static storage allocated then there will be no dynamic memory allocation during the lifetime of \ref
+//!     ZoneTmp, otherwise it would act as \ref Zone with one preallocated block on the stack.
 //!
-//!   - \ref ZoneAllocator - A wrapper of \ref Zone that provides the capability of returning memory to the allocator.
+//!   - \ref ZoneAllocator - A wrapper of \ref Zone that provides the capability of returning memory to the
+//!   allocator.
 //!     Such memory is stored in a pool for later reuse.
 //!
 //! ### Zone Allocated Containers
@@ -1682,10 +1772,10 @@ namespace asmjit {
 //!
 //! ### Using Zone Allocated Containers
 //!
-//! The most common data structure exposed by AsmJit is \ref ZoneVector. It's very similar to `std::vector`, but the
-//! implementation doesn't use exceptions and uses the mentioned \ref ZoneAllocator for performance reasons. You don't
-//! have to worry about allocations as you should not need to add items to AsmJit's data structures directly as there
-//! should be API for all required operations.
+//! The most common data structure exposed by AsmJit is \ref ZoneVector. It's very similar to `std::vector`,
+//! but the implementation doesn't use exceptions and uses the mentioned \ref ZoneAllocator for performance
+//! reasons. You don't have to worry about allocations as you should not need to add items to AsmJit's data
+//! structures directly as there should be API for all required operations.
 //!
 //! The following APIs in \ref CodeHolder returns \ref ZoneVector reference:
 //!
@@ -1707,9 +1797,9 @@ namespace asmjit {
 //! }
 //! ```
 //!
-//! \ref ZoneVector has overloaded array access operator to make it possible to access its elements through operator[].
-//! Some standard functions like \ref ZoneVector::empty(), \ref ZoneVector::size(), and \ref ZoneVector::data() are
-//! provided as well. Vectors are also iterable through a range-based for loop:
+//! \ref ZoneVector has overloaded array access operator to make it possible to access its elements through
+//! operator[]. Some standard functions like \ref ZoneVector::empty(), \ref ZoneVector::size(), and \ref
+//! ZoneVector::data() are provided as well. Vectors are also iterable through a range-based for loop:
 //!
 //! ```
 //! using namespace asmjit;
@@ -1726,13 +1816,13 @@ namespace asmjit {
 //!
 //! ### Design Considerations
 //!
-//! Zone-allocated containers do not store the allocator within the container. This decision was made to reduce the
-//! footprint of such containers as AsmJit tooling, especially Compiler's register allocation, may use many instances
-//! of such containers to perform code analysis and register allocation.
+//! Zone-allocated containers do not store the allocator within the container. This decision was made to
+//! reduce the footprint of such containers as AsmJit tooling, especially Compiler's register allocation, may
+//! use many instances of such containers to perform code analysis and register allocation.
 //!
-//! For example to append an item into a \ref ZoneVector it's required to pass the allocator as the first argument,
-//! so it can be used in case that the vector needs a reallocation. Such function also returns an error, which must
-//! be propagated to the caller.
+//! For example to append an item into a \ref ZoneVector it's required to pass the allocator as the first
+//! argument, so it can be used in case that the vector needs a reallocation. Such function also returns an
+//! error, which must be propagated to the caller.
 //!
 //! ```
 //! using namespace asmjit
@@ -1756,9 +1846,9 @@ namespace asmjit {
 //! }
 //! ```
 //!
-//! Containers like \ref ZoneVector also provide a functionality to reserve a certain number of items before any items
-//! are added to it. This approach is used internally in most places as it allows to prepare space for data that will
-//! be added to some container before the data itself was created.
+//! Containers like \ref ZoneVector also provide a functionality to reserve a certain number of items before
+//! any items are added to it. This approach is used internally in most places as it allows to prepare space
+//! for data that will be added to some container before the data itself was created.
 //!
 //! ```
 //! using namespace asmjit
@@ -1782,26 +1872,30 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit uses and provides utility classes and functions, that can be used with AsmJit. The functionality can be
-//! divided into the following topics:
+//! AsmJit uses and provides utility classes and functions, that can be used with AsmJit. The functionality
+//! can be divided into the following topics:
 //!
 //! ### String Functionality
 //!
-//!   - \ref String - AsmJit's string container, which is used internally and which doesn't use exceptions and has
+//!   - \ref String - AsmJit's string container, which is used internally and which doesn't use exceptions and
+//!   has
 //!     a stable layout, which is not dependent on C++ standard library.
 //!
-//!   - \ref StringTmp - String that can have base storage allocated on stack. The amount of storage on stack can
+//!   - \ref StringTmp - String that can have base storage allocated on stack. The amount of storage on stack
+//!   can
 //!     be specified as a template parameter.
 //!
 //!   - \ref FixedString - Fixed string container limited up to N characters.
 //!
 //! ### Code Generation Utilities
 //!
-//!   - \ref ConstPool - Constant pool used by \ref BaseCompiler, but also available to users that may find use of it.
+//!   - \ref ConstPool - Constant pool used by \ref BaseCompiler, but also available to users that may find
+//!   use of it.
 //!
 //! ### Support Functionality Used by AsmJit
 //!
-//!   - \ref Support namespace provides many other utility functions and classes that are used by AsmJit, and made
+//!   - \ref Support namespace provides many other utility functions and classes that are used by AsmJit, and
+//!   made
 //!     public.
 
 
@@ -1822,9 +1916,8 @@ namespace asmjit {
 //! \brief Register allocator internals.
 //! \endcond
 
-} // {asmjit}
+} // namespace asmjit
 
-#include "asmjit-scope-begin.h"
 #include "core/archtraits.h"
 #include "core/assembler.h"
 #include "core/builder.h"
@@ -1852,10 +1945,12 @@ namespace asmjit {
 #include "core/zone.h"
 #include "core/zonehash.h"
 #include "core/zonelist.h"
-#include "core/zonetree.h"
 #include "core/zonestack.h"
 #include "core/zonestring.h"
+#include "core/zonetree.h"
 #include "core/zonevector.h"
+
+#include "asmjit-scope-begin.h"
 #include "asmjit-scope-end.h"
 
 #endif // ASMJIT_CORE_H_INCLUDED

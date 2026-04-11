@@ -24,23 +24,25 @@
  * -------------------------------------------------------------------------- */
 
 #include "HipFFT3D.h"
-#include "HipContext.h"
+
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <iterator>
+#include <sstream>
+
+#include "HipContext.h"
 
 using namespace OpenMM;
 using namespace std;
 
-HipFFT3D::HipFFT3D(HipContext& context, int xsize, int ysize, int zsize, bool realToComplex) : context(context) {
+HipFFT3D::HipFFT3D(HipContext& context, int xsize, int ysize, int zsize, bool realToComplex)
+    : context(context) {
     deviceIndex = context.getDeviceIndex();
     size_t valueSize = context.getUseDoublePrecision() ? sizeof(double) : sizeof(float);
     inputBufferSize = zsize * ysize * xsize * valueSize;
     if (realToComplex) {
-        outputBufferSize = (zsize/2 + 1) * ysize * xsize * valueSize * 2;
-    }
-    else {
+        outputBufferSize = (zsize / 2 + 1) * ysize * xsize * valueSize * 2;
+    } else {
         outputBufferSize = zsize * ysize * xsize * valueSize;
     }
 
@@ -66,14 +68,14 @@ HipFFT3D::HipFFT3D(HipContext& context, int xsize, int ysize, int zsize, bool re
 
     configuration.bufferSize = &outputBufferSize;
     configuration.buffer = &outputBuffer;
-    configuration.bufferStride[0] = realToComplex ? (zsize/2 + 1) : zsize;
+    configuration.bufferStride[0] = realToComplex ? (zsize / 2 + 1) : zsize;
     configuration.bufferStride[1] = configuration.bufferStride[0] * ysize;
     configuration.bufferStride[2] = configuration.bufferStride[1] * xsize;
 
     // Combine all parameters into a unique key
     stringstream info;
     int runtimeVersion;
-    (void)hipRuntimeGetVersion(&runtimeVersion);
+    () hipRuntimeGetVersion(&runtimeVersion);
     info << runtimeVersion;
     info << " " << VkFFTGetVersion();
     info << " " << xsize << " " << ysize << " " << zsize;
@@ -86,14 +88,15 @@ HipFFT3D::HipFFT3D(HipContext& context, int xsize, int ysize, int zsize, bool re
 
     ifstream cache(cacheFile.c_str(), ios::in | ios::binary);
     if (cache.is_open()) {
-        cacheContent.insert(cacheContent.begin(), istreambuf_iterator<char>(cache), istreambuf_iterator<char>());
+        cacheContent.insert(cacheContent.begin(),
+                            istreambuf_iterator<char>(cache),
+                            istreambuf_iterator<char>());
         cache.close();
         hasCache = true;
         // There is an existing cache, load VkFFT kernels from it
         configuration.loadApplicationFromString = 1;
         configuration.loadApplicationString = cacheContent.data();
-    }
-    else {
+    } else {
         // There is no existing cache, request saving
         configuration.saveApplicationToString = 1;
     }
@@ -101,7 +104,7 @@ HipFFT3D::HipFFT3D(HipContext& context, int xsize, int ysize, int zsize, bool re
     app = new VkFFTApplication();
     VkFFTResult fftResult = initializeVkFFT(app, configuration);
     if (fftResult != VKFFT_SUCCESS) {
-        throw OpenMMException("Error executing initializeVkFFT: "+context.intToString(fftResult));
+        throw OpenMMException("Error executing initializeVkFFT: " + context.intToString(fftResult));
     }
 
     if (!hasCache) {
@@ -109,14 +112,15 @@ HipFFT3D::HipFFT3D(HipContext& context, int xsize, int ysize, int zsize, bool re
         string outputFile = context.getTempFileName() + ".vkfftcache";
         try {
             ofstream out(outputFile.c_str(), ios::out | ios::binary);
-            out.write(reinterpret_cast<char*>(app->saveApplicationString), size_t(app->applicationStringSize));
+            out.write(reinterpret_cast<char*>(app->saveApplicationString),
+                      size_t(app->applicationStringSize));
             out.close();
             if (!out.fail()) {
-                if (rename(outputFile.c_str(), cacheFile.c_str()) != 0)
+                if (rename(outputFile.c_str(), cacheFile.c_str()) != 0) {
                     remove(outputFile.c_str());
+                }
             }
-        }
-        catch (...) {
+        } catch (...) {
             // An error occurred.  Possibly we don't have permission to write to the temp directory.
         }
     }
@@ -131,32 +135,34 @@ void HipFFT3D::execFFT(ArrayInterface& in, ArrayInterface& out, bool forward) {
     if (forward) {
         inputBuffer = context.unwrap(in).getDevicePointer();
         outputBuffer = context.unwrap(out).getDevicePointer();
-    }
-    else {
+    } else {
         inputBuffer = context.unwrap(out).getDevicePointer();
         outputBuffer = context.unwrap(in).getDevicePointer();
     }
     stream = context.getCurrentStream();
     VkFFTResult fftResult = VkFFTAppend(app, forward ? -1 : 1, NULL);
     if (fftResult != VKFFT_SUCCESS) {
-        throw OpenMMException("Error executing VkFFTAppend: "+context.intToString(fftResult));
+        throw OpenMMException("Error executing VkFFTAppend: " + context.intToString(fftResult));
     }
 }
 
 int HipFFT3D::findLegalDimension(int minimum) {
-    if (minimum < 1)
+    if (minimum < 1) {
         return 1;
+    }
     while (true) {
         // Attempt to factor the current value.
 
         int unfactored = minimum;
         // VkFFT supports prime factors up to 13
         for (int factor = 2; factor <= 13; factor++) {
-            while (unfactored > 1 && unfactored%factor == 0)
+            while (unfactored > 1 && unfactored % factor == 0) {
                 unfactored /= factor;
+            }
         }
-        if (unfactored == 1)
+        if (unfactored == 1) {
             return minimum;
+        }
         minimum++;
     }
 }

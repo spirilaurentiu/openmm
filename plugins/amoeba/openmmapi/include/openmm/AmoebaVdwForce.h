@@ -30,10 +30,11 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "openmm/Force.h"
-#include "internal/windowsExportAmoeba.h"
 #include <string>
 #include <vector>
+
+#include "internal/windowsExportAmoeba.h"
+#include "openmm/Force.h"
 
 namespace OpenMM {
 
@@ -47,7 +48,7 @@ namespace OpenMM {
  * particles.  To use the class in this mode, call the version of addParticle() that
  * takes sigma and epsilon values.  It should be called once for each particle in the
  * System.
- * 
+ *
  * In the other mode, each particle has a type index, and parameters are specified for
  * each type rather than each individual particle.  By default this mode also uses a
  * combining rule, but you can override it by defining alternate parameters to use for
@@ -56,7 +57,7 @@ namespace OpenMM {
  * in the System.  You also must call addParticleType() once for each type.  If you
  * wish to override the combining for particular pairs of types, do so by calling
  * addTypePair().
- * 
+ *
  * A unique feature of this class is that the interaction site for a particle does not need to be
  * exactly at the particle's location.  Instead, it can be placed a fraction of the distance from that
  * particle to another one.  This is typically done for hydrogens to place the interaction site slightly
@@ -65,20 +66,20 @@ namespace OpenMM {
  *
  * Support is also available for softcore interactions based on setting a per particle alchemical flag and
  * setting the AmoebaVdwForce to use an "AlchemicalMethod" -- either Decouple or Annihilate.
- * For Decouple, two alchemical atoms interact normally. For Annihilate, all interactions involving an 
- * alchemical atom are influenced. The softcore state is specified by setting a single 
+ * For Decouple, two alchemical atoms interact normally. For Annihilate, all interactions involving an
+ * alchemical atom are influenced. The softcore state is specified by setting a single
  * Context parameter "AmoebaVdwLambda" between 0.0 and 1.0.
  *
  * The softcore functional form can be modified by setting the softcore power (default of 5) and the softcore
  * alpha (default of 0,7). For more information on the softcore functional form see Eq. 2 from:
- * Jiao, D.;  Golubkov, P. A.;  Darden, T. A.; Ren, P., 
+ * Jiao, D.;  Golubkov, P. A.;  Darden, T. A.; Ren, P.,
  * Calculation of protein-ligand binding free energy by using a polarizable potential.
  * Proc. Natl. Acad. Sci. U.S.A. 2008, 105 (17), 6290-6295.
  * https://www.pnas.org/content/105/17/6290.
  */
 
 class OPENMM_EXPORT_AMOEBA AmoebaVdwForce : public Force {
-public:
+    public:
     /**
      * This is the name of the parameter which stores the current Amoeba vdW lambda value.
      */
@@ -88,17 +89,19 @@ public:
     }
 
     /**
-     * This is an enumeration of the different methods that may be used for handling long range nonbonded forces.
+     * This is an enumeration of the different methods that may be used for handling long range nonbonded
+     * forces.
      */
     enum NonbondedMethod {
         /**
-         * No cutoff is applied to nonbonded interactions.  The full set of N^2 interactions is computed exactly.
-         * This necessarily means that periodic boundary conditions cannot be used.  This is the default.
+         * No cutoff is applied to nonbonded interactions.  The full set of N^2 interactions is computed
+         * exactly. This necessarily means that periodic boundary conditions cannot be used.  This is the
+         * default.
          */
         NoCutoff = 0,
         /**
-         * Periodic boundary conditions are used, so that each particle interacts only with the nearest periodic copy of
-         * each other particle.  Interactions beyond the cutoff distance are ignored.
+         * Periodic boundary conditions are used, so that each particle interacts only with the nearest
+         * periodic copy of each other particle.  Interactions beyond the cutoff distance are ignored.
          */
         CutoffPeriodic = 1,
     };
@@ -168,14 +171,21 @@ public:
      * @param parentIndex     the index of the parent particle
      * @param sigma           vdw sigma
      * @param epsilon         vdw epsilon
-     * @param reductionFactor the fraction of the distance along the line from the parent particle to this particle
-     *                        at which the interaction site should be placed
+     * @param reductionFactor the fraction of the distance along the line from the parent particle to this
+     * particle at which the interaction site should be placed
      * @param isAlchemical    if true, this vdW particle is undergoing an alchemical change.
      * @param typeIndex       the index of the particle type for this particle.
-     * @param scaleFactor     a scale factor to apply to all interactions involving this particle (used for CpHMD).
+     * @param scaleFactor     a scale factor to apply to all interactions involving this particle (used for
+     * CpHMD).
      */
-    void setParticleParameters(int particleIndex, int parentIndex, double sigma, double epsilon, 
-                               double reductionFactor, bool isAlchemical=false, int typeIndex=-1, double scaleFactor = 1.0);
+    void setParticleParameters(int particleIndex,
+                               int parentIndex,
+                               double sigma,
+                               double epsilon,
+                               double reductionFactor,
+                               bool isAlchemical = false,
+                               int typeIndex = -1,
+                               double scaleFactor = 1.0);
 
     /**
      * Get the force field parameters for a vdw particle.
@@ -184,14 +194,21 @@ public:
      * @param[out] parentIndex     the index of the parent particle
      * @param[out] sigma           vdw sigma
      * @param[out] epsilon         vdw epsilon
-     * @param[out] reductionFactor the fraction of the distance along the line from the parent particle to this particle
-     *                             at which the interaction site should be placed
+     * @param[out] reductionFactor the fraction of the distance along the line from the parent particle to
+     * this particle at which the interaction site should be placed
      * @param[out] isAlchemical    if true, this vdW particle is undergoing an alchemical change.
      * @param[out] typeIndex       the index of the particle type for this particle
-     * @param[out] scaleFactor     a scale factor to apply to all interactions involving this particle (used for CpHMD).
+     * @param[out] scaleFactor     a scale factor to apply to all interactions involving this particle (used
+     * for CpHMD).
      */
-    void getParticleParameters(int particleIndex, int& parentIndex, double& sigma, double& epsilon, 
-                               double& reductionFactor, bool& isAlchemical, int& typeIndex, double& scaleFactor) const;
+    void getParticleParameters(int particleIndex,
+                               int& parentIndex,
+                               double& sigma,
+                               double& epsilon,
+                               double& reductionFactor,
+                               bool& isAlchemical,
+                               int& typeIndex,
+                               double& scaleFactor) const;
 
     /**
      * Add the force field parameters for a vdw particle.  This version is used when parameters
@@ -200,13 +217,19 @@ public:
      * @param parentIndex     the index of the parent particle
      * @param sigma           vdw sigma
      * @param epsilon         vdw epsilon
-     * @param reductionFactor the fraction of the distance along the line from the parent particle to this particle
-     *                        at which the interaction site should be placed
+     * @param reductionFactor the fraction of the distance along the line from the parent particle to this
+     * particle at which the interaction site should be placed
      * @param isAlchemical    if true, this vdW particle is undergoing an alchemical change.
-     * @param scaleFactor     a scale factor to apply to all interactions involving this particle (used for CpHMD).
+     * @param scaleFactor     a scale factor to apply to all interactions involving this particle (used for
+     * CpHMD).
      * @return index of added particle
      */
-    int addParticle(int parentIndex, double sigma, double epsilon, double reductionFactor, bool isAlchemical = false, double scaleFactor = 1.0);
+    int addParticle(int parentIndex,
+                    double sigma,
+                    double epsilon,
+                    double reductionFactor,
+                    bool isAlchemical = false,
+                    double scaleFactor = 1.0);
 
     /**
      * Add the force field parameters for a vdw particle. This version is used when parameters
@@ -214,17 +237,22 @@ public:
      *
      * @param parentIndex     the index of the parent particle
      * @param typeIndex       the index of the particle type for this particle
-     * @param reductionFactor the fraction of the distance along the line from the parent particle to this particle
-     *                        at which the interaction site should be placed
+     * @param reductionFactor the fraction of the distance along the line from the parent particle to this
+     * particle at which the interaction site should be placed
      * @param isAlchemical    if true, this vdW particle is undergoing an alchemical change.
-     * @param scaleFactor     a scale factor to apply to all interactions involving this particle (used for CpHMD).
+     * @param scaleFactor     a scale factor to apply to all interactions involving this particle (used for
+     * CpHMD).
      * @return index of added particle
      */
-    int addParticle(int parentIndex, int typeIndex, double reductionFactor, bool isAlchemical = false, double scaleFactor = 1.0);
+    int addParticle(int parentIndex,
+                    int typeIndex,
+                    double reductionFactor,
+                    bool isAlchemical = false,
+                    double scaleFactor = 1.0);
 
     /**
      * Add a particle type.
-     * 
+     *
      * @param sigma     the sigma value for particles of this type
      * @param epsilon   the epsilon value for particles of this type
      * @return the index of the particle type that was just added.
@@ -233,7 +261,7 @@ public:
 
     /**
      * Get the force field parameters for a particle type.
-     * 
+     *
      * @param typeIndex      the index of the particle type
      * @param[out] sigma     the sigma value for particles of this type
      * @param[out] epsilon   the epsilon value for particles of this type
@@ -242,7 +270,7 @@ public:
 
     /**
      * Set the force field parameters for a particle type.
-     * 
+     *
      * @param typeIndex the index of the particle type
      * @param sigma     the sigma value for particles of this type
      * @param epsilon   the epsilon value for particles of this type
@@ -252,7 +280,7 @@ public:
     /**
      * Add a type pair.  This overrides the standard combining rule for interactions
      * between particles of two particular types.
-     * 
+     *
      * @param type1     the index of the first particle type
      * @param type2     the index of the second particle type
      * @param sigma     the sigma value for interactions between particles of these two types
@@ -264,7 +292,7 @@ public:
     /**
      * Get the force field parameters for a type pair.  This overrides the standard
      * combining rule for interactions between particles of two particular types.
-     * 
+     *
      * @param pairIndex      the index of the type pair
      * @param[out] type1     the index of the first particle type
      * @param[out] type2     the index of the second particle type
@@ -276,7 +304,7 @@ public:
     /**
      * Set the force field parameters for a type pair.  This overrides the standard
      * combining rule for interactions between particles of two particular types.
-     * 
+     *
      * @param pairIndex the index of the type pair
      * @param type1     the index of the first particle type
      * @param type2     the index of the second particle type
@@ -284,7 +312,7 @@ public:
      * @param epsilon   the epsilon  value for interactions between particles of these two types
      */
     void setTypePairParameters(int pairIndex, int type1, int type2, double sigma, double epsilon);
-    
+
     /**
      * Set sigma combining rule
      *
@@ -297,27 +325,29 @@ public:
      *
      * @return sigmaCombiningRule   sigma combining rule:  'ARITHMETIC', 'GEOMETRIC'. 'CUBIC-MEAN'
      */
-    const std::string& getSigmaCombiningRule(void) const;
+    const std::string& getSigmaCombiningRule() const;
 
     /**
      * Set epsilon combining rule
      *
-     * @param epsilonCombiningRule   epsilon combining rule:   'ARITHMETIC', 'GEOMETRIC'. 'HARMONIC', 'W-H', 'HHG'
+     * @param epsilonCombiningRule   epsilon combining rule:   'ARITHMETIC', 'GEOMETRIC'. 'HARMONIC', 'W-H',
+     * 'HHG'
      */
     void setEpsilonCombiningRule(const std::string& epsilonCombiningRule);
 
     /**
      * Get epsilon combining rule
      *
-     * @return epsilonCombiningRule   epsilon combining rule:  'ARITHMETIC', 'GEOMETRIC'. 'HARMONIC', 'W-H', 'HHG'
+     * @return epsilonCombiningRule   epsilon combining rule:  'ARITHMETIC', 'GEOMETRIC'. 'HARMONIC', 'W-H',
+     * 'HHG'
      */
-    const std::string& getEpsilonCombiningRule(void) const;
+    const std::string& getEpsilonCombiningRule() const;
 
     /**
      * Get whether to add a contribution to the energy that approximately represents the effect of VdW
-     * interactions beyond the cutoff distance.  The energy depends on the volume of the periodic box, and is only
-     * applicable when periodic boundary conditions are used.  When running simulations at constant pressure, adding
-     * this contribution can improve the quality of results.
+     * interactions beyond the cutoff distance.  The energy depends on the volume of the periodic box, and is
+     * only applicable when periodic boundary conditions are used.  When running simulations at constant
+     * pressure, adding this contribution can improve the quality of results.
      */
     bool getUseDispersionCorrection() const {
         return useDispersionCorrection;
@@ -325,14 +355,14 @@ public:
 
     /**
      * Set whether to add a contribution to the energy that approximately represents the effect of VdW
-     * interactions beyond the cutoff distance.  The energy depends on the volume of the periodic box, and is only
-     * applicable when periodic boundary conditions are used.  When running simulations at constant pressure, adding
-     * this contribution can improve the quality of results.
+     * interactions beyond the cutoff distance.  The energy depends on the volume of the periodic box, and is
+     * only applicable when periodic boundary conditions are used.  When running simulations at constant
+     * pressure, adding this contribution can improve the quality of results.
      */
     void setUseDispersionCorrection(bool useCorrection) {
         useDispersionCorrection = useCorrection;
     }
-    
+
     /**
      * Get whether parameters were specified by particle or by particle type.
      */
@@ -364,7 +394,7 @@ public:
      */
 
     double getCutoffDistance() const;
-    
+
     /**
      * Set the cutoff distance (in nm) being used for nonbonded interactions.  If the NonbondedMethod in use
      * is NoCutoff, this value will have no effect.
@@ -375,14 +405,14 @@ public:
 
     /**
      * Set the cutoff distance.
-     * 
+     *
      * @deprecated This method exists only for backward compatibility.  Use setCutoffDistance() instead.
      */
     void setCutoff(double cutoff);
 
     /**
      * Get the cutoff distance.
-     * 
+     *
      * @deprecated This method exists only for backward compatibility.  Use getCutoffDistance() instead.
      */
     double getCutoff() const;
@@ -442,13 +472,14 @@ public:
     void setAlchemicalMethod(AlchemicalMethod method);
 
     /**
-     * Update the per-particle parameters in a Context to match those stored in this Force object.  This method provides
-     * an efficient method to update certain parameters in an existing Context without needing to reinitialize it.
-     * Simply call setParticleParameters() to modify this object's parameters, then call updateParametersInContext()
-     * to copy them over to the Context.
+     * Update the per-particle parameters in a Context to match those stored in this Force object.  This
+     * method provides an efficient method to update certain parameters in an existing Context without needing
+     * to reinitialize it. Simply call setParticleParameters() to modify this object's parameters, then call
+     * updateParametersInContext() to copy them over to the Context.
      *
-     * The only information this method updates is the values of per-particle parameters.  All other aspects of the Force
-     * (the nonbonded method, the cutoff distance, etc.) are unaffected and can only be changed by reinitializing the Context.
+     * The only information this method updates is the values of per-particle parameters.  All other aspects
+     * of the Force (the nonbonded method, the cutoff distance, etc.) are unaffected and can only be changed
+     * by reinitializing the Context.
      */
     void updateParametersInContext(Context& context);
     /**
@@ -460,10 +491,11 @@ public:
     bool usesPeriodicBoundaryConditions() const {
         return nonbondedMethod == AmoebaVdwForce::CutoffPeriodic;
     }
-protected:
-    ForceImpl* createImpl() const;
-private:
 
+    protected:
+    ForceImpl* createImpl() const;
+
+    private:
     class VdwInfo;
     class ParticleTypeInfo;
     class TypePairInfo;
@@ -478,7 +510,7 @@ private:
     std::string sigmaCombiningRule;
     std::string epsilonCombiningRule;
 
-    std::vector< std::vector<int> > exclusions;
+    std::vector<std::vector<int>> exclusions;
     std::vector<VdwInfo> parameters;
     std::vector<ParticleTypeInfo> types;
     std::vector<TypePairInfo> pairs;
@@ -489,22 +521,33 @@ private:
  * @private
  */
 class AmoebaVdwForce::VdwInfo {
-public:
+    public:
     int parentIndex, typeIndex;
     double reductionFactor, sigma, epsilon, scaleFactor;
     bool isAlchemical;
     VdwInfo() {
         parentIndex = -1;
-        typeIndex   = -1;
-        reductionFactor      = 0.0;
-        sigma                = 1.0;
-        epsilon              = 0.0;
-        scaleFactor          = 1.0;
-        isAlchemical         = false;
+        typeIndex = -1;
+        reductionFactor = 0.0;
+        sigma = 1.0;
+        epsilon = 0.0;
+        scaleFactor = 1.0;
+        isAlchemical = false;
     }
-    VdwInfo(int parentIndex, double sigma, double epsilon, int typeIndex, double reductionFactor, bool isAlchemical, double scaleFactor) :
-        parentIndex(parentIndex), reductionFactor(reductionFactor), sigma(sigma), epsilon(epsilon),
-        typeIndex(typeIndex), isAlchemical(isAlchemical), scaleFactor(scaleFactor) {
+    VdwInfo(int parentIndex,
+            double sigma,
+            double epsilon,
+            int typeIndex,
+            double reductionFactor,
+            bool isAlchemical,
+            double scaleFactor)
+        : parentIndex(parentIndex)
+        , reductionFactor(reductionFactor)
+        , sigma(sigma)
+        , epsilon(epsilon)
+        , typeIndex(typeIndex)
+        , isAlchemical(isAlchemical)
+        , scaleFactor(scaleFactor) {
     }
 };
 
@@ -513,11 +556,15 @@ public:
  * @private
  */
 class AmoebaVdwForce::ParticleTypeInfo {
-public:
+    public:
     double sigma, epsilon;
-    ParticleTypeInfo() : sigma(1.0), epsilon(0.0) {
+    ParticleTypeInfo()
+        : sigma(1.0)
+        , epsilon(0.0) {
     }
-    ParticleTypeInfo(double sigma, double epsilon) : sigma(sigma), epsilon(epsilon) {
+    ParticleTypeInfo(double sigma, double epsilon)
+        : sigma(sigma)
+        , epsilon(epsilon) {
     }
 };
 
@@ -526,17 +573,23 @@ public:
  * @private
  */
 class AmoebaVdwForce::TypePairInfo {
-public:
+    public:
     int type1, type2;
     double sigma, epsilon;
-    TypePairInfo() : type1(-1), type2(-1), sigma(1.0), epsilon(0.0) {
+    TypePairInfo()
+        : type1(-1)
+        , type2(-1)
+        , sigma(1.0)
+        , epsilon(0.0) {
     }
-    TypePairInfo(int type1, int type2, double sigma, double epsilon) :
-        type1(type1), type2(type2), sigma(sigma), epsilon(epsilon) {
+    TypePairInfo(int type1, int type2, double sigma, double epsilon)
+        : type1(type1)
+        , type2(type2)
+        , sigma(sigma)
+        , epsilon(epsilon) {
     }
 };
 
 } // namespace OpenMM
 
 #endif /*OPENMM_AMOEBA_VDW_FORCE_H_*/
-

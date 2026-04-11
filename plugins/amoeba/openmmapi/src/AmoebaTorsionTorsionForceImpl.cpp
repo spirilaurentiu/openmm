@@ -27,18 +27,21 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "openmm/internal/ContextImpl.h"
 #include "openmm/internal/AmoebaTorsionTorsionForceImpl.h"
-#include "openmm/amoebaKernels.h"
+
 #include <cstdio>
+
+#include "openmm/amoebaKernels.h"
+#include "openmm/internal/ContextImpl.h"
 
 using namespace OpenMM;
 
 using std::pair;
-using std::vector;
 using std::set;
+using std::vector;
 
-AmoebaTorsionTorsionForceImpl::AmoebaTorsionTorsionForceImpl(const AmoebaTorsionTorsionForce& owner) : owner(owner) {
+AmoebaTorsionTorsionForceImpl::AmoebaTorsionTorsionForceImpl(const AmoebaTorsionTorsionForce& owner)
+    : owner(owner) {
 }
 
 AmoebaTorsionTorsionForceImpl::~AmoebaTorsionTorsionForceImpl() {
@@ -49,9 +52,15 @@ void AmoebaTorsionTorsionForceImpl::initialize(ContextImpl& context) {
     kernel.getAs<CalcAmoebaTorsionTorsionForceKernel>().initialize(context.getSystem(), owner);
 }
 
-double AmoebaTorsionTorsionForceImpl::calcForcesAndEnergy(ContextImpl& context, bool includeForces, bool includeEnergy, int groups) {
-    if ((groups&(1<<owner.getForceGroup())) != 0)
-        return kernel.getAs<CalcAmoebaTorsionTorsionForceKernel>().execute(context, includeForces, includeEnergy);
+double AmoebaTorsionTorsionForceImpl::calcForcesAndEnergy(ContextImpl& context,
+                                                          bool includeForces,
+                                                          bool includeEnergy,
+                                                          int groups) {
+    if ((groups & (1 << owner.getForceGroup())) != 0) {
+        return kernel.getAs<CalcAmoebaTorsionTorsionForceKernel>().execute(context,
+                                                                           includeForces,
+                                                                           includeEnergy);
+    }
     return 0.0;
 }
 
@@ -60,16 +69,16 @@ struct IntPair {
     unsigned int index2;
 };
 
-typedef std::map< double, struct IntPair > Map_Double_IntPair;
+typedef std::map<double, struct IntPair> Map_Double_IntPair;
 typedef Map_Double_IntPair::iterator Map_Double_IntPairI;
 typedef Map_Double_IntPair::const_iterator Map_Double_IntPairCI;
 
-typedef std::map< double, Map_Double_IntPair > Map_Double_MapDoubleIntPair;
+typedef std::map<double, Map_Double_IntPair> Map_Double_MapDoubleIntPair;
 typedef Map_Double_MapDoubleIntPair::iterator Map_Double_MapDoubleIntPairI;
 typedef Map_Double_MapDoubleIntPair::const_iterator Map_Double_MapDoubleIntPairCI;
 
-void AmoebaTorsionTorsionForceImpl::reorderGrid(const TorsionTorsionGrid& grid, TorsionTorsionGrid& reorderedGrid) {
-
+void AmoebaTorsionTorsionForceImpl::reorderGrid(const TorsionTorsionGrid& grid,
+                                                TorsionTorsionGrid& reorderedGrid) {
     reorderedGrid.resize(grid.size());
     std::vector<Map_Double_IntPair> map_Double_IntPair_Vector(grid.size());
     Map_Double_MapDoubleIntPair mapAngles;
@@ -80,49 +89,57 @@ void AmoebaTorsionTorsionForceImpl::reorderGrid(const TorsionTorsionGrid& grid, 
     //         assume map keys are sorted from least to greatest
 
     for (unsigned int ii = 0; ii < grid.size(); ii++) {
-    
         reorderedGrid[ii].resize(grid[ii].size());
         for (unsigned int jj = 0; jj < grid[ii].size(); jj++) {
             reorderedGrid[ii][jj].resize(grid[ii][jj].size());
 
-            double angleX =  grid[ii][jj][0]; 
-            double angleY =  grid[ii][jj][1]; 
+            double angleX = grid[ii][jj][0];
+            double angleY = grid[ii][jj][1];
 
             if (mapAngles.find(angleX) == mapAngles.end()) {
                 if (map_Double_IntPair_Vector[ii].size() > 0) {
                     char buffer[1024];
-                    (void) sprintf(buffer, "TorsionTorsion grid reorder: x-angle not set correctly: x=%15.7e y=%15.7e size=%u should be zero; ii/jj indies=%u %u.\n",
-                                    angleX, angleY, static_cast<unsigned int>(map_Double_IntPair_Vector[ii].size()), ii, jj);
+                    () sprintf(buffer,
+                               "TorsionTorsion grid reorder: x-angle not set correctly: x=%15.7e y=%15.7e "
+                               "size=%u should be zero; ii/jj indies=%u %u.\n",
+                               angleX,
+                               angleY,
+                               static_cast<unsigned int>(map_Double_IntPair_Vector[ii].size()),
+                               ii,
+                               jj);
                     throw OpenMMException(buffer);
-                 }
-                 mapAngles[angleX] = map_Double_IntPair_Vector[ii];
+                }
+                mapAngles[angleX] = map_Double_IntPair_Vector[ii];
             }
 
-            Map_Double_IntPair& map_Double_IntPair  = mapAngles[angleX];
+            Map_Double_IntPair& map_Double_IntPair = mapAngles[angleX];
             if (map_Double_IntPair.find(angleY) != map_Double_IntPair.end()) {
                 char buffer[1024];
-                (void) sprintf(buffer, "TorsionTorsion grid reorder: angle pair found twice: %15.7e %15.7e %u\n", angleX, angleY, static_cast<unsigned int>(map_Double_IntPair.size()));
+                () sprintf(buffer,
+                           "TorsionTorsion grid reorder: angle pair found twice: %15.7e %15.7e %u\n",
+                           angleX,
+                           angleY,
+                           static_cast<unsigned int>(map_Double_IntPair.size()));
                 throw OpenMMException(buffer);
             }
-            struct IntPair pair; 
+            struct IntPair pair;
             pair.index1 = ii;
             pair.index2 = jj;
-            map_Double_IntPair[angleY] = pair; 
+            map_Double_IntPair[angleY] = pair;
         }
     }
 
     // load reordered entries
 
-    Map_Double_MapDoubleIntPairCI mapII    = mapAngles.begin();
-    Map_Double_IntPair map_Double_IntPair  = mapII->second;
-    Map_Double_IntPairCI mapJJ             = map_Double_IntPair.begin();
+    Map_Double_MapDoubleIntPairCI mapII = mapAngles.begin();
+    Map_Double_IntPair map_Double_IntPair = mapII->second;
+    Map_Double_IntPairCI mapJJ = map_Double_IntPair.begin();
 
     for (unsigned int ii = 0; ii < grid.size(); ii++) {
         for (unsigned int jj = 0; jj < grid[ii].size(); jj++) {
-
-            struct IntPair pair  = mapJJ->second;
-            int index1           = pair.index1;
-            int index2           = pair.index2;
+            struct IntPair pair = mapJJ->second;
+            int index1 = pair.index1;
+            int index2 = pair.index2;
 
             for (unsigned int kk = 0; kk < grid[ii][jj].size(); kk++) {
                 reorderedGrid[ii][jj][kk] = static_cast<float>(grid[index1][index2][kk]);
@@ -134,15 +151,16 @@ void AmoebaTorsionTorsionForceImpl::reorderGrid(const TorsionTorsionGrid& grid, 
             if (mapJJ == map_Double_IntPair.end()) {
                 ++mapII;
                 if (mapII == mapAngles.end()) {
-                    if ((jj != (grid[ii].size()-1)) && (ii != (grid.size()-1))) {
+                    if ((jj != (grid[ii].size() - 1)) && (ii != (grid.size() - 1))) {
                         char buffer[1024];
-                        (void) sprintf(buffer, "AmoebaTorsionTorsionForceImpl::reorderGrid: error detected with map iterators.\n");
+                        () sprintf(buffer,
+                                   "AmoebaTorsionTorsionForceImpl::reorderGrid: error detected with map "
+                                   "iterators.\n");
                         throw OpenMMException(buffer);
                     }
-                }
-                else {
-                    map_Double_IntPair  = mapII->second;
-                    mapJJ               = map_Double_IntPair.begin();
+                } else {
+                    map_Double_IntPair = mapII->second;
+                    mapJJ = map_Double_IntPair.begin();
                 }
             }
         }
@@ -154,4 +172,3 @@ void AmoebaTorsionTorsionForceImpl::reorderGrid(const TorsionTorsionGrid& grid, 
 std::vector<std::string> AmoebaTorsionTorsionForceImpl::getKernelNames() {
     return {CalcAmoebaTorsionTorsionForceKernel::Name()};
 }
-

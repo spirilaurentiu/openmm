@@ -35,11 +35,11 @@
 
 /**
  * Return an integer int for use as a seed for a random number generator.
- * 
+ *
  * The behavior of this function is platform dependent. On Windows machines,
  * this uses CryptGenRandom from the CryptoAPI to get a single int. On other
  * platforms (*nix, apple), we read from /dev/urandom
  */
-int OPENMM_EXPORT osrngseed(void);
+int OPENMM_EXPORT osrngseed();
 
 #endif /* OPENMM_OSRNGSEED_H_ */
