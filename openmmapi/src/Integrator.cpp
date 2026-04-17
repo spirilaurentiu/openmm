@@ -27,18 +27,23 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "sfmt/SFMT.h"
-#include "SimTKOpenMMRealType.h"
 #include "openmm/Integrator.h"
-#include "openmm/OpenMMException.h"
-#include "openmm/System.h"
-#include "openmm/internal/ContextImpl.h"
 
 #include <cmath>
 
+#include "openmm/OpenMMException.h"
+#include "openmm/System.h"
+#include "openmm/internal/ContextImpl.h"
+#include "sfmt/SFMT.h"
+
+#include "SimTKOpenMMRealType.h"
+
 using namespace OpenMM;
 
-Integrator::Integrator() : owner(NULL), context(NULL), forceGroups(0xFFFFFFFF) {
+Integrator::Integrator()
+    : owner(NULL)
+    , context(NULL)
+    , forceGroups(0xFFFFFFFF) {
 }
 
 Integrator::~Integrator() {
@@ -57,8 +62,9 @@ double Integrator::getStepSize() const {
 }
 
 void Integrator::setStepSize(double size) {
-    if (size < 0)
+    if (size < 0) {
         throw OpenMMException("Step size cannot be negative");
+    }
     stepSize = size;
 }
 
@@ -67,8 +73,9 @@ double Integrator::getConstraintTolerance() const {
 }
 
 void Integrator::setConstraintTolerance(double tol) {
-    if (tol <= 0)
+    if (tol <= 0) {
         throw OpenMMException("Constraint tolerance must be positive");
+    }
     constraintTol = tol;
 }
 
@@ -80,21 +87,22 @@ void Integrator::setIntegrationForceGroups(int groups) {
     forceGroups = groups;
 }
 
-std::vector<Vec3> Integrator::getVelocitiesForTemperature(const System &system, double temperature, int randomSeed) const {
+std::vector<Vec3>
+Integrator::getVelocitiesForTemperature(const System& system, double temperature, int randomSeed) const {
     // Generate the list of Gaussian random numbers.
     OpenMM_SFMT::SFMT sfmt;
     init_gen_rand(randomSeed, sfmt);
     std::vector<double> randoms;
-    while (randoms.size() < system.getNumParticles()*3) {
+    while (randoms.size() < system.getNumParticles() * 3) {
         double x, y, r2;
         do {
-            x = 2.0*genrand_real2(sfmt)-1.0;
-            y = 2.0*genrand_real2(sfmt)-1.0;
-            r2 = x*x + y*y;
+            x = 2.0 * genrand_real2(sfmt) - 1.0;
+            y = 2.0 * genrand_real2(sfmt) - 1.0;
+            r2 = x * x + y * y;
         } while (r2 >= 1.0 || r2 == 0.0);
-        double multiplier = sqrt((-2.0*std::log(r2))/r2);
-        randoms.push_back(x*multiplier);
-        randoms.push_back(y*multiplier);
+        double multiplier = sqrt((-2.0 * std::log(r2)) / r2);
+        randoms.push_back(x * multiplier);
+        randoms.push_back(y * multiplier);
     }
 
     // Assign the velocities.
@@ -103,10 +111,10 @@ std::vector<Vec3> Integrator::getVelocitiesForTemperature(const System &system, 
     for (int i = 0; i < system.getNumParticles(); i++) {
         double mass = system.getParticleMass(i);
         if (mass != 0) {
-            double velocityScale = sqrt(BOLTZ*temperature/mass);
-            velocities[i] = Vec3(randoms[nextRandom++], randoms[nextRandom++], randoms[nextRandom++])*velocityScale;
+            double velocityScale = sqrt(BOLTZ * temperature / mass);
+            velocities[i] =
+                Vec3(randoms[nextRandom++], randoms[nextRandom++], randoms[nextRandom++]) * velocityScale;
         }
     }
     return velocities;
 }
-

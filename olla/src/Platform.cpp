@@ -28,23 +28,25 @@
  * -------------------------------------------------------------------------- */
 
 #include "openmm/Platform.h"
+
 #include "openmm/Context.h"
-#include "openmm/OpenMMException.h"
 #include "openmm/Kernel.h"
 #include "openmm/KernelFactory.h"
+#include "openmm/OpenMMException.h"
 #include "openmm/internal/ContextImpl.h"
 #ifdef WIN32
-#include <windows.h>
+#    include <windows.h>
 #else
-#ifndef __PNACL__
-    #include <dlfcn.h>
+#    ifndef __PNACL__
+#        include <dlfcn.h>
+#    endif
+#    include <dirent.h>
+
+#    include <cstdlib>
 #endif
-#include <dirent.h>
-#include <cstdlib>
-#endif
-#include <sstream>
-#include <set>
 #include <algorithm>
+#include <set>
+#include <sstream>
 
 #include "ReferencePlatform.h"
 
@@ -53,11 +55,10 @@ using namespace std;
 
 std::vector<std::string> Platform::pluginLoadFailures;
 static bool stringLengthComparator(string i, string j) {
-  return (i.size() < j.size());
+    return (i.size() < j.size());
 }
 
 static int registerPlatforms() {
-
     // Register the Platforms built into the main library.  This should eventually be moved elsewhere.
 
     ReferencePlatform* platform = new ReferencePlatform();
@@ -69,10 +70,12 @@ static int platformInitializer = registerPlatforms();
 
 Platform::~Platform() {
     set<KernelFactory*> uniqueKernelFactories;
-    for (auto& factory : kernelFactories)
+    for (auto& factory : kernelFactories) {
         uniqueKernelFactories.insert(factory.second);
-    for (auto factory : uniqueKernelFactories)
+    }
+    for (auto factory : uniqueKernelFactories) {
         delete factory;
+    }
 }
 
 const vector<string>& Platform::getPropertyNames() const {
@@ -89,27 +92,31 @@ void Platform::setPropertyValue(Context& context, const string& property, const 
 
 const string& Platform::getPropertyDefaultValue(const string& property) const {
     string propertyName = property;
-    if (deprecatedPropertyReplacements.find(property) != deprecatedPropertyReplacements.end())
+    if (deprecatedPropertyReplacements.find(property) != deprecatedPropertyReplacements.end()) {
         propertyName = deprecatedPropertyReplacements.find(property)->second;
+    }
     map<string, string>::const_iterator value = defaultProperties.find(propertyName);
-    if (value == defaultProperties.end())
+    if (value == defaultProperties.end()) {
         throw OpenMMException("getPropertyDefaultValue: Illegal property name");
+    }
     return value->second;
 }
 
 void Platform::setPropertyDefaultValue(const string& property, const string& value) {
     string propertyName = property;
-    if (deprecatedPropertyReplacements.find(property) != deprecatedPropertyReplacements.end())
+    if (deprecatedPropertyReplacements.find(property) != deprecatedPropertyReplacements.end()) {
         propertyName = deprecatedPropertyReplacements.find(property)->second;
-    for (auto& prop : platformProperties)
+    }
+    for (auto& prop : platformProperties) {
         if (prop == propertyName) {
             defaultProperties[propertyName] = value;
             return;
         }
+    }
     throw OpenMMException("setPropertyDefaultValue: Illegal property name");
 }
 
-vector<map<string, string> > Platform::getDevices(const map<string, string>& filters) const {
+vector<map<string, string>> Platform::getDevices(const map<string, string>& filters) const {
     return {{}};
 }
 
@@ -121,8 +128,9 @@ void Platform::linkedContextCreated(ContextImpl& context, ContextImpl& originalC
     // Subclasses may override this to do something different.
 
     map<string, string> properties;
-    for (auto& name : getPropertyNames())
+    for (auto& name : getPropertyNames()) {
         properties[name] = getPropertyValue(originalContext.getOwner(), name);
+    }
     contextCreated(context, properties);
 }
 
@@ -134,15 +142,19 @@ void Platform::registerKernelFactory(const string& name, KernelFactory* factory)
 }
 
 bool Platform::supportsKernels(const vector<string>& kernelNames) const {
-    for (auto& name : kernelNames)
-        if (kernelFactories.find(name) == kernelFactories.end())
+    for (auto& name : kernelNames) {
+        if (kernelFactories.find(name) == kernelFactories.end()) {
             return false;
+        }
+    }
     return true;
 }
 
 Kernel Platform::createKernel(const string& name, ContextImpl& context) const {
-    if (kernelFactories.find(name) == kernelFactories.end())
-        throw OpenMMException("Called createKernel() on a Platform which does not support the requested kernel");
+    if (kernelFactories.find(name) == kernelFactories.end()) {
+        throw OpenMMException(
+            "Called createKernel() on a Platform which does not support the requested kernel");
+    }
     return Kernel(kernelFactories.find(name)->second->createKernelImpl(name, *this, context));
 }
 vector<Platform*>& Platform::getPlatforms() {
@@ -170,14 +182,16 @@ Platform& Platform::getPlatform(const string& name) {
 }
 
 std::vector<std::string> Platform::getPluginLoadFailures() {
-  return pluginLoadFailures;
+    return pluginLoadFailures;
 }
 
 Platform& Platform::getPlatformByName(const string& name) {
-    for (int i = 0; i < getNumPlatforms(); i++)
-        if (getPlatform(i).getName() == name)
+    for (int i = 0; i < getNumPlatforms(); i++) {
+        if (getPlatform(i).getName() == name) {
             return getPlatform(i);
-    throw OpenMMException("There is no registered Platform called \""+name+"\"");
+        }
+    }
+    throw OpenMMException("There is no registered Platform called \"" + name + "\"");
 }
 
 Platform& Platform::findPlatform(const vector<string>& kernelNames) {
@@ -190,8 +204,9 @@ Platform& Platform::findPlatform(const vector<string>& kernelNames) {
             speed = best->getSpeed();
         }
     }
-    if (best == 0)
+    if (best == 0) {
         throw OpenMMException("No Platform supports all the requested kernels");
+    }
     return *best;
 }
 
@@ -212,49 +227,53 @@ static HMODULE loadOneLibrary(const string& file) {
 static void initializePlugins(vector<HMODULE>& plugins) {
     for (auto plugin : plugins) {
         void (*init)();
-        *(void **)(&init) = (void *) GetProcAddress(plugin, "registerPlatforms");
-        if (init != NULL)
+        *(void**)(&init) = (void*)GetProcAddress(plugin, "registerPlatforms");
+        if (init != NULL) {
             (*init)();
+        }
     }
     for (auto plugin : plugins) {
         void (*init)();
-        *(void **)(&init) = (void *) GetProcAddress(plugin, "registerKernelFactories");
-        if (init != NULL)
+        *(void**)(&init) = (void*)GetProcAddress(plugin, "registerKernelFactories");
+        if (init != NULL) {
             (*init)();
+        }
     }
 }
 #else
 static void* loadOneLibrary(const string& file) {
-#ifdef __PNACL__
+#    ifdef __PNACL__
     throw OpenMMException("Loading dynamic libraries is not supported on PNaCl");
-#else
-#ifdef __APPLE__
-    void *handle = dlopen(file.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-#else
-    void *handle = dlopen(file.c_str(), RTLD_LAZY | RTLD_LOCAL);
-#endif
+#    else
+#        ifdef __APPLE__
+    void* handle = dlopen(file.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+#        else
+    void* handle = dlopen(file.c_str(), RTLD_LAZY | RTLD_LOCAL);
+#        endif
     if (handle == NULL) {
-        throw OpenMMException("Error loading library "+file+": "+dlerror());
+        throw OpenMMException("Error loading library " + file + ": " + dlerror());
     }
     return handle;
-#endif
+#    endif
 }
 
 static void initializePlugins(vector<void*>& plugins) {
-#ifndef __PNACL__
+#    ifndef __PNACL__
     for (auto plugin : plugins) {
         void (*init)();
-        *(void **)(&init) = dlsym(plugin, "registerPlatforms");
-        if (init != NULL)
+        *(void**)(&init) = dlsym(plugin, "registerPlatforms");
+        if (init != NULL) {
             (*init)();
+        }
     }
     for (auto plugin : plugins) {
         void (*init)();
-        *(void **)(&init) = dlsym(plugin, "registerKernelFactories");
-        if (init != NULL)
+        *(void**)(&init) = dlsym(plugin, "registerKernelFactories");
+        if (init != NULL) {
             (*init)();
+        }
     }
-#endif
+#    endif
 }
 #endif
 
@@ -283,8 +302,9 @@ vector<string> Platform::loadPluginsFromDirectory(const string& directory) {
         HANDLE findHandle = FindFirstFile(filePattern.c_str(), &fileInfo);
         if (findHandle != INVALID_HANDLE_VALUE) {
             do {
-                if (fileInfo.cFileName[0] != '.')
-                    files.push_back(path+dirSeparator+string(fileInfo.cFileName));
+                if (fileInfo.cFileName[0] != '.') {
+                    files.push_back(path + dirSeparator + string(fileInfo.cFileName));
+                }
             } while (FindNextFile(findHandle, &fileInfo));
             FindClose(findHandle);
         }
@@ -294,14 +314,15 @@ vector<string> Platform::loadPluginsFromDirectory(const string& directory) {
     DIR* dir;
     dirSeparator = '/';
     pathSeparator = ':';
-    struct dirent *entry;
+    struct dirent* entry;
 
     for (string path; std::getline(sdirectory, path, pathSeparator);) {
         dir = opendir(path.c_str());
         if (dir != NULL) {
             while ((entry = readdir(dir)) != NULL) {
-                if (entry->d_name[0] != '.')
-                    files.push_back(path+dirSeparator+string(entry->d_name));
+                if (entry->d_name[0] != '.') {
+                    files.push_back(path + dirSeparator + string(entry->d_name));
+                }
             }
             closedir(dir);
         }
@@ -311,14 +332,14 @@ vector<string> Platform::loadPluginsFromDirectory(const string& directory) {
 #endif
     vector<string> loadedLibraries;
     pluginLoadFailures.resize(0);
-    std::sort (files.begin(), files.end(), stringLengthComparator);
+    std::sort(files.begin(), files.end(), stringLengthComparator);
 
     for (unsigned int i = 0; i < files.size(); ++i) {
         try {
             plugins.push_back(loadOneLibrary(files[i]));
             loadedLibraries.push_back(files[i]);
         } catch (OpenMMException& ex) {
-	    pluginLoadFailures.push_back(ex.what());
+            pluginLoadFailures.push_back(ex.what());
         }
     }
     initializePlugins(plugins);
@@ -329,20 +350,22 @@ const string& Platform::getDefaultPluginsDirectory() {
     char* dir = getenv("OPENMM_PLUGIN_DIR");
     static string directory;
 #ifdef _MSC_VER
-    if (dir != NULL)
+    if (dir != NULL) {
         directory = string(dir);
-    else {
+    } else {
         dir = getenv("PROGRAMFILES");
-        if (dir == NULL)
+        if (dir == NULL) {
             directory = "C:\\\\Program Files\\OpenMM\\lib\\plugins";
-        else
-            directory = string(dir)+"\\OpenMM\\lib\\plugins";
+        } else {
+            directory = string(dir) + "\\OpenMM\\lib\\plugins";
+        }
     }
 #else
-    if (dir == NULL)
+    if (dir == NULL) {
         directory = "/usr/local/openmm/lib/plugins";
-    else
+    } else {
         directory = string(dir);
+    }
 #endif
     return directory;
 }
@@ -355,7 +378,8 @@ const string& Platform::getOpenMMVersion() {
 #if OPENMM_BUILD_VERSION == 0
     static const string version = STRING(OPENMM_MAJOR_VERSION) "." STRING(OPENMM_MINOR_VERSION);
 #else
-    static const string version = STRING(OPENMM_MAJOR_VERSION) "." STRING(OPENMM_MINOR_VERSION) "." STRING(OPENMM_BUILD_VERSION);
+    static const string version =
+        STRING(OPENMM_MAJOR_VERSION) "." STRING(OPENMM_MINOR_VERSION) "." STRING(OPENMM_BUILD_VERSION);
 #endif
     return version;
 }

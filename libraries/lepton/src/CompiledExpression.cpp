@@ -28,27 +28,34 @@
  * -------------------------------------------------------------------------- */
 
 #include "lepton/CompiledExpression.h"
+
+#include <utility>
+
 #include "lepton/Operation.h"
 #include "lepton/ParsedExpression.h"
-#include <utility>
+
 
 using namespace Lepton;
 using namespace std;
 #ifdef LEPTON_USE_JIT
-    using namespace asmjit;
+using namespace asmjit;
 #endif
 
-CompiledExpression::CompiledExpression() : jitCode(NULL) {
+CompiledExpression::CompiledExpression()
+    : jitCode(NULL) {
 }
 
-CompiledExpression::CompiledExpression(const ParsedExpression& expression) : jitCode(NULL) {
+CompiledExpression::CompiledExpression(const ParsedExpression& expression)
+    : jitCode(NULL) {
     ParsedExpression expr = expression.optimize(); // Just in case it wasn't already optimized.
-    vector<pair<ExpressionTreeNode, int> > temps;
+    vector<pair<ExpressionTreeNode, int>> temps;
     compileExpression(expr.getRootNode(), temps);
     int maxArguments = 1;
-    for (int i = 0; i < (int) operation.size(); i++)
-        if (operation[i]->getNumArguments() > maxArguments)
+    for (int i = 0; i < (int)operation.size(); i++) {
+        if (operation[i]->getNumArguments() > maxArguments) {
             maxArguments = operation[i]->getNumArguments();
+        }
+    }
     argValues.resize(maxArguments);
 #ifdef LEPTON_USE_JIT
     generateJitCode();
@@ -56,12 +63,15 @@ CompiledExpression::CompiledExpression(const ParsedExpression& expression) : jit
 }
 
 CompiledExpression::~CompiledExpression() {
-    for (int i = 0; i < (int) operation.size(); i++)
-        if (operation[i] != NULL)
+    for (int i = 0; i < (int)operation.size(); i++) {
+        if (operation[i] != NULL) {
             delete operation[i];
+        }
+    }
 }
 
-CompiledExpression::CompiledExpression(const CompiledExpression& expression) : jitCode(NULL) {
+CompiledExpression::CompiledExpression(const CompiledExpression& expression)
+    : jitCode(NULL) {
     *this = expression;
 }
 
@@ -73,58 +83,67 @@ CompiledExpression& CompiledExpression::operator=(const CompiledExpression& expr
     workspace.resize(expression.workspace.size());
     argValues.resize(expression.argValues.size());
     operation.resize(expression.operation.size());
-    for (int i = 0; i < (int) operation.size(); i++)
+    for (int i = 0; i < (int)operation.size(); i++) {
         operation[i] = expression.operation[i]->clone();
+    }
     setVariableLocations(variablePointers);
     return *this;
 }
 
-void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vector<pair<ExpressionTreeNode, int> >& temps) {
-    if (findTempIndex(node, temps) != -1)
+void CompiledExpression::compileExpression(const ExpressionTreeNode& node,
+                                           vector<pair<ExpressionTreeNode, int>>& temps) {
+    if (findTempIndex(node, temps) != -1) {
         return; // We have already processed a node identical to this one.
-    
+    }
+
     // Process the child nodes.
-    
+
     vector<int> args;
     for (int i = 0; i < node.getChildren().size(); i++) {
         compileExpression(node.getChildren()[i], temps);
         args.push_back(findTempIndex(node.getChildren()[i], temps));
     }
-    
+
     // Process this node.
-    
+
     if (node.getOperation().getId() == Operation::VARIABLE) {
-        variableIndices[node.getOperation().getName()] = (int) workspace.size();
+        variableIndices[node.getOperation().getName()] = (int)workspace.size();
         variableNames.insert(node.getOperation().getName());
-    }
-    else {
-        int stepIndex = (int) arguments.size();
+    } else {
+        int stepIndex = (int)arguments.size();
         arguments.push_back(vector<int>());
-        target.push_back((int) workspace.size());
+        target.push_back((int)workspace.size());
         operation.push_back(node.getOperation().clone());
-        if (args.size() == 0)
-            arguments[stepIndex].push_back(0); // The value won't actually be used.  We just need something there.
-        else {
+        if (args.size() == 0) {
+            arguments[stepIndex].push_back(
+                0); // The value won't actually be used.  We just need something there.
+        } else {
             // If the arguments are sequential, we can just pass a pointer to the first one.
-            
+
             bool sequential = true;
-            for (int i = 1; i < args.size(); i++)
-                if (args[i] != args[i-1]+1)
+            for (int i = 1; i < args.size(); i++) {
+                if (args[i] != args[i - 1] + 1) {
                     sequential = false;
-            if (sequential)
+                }
+            }
+            if (sequential) {
                 arguments[stepIndex].push_back(args[0]);
-            else
+            } else {
                 arguments[stepIndex] = args;
+            }
         }
     }
-    temps.push_back(make_pair(node, (int) workspace.size()));
+    temps.push_back(make_pair(node, (int)workspace.size()));
     workspace.push_back(0.0);
 }
 
-int CompiledExpression::findTempIndex(const ExpressionTreeNode& node, vector<pair<ExpressionTreeNode, int> >& temps) {
-    for (int i = 0; i < (int) temps.size(); i++)
-        if (temps[i].first == node)
+int CompiledExpression::findTempIndex(const ExpressionTreeNode& node,
+                                      vector<pair<ExpressionTreeNode, int>>& temps) {
+    for (int i = 0; i < (int)temps.size(); i++) {
+        if (temps[i].first == node) {
             return i;
+        }
+    }
     return -1;
 }
 
@@ -134,11 +153,13 @@ const set<string>& CompiledExpression::getVariables() const {
 
 double& CompiledExpression::getVariableReference(const string& name) {
     map<string, double*>::iterator pointer = variablePointers.find(name);
-    if (pointer != variablePointers.end())
+    if (pointer != variablePointers.end()) {
         return *pointer->second;
+    }
     map<string, int>::iterator index = variableIndices.find(name);
-    if (index == variableIndices.end())
-        throw Exception("getVariableReference: Unknown variable '"+name+"'");
+    if (index == variableIndices.end()) {
+        throw Exception("getVariableReference: Unknown variable '" + name + "'");
+    }
     return workspace[index->second];
 }
 
@@ -146,39 +167,45 @@ void CompiledExpression::setVariableLocations(map<string, double*>& variableLoca
     variablePointers = variableLocations;
 #ifdef LEPTON_USE_JIT
     // Rebuild the JIT code.
-    
-    if (workspace.size() > 0)
+
+    if (workspace.size() > 0) {
         generateJitCode();
+    }
 #endif
     // Make a list of all variables we will need to copy before evaluating the expression.
-    
+
     variablesToCopy.clear();
-    for (map<string, int>::const_iterator iter = variableIndices.begin(); iter != variableIndices.end(); ++iter) {
+    for (map<string, int>::const_iterator iter = variableIndices.begin(); iter != variableIndices.end();
+         ++iter) {
         map<string, double*>::iterator pointer = variablePointers.find(iter->first);
-        if (pointer != variablePointers.end())
+        if (pointer != variablePointers.end()) {
             variablesToCopy.push_back(make_pair(&workspace[iter->second], pointer->second));
+        }
     }
 }
 
 double CompiledExpression::evaluate() const {
-    if (jitCode)
+    if (jitCode) {
         return jitCode();
-    for (int i = 0; i < variablesToCopy.size(); i++)
+    }
+    for (int i = 0; i < variablesToCopy.size(); i++) {
         *variablesToCopy[i].first = *variablesToCopy[i].second;
+    }
 
     // Loop over the operations and evaluate each one.
-    
+
     for (int step = 0; step < operation.size(); step++) {
         const vector<int>& args = arguments[step];
-        if (args.size() == 1)
+        if (args.size() == 1) {
             workspace[target[step]] = operation[step]->evaluate(&workspace[args[0]], dummyVariables);
-        else {
-            for (int i = 0; i < args.size(); i++)
+        } else {
+            for (int i = 0; i < args.size(); i++) {
                 argValues[i] = workspace[args[i]];
+            }
             workspace[target[step]] = operation[step]->evaluate(&argValues[0], dummyVariables);
         }
     }
-    return workspace[workspace.size()-1];
+    return workspace[workspace.size() - 1];
 }
 
 #ifdef LEPTON_USE_JIT
@@ -187,7 +214,9 @@ static double evaluateOperation(Operation* op, double* args) {
     return op->evaluate(args, dummyVariables);
 }
 
-void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<vector<int> >& groupPowers, vector<int>& stepGroup) {
+void CompiledExpression::findPowerGroups(vector<vector<int>>& groups,
+                                         vector<vector<int>>& groupPowers,
+                                         vector<int>& stepGroup) {
     // Identify every step that raises an argument to an integer power.
 
     vector<int> stepPower(operation.size(), 0);
@@ -195,14 +224,15 @@ void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<ve
     for (int step = 0; step < operation.size(); step++) {
         Operation& op = *operation[step];
         int power = 0;
-        if (op.getId() == Operation::SQUARE)
+        if (op.getId() == Operation::SQUARE) {
             power = 2;
-        else if (op.getId() == Operation::CUBE)
+        } else if (op.getId() == Operation::CUBE) {
             power = 3;
-        else if (op.getId() == Operation::POWER_CONSTANT) {
+        } else if (op.getId() == Operation::POWER_CONSTANT) {
             double realPower = dynamic_cast<const Operation::PowerConstant*>(&op)->getValue();
-            if (realPower == (int) realPower)
-                power = (int) realPower;
+            if (realPower == (int)realPower) {
+                power = (int)realPower;
+            }
         }
         if (power != 0) {
             stepPower[step] = power;
@@ -214,11 +244,12 @@ void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<ve
 
     stepGroup.resize(operation.size(), -1);
     for (int i = 0; i < operation.size(); i++) {
-        if (stepGroup[i] != -1)
+        if (stepGroup[i] != -1) {
             continue;
+        }
         vector<int> group, power;
         for (int j = i; j < operation.size(); j++) {
-            if (stepArg[i] == stepArg[j] && stepPower[i]*stepPower[j] > 0) {
+            if (stepArg[i] == stepArg[j] && stepPower[i] * stepPower[j] > 0) {
                 stepGroup[j] = groups.size();
                 group.push_back(j);
                 power.push_back(stepPower[j]);
@@ -229,23 +260,24 @@ void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<ve
     }
 }
 
-#if defined(__ARM__) || defined(__ARM64__)
+#    if defined(__ARM__) || defined(__ARM64__)
 void CompiledExpression::generateJitCode() {
     CodeHolder code;
     code.init(runtime.environment());
     a64::Compiler c(&code);
     c.addFunc(FuncSignatureT<double>());
     vector<arm::Vec> workspaceVar(workspace.size());
-    for (int i = 0; i < (int) workspaceVar.size(); i++)
+    for (int i = 0; i < (int)workspaceVar.size(); i++) {
         workspaceVar[i] = c.newVecD();
+    }
     arm::Gp argsPointer = c.newIntPtr();
     c.mov(argsPointer, imm(&argValues[0]));
-    vector<vector<int> > groups, groupPowers;
+    vector<vector<int>> groups, groupPowers;
     vector<int> stepGroup;
     findPowerGroups(groups, groupPowers, stepGroup);
-    
+
     // Load the arguments into variables.
-    
+
     for (set<string>::const_iterator iter = variableNames.begin(); iter != variableNames.end(); ++iter) {
         map<string, int>::iterator index = variableIndices.find(*iter);
         arm::Gp variablePointer = c.newIntPtr();
@@ -254,65 +286,68 @@ void CompiledExpression::generateJitCode() {
     }
 
     // Make a list of all constants that will be needed for evaluation.
-    
+
     vector<int> operationConstantIndex(operation.size(), -1);
-    for (int step = 0; step < (int) operation.size(); step++) {
+    for (int step = 0; step < (int)operation.size(); step++) {
         // Find the constant value (if any) used by this operation.
-        
+
         Operation& op = *operation[step];
         double value;
-        if (op.getId() == Operation::CONSTANT)
+        if (op.getId() == Operation::CONSTANT) {
             value = dynamic_cast<Operation::Constant&>(op).getValue();
-        else if (op.getId() == Operation::ADD_CONSTANT)
+        } else if (op.getId() == Operation::ADD_CONSTANT) {
             value = dynamic_cast<Operation::AddConstant&>(op).getValue();
-        else if (op.getId() == Operation::MULTIPLY_CONSTANT)
+        } else if (op.getId() == Operation::MULTIPLY_CONSTANT) {
             value = dynamic_cast<Operation::MultiplyConstant&>(op).getValue();
-        else if (op.getId() == Operation::RECIPROCAL)
+        } else if (op.getId() == Operation::RECIPROCAL) {
             value = 1.0;
-        else if (op.getId() == Operation::STEP)
+        } else if (op.getId() == Operation::STEP) {
             value = 1.0;
-        else if (op.getId() == Operation::DELTA)
+        } else if (op.getId() == Operation::DELTA) {
             value = 1.0;
-        else if (op.getId() == Operation::POWER_CONSTANT) {
-            if (stepGroup[step] == -1)
+        } else if (op.getId() == Operation::POWER_CONSTANT) {
+            if (stepGroup[step] == -1) {
                 value = dynamic_cast<Operation::PowerConstant&>(op).getValue();
-            else
+            } else {
                 value = 1.0;
-        }
-        else
+            }
+        } else {
             continue;
-        
+        }
+
         // See if we already have a variable for this constant.
-        
-        for (int i = 0; i < (int) constants.size(); i++)
+
+        for (int i = 0; i < (int)constants.size(); i++) {
             if (value == constants[i]) {
                 operationConstantIndex[step] = i;
                 break;
             }
+        }
         if (operationConstantIndex[step] == -1) {
             operationConstantIndex[step] = constants.size();
             constants.push_back(value);
         }
     }
-    
+
     // Load constants into variables.
-    
+
     vector<arm::Vec> constantVar(constants.size());
     if (constants.size() > 0) {
         arm::Gp constantsPointer = c.newIntPtr();
         c.mov(constantsPointer, imm(&constants[0]));
-        for (int i = 0; i < (int) constants.size(); i++) {
+        for (int i = 0; i < (int)constants.size(); i++) {
             constantVar[i] = c.newVecD();
-            c.ldr(constantVar[i], arm::ptr(constantsPointer, 8*i));
+            c.ldr(constantVar[i], arm::ptr(constantsPointer, 8 * i));
         }
     }
 
     // Evaluate the operations.
 
     vector<bool> hasComputedPower(operation.size(), false);
-    for (int step = 0; step < (int) operation.size(); step++) {
-        if (hasComputedPower[step])
+    for (int step = 0; step < (int)operation.size(); step++) {
+        if (hasComputedPower[step]) {
             continue;
+        }
 
         // When one or more steps involve raising the same argument to multiple integer
         // powers, we can compute them all together for efficiency.
@@ -321,34 +356,43 @@ void CompiledExpression::generateJitCode() {
             vector<int>& group = groups[stepGroup[step]];
             vector<int>& powers = groupPowers[stepGroup[step]];
             arm::Vec multiplier = c.newVecD();
-            if (powers[0] > 0)
+            if (powers[0] > 0) {
                 c.fmov(multiplier, workspaceVar[arguments[step][0]]);
-            else {
-                c.fdiv(multiplier, constantVar[operationConstantIndex[step]], workspaceVar[arguments[step][0]]);
-                for (int i = 0; i < powers.size(); i++)
+            } else {
+                c.fdiv(multiplier,
+                       constantVar[operationConstantIndex[step]],
+                       workspaceVar[arguments[step][0]]);
+                for (int i = 0; i < powers.size(); i++) {
                     powers[i] = -powers[i];
+                }
             }
             vector<bool> hasAssigned(group.size(), false);
             bool done = false;
             while (!done) {
                 done = true;
                 for (int i = 0; i < group.size(); i++) {
-                    if (powers[i]%2 == 1) {
-                        if (!hasAssigned[i])
+                    if (powers[i] % 2 == 1) {
+                        if (!hasAssigned[i]) {
                             c.fmov(workspaceVar[target[group[i]]], multiplier);
-                        else
-                            c.fmul(workspaceVar[target[group[i]]], workspaceVar[target[group[i]]], multiplier);
+                        } else {
+                            c.fmul(workspaceVar[target[group[i]]],
+                                   workspaceVar[target[group[i]]],
+                                   multiplier);
+                        }
                         hasAssigned[i] = true;
                     }
                     powers[i] >>= 1;
-                    if (powers[i] != 0)
+                    if (powers[i] != 0) {
                         done = false;
+                    }
                 }
-                if (!done)
+                if (!done) {
                     c.fmul(multiplier, multiplier, multiplier);
+                }
             }
-            for (int step : group)
+            for (int step : group) {
                 hasComputedPower[step] = true;
+            }
             continue;
         }
 
@@ -358,13 +402,14 @@ void CompiledExpression::generateJitCode() {
         vector<int> args = arguments[step];
         if (args.size() == 1) {
             // One or more sequential arguments.  Fill out the list.
-            
-            for (int i = 1; i < op.getNumArguments(); i++)
-                args.push_back(args[0]+i);
+
+            for (int i = 1; i < op.getNumArguments(); i++) {
+                args.push_back(args[0] + i);
+            }
         }
-        
+
         // Generate instructions to execute this operation.
-        
+
         switch (op.getId()) {
             case Operation::CONSTANT:
                 c.fmov(workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
@@ -382,7 +427,11 @@ void CompiledExpression::generateJitCode() {
                 c.fdiv(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::POWER:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], pow);
+                generateTwoArgCall(c,
+                                   workspaceVar[target[step]],
+                                   workspaceVar[args[0]],
+                                   workspaceVar[args[1]],
+                                   pow);
                 break;
             case Operation::NEGATE:
                 c.fneg(workspaceVar[target[step]], workspaceVar[args[0]]);
@@ -415,7 +464,11 @@ void CompiledExpression::generateJitCode() {
                 generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], atan);
                 break;
             case Operation::ATAN2:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], atan2);
+                generateTwoArgCall(c,
+                                   workspaceVar[target[step]],
+                                   workspaceVar[args[0]],
+                                   workspaceVar[args[1]],
+                                   atan2);
                 break;
             case Operation::SINH:
                 generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinh);
@@ -428,11 +481,15 @@ void CompiledExpression::generateJitCode() {
                 break;
             case Operation::STEP:
                 c.cmge(workspaceVar[target[step]], workspaceVar[args[0]], imm(0));
-                c.and_(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
+                c.and_(workspaceVar[target[step]],
+                       workspaceVar[target[step]],
+                       constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::DELTA:
                 c.cmeq(workspaceVar[target[step]], workspaceVar[args[0]], imm(0));
-                c.and_(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
+                c.and_(workspaceVar[target[step]],
+                       workspaceVar[target[step]],
+                       constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::SQUARE:
                 c.fmul(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
@@ -442,16 +499,26 @@ void CompiledExpression::generateJitCode() {
                 c.fmul(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]]);
                 break;
             case Operation::RECIPROCAL:
-                c.fdiv(workspaceVar[target[step]], constantVar[operationConstantIndex[step]], workspaceVar[args[0]]);
+                c.fdiv(workspaceVar[target[step]],
+                       constantVar[operationConstantIndex[step]],
+                       workspaceVar[args[0]]);
                 break;
             case Operation::ADD_CONSTANT:
-                c.fadd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.fadd(workspaceVar[target[step]],
+                       workspaceVar[args[0]],
+                       constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::MULTIPLY_CONSTANT:
-                c.fmul(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.fmul(workspaceVar[target[step]],
+                       workspaceVar[args[0]],
+                       constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::POWER_CONSTANT:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]], pow);
+                generateTwoArgCall(c,
+                                   workspaceVar[target[step]],
+                                   workspaceVar[args[0]],
+                                   constantVar[operationConstantIndex[step]],
+                                   pow);
                 break;
             case Operation::MIN:
                 c.fmin(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
@@ -474,11 +541,12 @@ void CompiledExpression::generateJitCode() {
                 break;
             default:
                 // Just invoke evaluateOperation().
-                
-                for (int i = 0; i < (int) args.size(); i++)
-                    c.str(workspaceVar[args[i]], arm::ptr(argsPointer, 8*i));
+
+                for (int i = 0; i < (int)args.size(); i++) {
+                    c.str(workspaceVar[args[i]], arm::ptr(argsPointer, 8 * i));
+                }
                 arm::Gp fn = c.newIntPtr();
-                c.mov(fn, imm((void*) evaluateOperation));
+                c.mov(fn, imm((void*)evaluateOperation));
                 InvokeNode* invoke;
                 c.invoke(&invoke, fn, FuncSignatureT<double, Operation*, double*>());
                 invoke->setArg(0, imm(&op));
@@ -486,51 +554,60 @@ void CompiledExpression::generateJitCode() {
                 invoke->setRet(0, workspaceVar[target[step]]);
         }
     }
-    c.ret(workspaceVar[workspace.size()-1]);
+    c.ret(workspaceVar[workspace.size() - 1]);
     c.endFunc();
     c.finalize();
     runtime.add(&jitCode, &code);
 }
 
-void CompiledExpression::generateSingleArgCall(a64::Compiler& c, arm::Vec& dest, arm::Vec& arg, double (*function)(double)) {
+void CompiledExpression::generateSingleArgCall(a64::Compiler& c,
+                                               arm::Vec& dest,
+                                               arm::Vec& arg,
+                                               double (*function)(double)) {
     arm::Gp fn = c.newIntPtr();
-    c.mov(fn, imm((void*) function));
+    c.mov(fn, imm((void*)function));
     InvokeNode* invoke;
     c.invoke(&invoke, fn, FuncSignatureT<double, double>());
     invoke->setArg(0, arg);
     invoke->setRet(0, dest);
 }
 
-void CompiledExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& dest, arm::Vec& arg1, arm::Vec& arg2, double (*function)(double, double)) {
+void CompiledExpression::generateTwoArgCall(a64::Compiler& c,
+                                            arm::Vec& dest,
+                                            arm::Vec& arg1,
+                                            arm::Vec& arg2,
+                                            double (*function)(double, double)) {
     arm::Gp fn = c.newIntPtr();
-    c.mov(fn, imm((void*) function));
+    c.mov(fn, imm((void*)function));
     InvokeNode* invoke;
     c.invoke(&invoke, fn, FuncSignatureT<double, double, double>());
     invoke->setArg(0, arg1);
     invoke->setArg(1, arg2);
     invoke->setRet(0, dest);
 }
-#else
+#    else
 void CompiledExpression::generateJitCode() {
     const CpuInfo& cpu = CpuInfo::host();
-    if (!cpu.hasFeature(CpuFeatures::X86::kAVX))
+    if (!cpu.hasFeature(CpuFeatures::X86::kAVX)) {
         return;
+    }
     CodeHolder code;
     code.init(runtime.environment());
     x86::Compiler c(&code);
     FuncNode* funcNode = c.addFunc(FuncSignatureT<double>());
     funcNode->frame().setAvxEnabled();
     vector<x86::Xmm> workspaceVar(workspace.size());
-    for (int i = 0; i < (int) workspaceVar.size(); i++)
+    for (int i = 0; i < (int)workspaceVar.size(); i++) {
         workspaceVar[i] = c.newXmmSd();
+    }
     x86::Gp argsPointer = c.newIntPtr();
     c.mov(argsPointer, imm(&argValues[0]));
-    vector<vector<int> > groups, groupPowers;
+    vector<vector<int>> groups, groupPowers;
     vector<int> stepGroup;
     findPowerGroups(groups, groupPowers, stepGroup);
 
     // Load the arguments into variables.
-    
+
     x86::Gp variablePointer = c.newIntPtr();
     for (set<string>::const_iterator iter = variableNames.begin(); iter != variableNames.end(); ++iter) {
         map<string, int>::iterator index = variableIndices.find(*iter);
@@ -539,69 +616,71 @@ void CompiledExpression::generateJitCode() {
     }
 
     // Make a list of all constants that will be needed for evaluation.
-    
+
     vector<int> operationConstantIndex(operation.size(), -1);
-    for (int step = 0; step < (int) operation.size(); step++) {
+    for (int step = 0; step < (int)operation.size(); step++) {
         // Find the constant value (if any) used by this operation.
-        
+
         Operation& op = *operation[step];
         double value;
-        if (op.getId() == Operation::CONSTANT)
+        if (op.getId() == Operation::CONSTANT) {
             value = dynamic_cast<Operation::Constant&>(op).getValue();
-        else if (op.getId() == Operation::ADD_CONSTANT)
+        } else if (op.getId() == Operation::ADD_CONSTANT) {
             value = dynamic_cast<Operation::AddConstant&>(op).getValue();
-        else if (op.getId() == Operation::MULTIPLY_CONSTANT)
+        } else if (op.getId() == Operation::MULTIPLY_CONSTANT) {
             value = dynamic_cast<Operation::MultiplyConstant&>(op).getValue();
-        else if (op.getId() == Operation::RECIPROCAL)
+        } else if (op.getId() == Operation::RECIPROCAL) {
             value = 1.0;
-        else if (op.getId() == Operation::STEP)
+        } else if (op.getId() == Operation::STEP) {
             value = 1.0;
-        else if (op.getId() == Operation::DELTA)
+        } else if (op.getId() == Operation::DELTA) {
             value = 1.0;
-        else if (op.getId() == Operation::ABS) {
+        } else if (op.getId() == Operation::ABS) {
             long long mask = 0x7FFFFFFFFFFFFFFF;
             value = *reinterpret_cast<double*>(&mask);
-        }
-        else if (op.getId() == Operation::POWER_CONSTANT) {
-            if (stepGroup[step] == -1)
+        } else if (op.getId() == Operation::POWER_CONSTANT) {
+            if (stepGroup[step] == -1) {
                 value = dynamic_cast<Operation::PowerConstant&>(op).getValue();
-            else
+            } else {
                 value = 1.0;
-        }
-        else
+            }
+        } else {
             continue;
-        
+        }
+
         // See if we already have a variable for this constant.
-        
-        for (int i = 0; i < (int) constants.size(); i++)
+
+        for (int i = 0; i < (int)constants.size(); i++) {
             if (value == constants[i]) {
                 operationConstantIndex[step] = i;
                 break;
             }
+        }
         if (operationConstantIndex[step] == -1) {
             operationConstantIndex[step] = constants.size();
             constants.push_back(value);
         }
     }
-    
+
     // Load constants into variables.
-    
+
     vector<x86::Xmm> constantVar(constants.size());
     if (constants.size() > 0) {
         x86::Gp constantsPointer = c.newIntPtr();
         c.mov(constantsPointer, imm(&constants[0]));
-        for (int i = 0; i < (int) constants.size(); i++) {
+        for (int i = 0; i < (int)constants.size(); i++) {
             constantVar[i] = c.newXmmSd();
-            c.vmovsd(constantVar[i], x86::ptr(constantsPointer, 8*i, 0));
+            c.vmovsd(constantVar[i], x86::ptr(constantsPointer, 8 * i, 0));
         }
     }
-    
+
     // Evaluate the operations.
-    
+
     vector<bool> hasComputedPower(operation.size(), false);
-    for (int step = 0; step < (int) operation.size(); step++) {
-        if (hasComputedPower[step])
+    for (int step = 0; step < (int)operation.size(); step++) {
+        if (hasComputedPower[step]) {
             continue;
+        }
 
         // When one or more steps involve raising the same argument to multiple integer
         // powers, we can compute them all together for efficiency.
@@ -610,34 +689,43 @@ void CompiledExpression::generateJitCode() {
             vector<int>& group = groups[stepGroup[step]];
             vector<int>& powers = groupPowers[stepGroup[step]];
             x86::Xmm multiplier = c.newXmmSd();
-            if (powers[0] > 0)
+            if (powers[0] > 0) {
                 c.vmovsd(multiplier, workspaceVar[arguments[step][0]], workspaceVar[arguments[step][0]]);
-            else {
-                c.vdivsd(multiplier, constantVar[operationConstantIndex[step]], workspaceVar[arguments[step][0]]);
-                for (int i = 0; i < powers.size(); i++)
+            } else {
+                c.vdivsd(multiplier,
+                         constantVar[operationConstantIndex[step]],
+                         workspaceVar[arguments[step][0]]);
+                for (int i = 0; i < powers.size(); i++) {
                     powers[i] = -powers[i];
+                }
             }
             vector<bool> hasAssigned(group.size(), false);
             bool done = false;
             while (!done) {
                 done = true;
                 for (int i = 0; i < group.size(); i++) {
-                    if (powers[i]%2 == 1) {
-                        if (!hasAssigned[i])
+                    if (powers[i] % 2 == 1) {
+                        if (!hasAssigned[i]) {
                             c.vmovsd(workspaceVar[target[group[i]]], multiplier, multiplier);
-                        else
-                            c.vmulsd(workspaceVar[target[group[i]]], workspaceVar[target[group[i]]], multiplier);
+                        } else {
+                            c.vmulsd(workspaceVar[target[group[i]]],
+                                     workspaceVar[target[group[i]]],
+                                     multiplier);
+                        }
                         hasAssigned[i] = true;
                     }
                     powers[i] >>= 1;
-                    if (powers[i] != 0)
+                    if (powers[i] != 0) {
                         done = false;
+                    }
                 }
-                if (!done)
+                if (!done) {
                     c.vmulsd(multiplier, multiplier, multiplier);
+                }
             }
-            for (int step : group)
+            for (int step : group) {
                 hasComputedPower[step] = true;
+            }
             continue;
         }
 
@@ -647,16 +735,19 @@ void CompiledExpression::generateJitCode() {
         vector<int> args = arguments[step];
         if (args.size() == 1) {
             // One or more sequential arguments.  Fill out the list.
-            
-            for (int i = 1; i < op.getNumArguments(); i++)
-                args.push_back(args[0]+i);
+
+            for (int i = 1; i < op.getNumArguments(); i++) {
+                args.push_back(args[0] + i);
+            }
         }
-        
+
         // Generate instructions to execute this operation.
-        
+
         switch (op.getId()) {
             case Operation::CONSTANT:
-                c.vmovsd(workspaceVar[target[step]], constantVar[operationConstantIndex[step]], constantVar[operationConstantIndex[step]]);
+                c.vmovsd(workspaceVar[target[step]],
+                         constantVar[operationConstantIndex[step]],
+                         constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::ADD:
                 c.vaddsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
@@ -671,7 +762,11 @@ void CompiledExpression::generateJitCode() {
                 c.vdivsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::POWER:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], pow);
+                generateTwoArgCall(c,
+                                   workspaceVar[target[step]],
+                                   workspaceVar[args[0]],
+                                   workspaceVar[args[1]],
+                                   pow);
                 break;
             case Operation::NEGATE:
                 c.vxorps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[target[step]]);
@@ -705,7 +800,11 @@ void CompiledExpression::generateJitCode() {
                 generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], atan);
                 break;
             case Operation::ATAN2:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], atan2);
+                generateTwoArgCall(c,
+                                   workspaceVar[target[step]],
+                                   workspaceVar[args[0]],
+                                   workspaceVar[args[1]],
+                                   atan2);
                 break;
             case Operation::SINH:
                 generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinh);
@@ -718,13 +817,23 @@ void CompiledExpression::generateJitCode() {
                 break;
             case Operation::STEP:
                 c.vxorps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[target[step]]);
-                c.vcmpsd(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]], imm(18)); // Comparison mode is _CMP_LE_OQ = 18
-                c.vandps(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
+                c.vcmpsd(workspaceVar[target[step]],
+                         workspaceVar[target[step]],
+                         workspaceVar[args[0]],
+                         imm(18)); // Comparison mode is _CMP_LE_OQ = 18
+                c.vandps(workspaceVar[target[step]],
+                         workspaceVar[target[step]],
+                         constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::DELTA:
                 c.vxorps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[target[step]]);
-                c.vcmpsd(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]], imm(16)); // Comparison mode is _CMP_EQ_OS = 16
-                c.vandps(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
+                c.vcmpsd(workspaceVar[target[step]],
+                         workspaceVar[target[step]],
+                         workspaceVar[args[0]],
+                         imm(16)); // Comparison mode is _CMP_EQ_OS = 16
+                c.vandps(workspaceVar[target[step]],
+                         workspaceVar[target[step]],
+                         constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::SQUARE:
                 c.vmulsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
@@ -734,16 +843,26 @@ void CompiledExpression::generateJitCode() {
                 c.vmulsd(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]]);
                 break;
             case Operation::RECIPROCAL:
-                c.vdivsd(workspaceVar[target[step]], constantVar[operationConstantIndex[step]], workspaceVar[args[0]]);
+                c.vdivsd(workspaceVar[target[step]],
+                         constantVar[operationConstantIndex[step]],
+                         workspaceVar[args[0]]);
                 break;
             case Operation::ADD_CONSTANT:
-                c.vaddsd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.vaddsd(workspaceVar[target[step]],
+                         workspaceVar[args[0]],
+                         constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::MULTIPLY_CONSTANT:
-                c.vmulsd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.vmulsd(workspaceVar[target[step]],
+                         workspaceVar[args[0]],
+                         constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::POWER_CONSTANT:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]], pow);
+                generateTwoArgCall(c,
+                                   workspaceVar[target[step]],
+                                   workspaceVar[args[0]],
+                                   constantVar[operationConstantIndex[step]],
+                                   pow);
                 break;
             case Operation::MIN:
                 c.vminsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
@@ -752,7 +871,9 @@ void CompiledExpression::generateJitCode() {
                 c.vmaxsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::ABS:
-                c.vandpd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.vandpd(workspaceVar[target[step]],
+                         workspaceVar[args[0]],
+                         constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::FLOOR:
                 c.vroundsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]], imm(1));
@@ -760,8 +881,7 @@ void CompiledExpression::generateJitCode() {
             case Operation::CEIL:
                 c.vroundsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]], imm(2));
                 break;
-            case Operation::SELECT:
-            {
+            case Operation::SELECT: {
                 x86::Xmm mask = c.newXmmSd();
                 c.vxorps(mask, mask, mask);
                 c.vcmpsd(mask, mask, workspaceVar[args[0]], imm(0)); // Comparison mode is _CMP_EQ_OQ = 0
@@ -770,11 +890,12 @@ void CompiledExpression::generateJitCode() {
             }
             default:
                 // Just invoke evaluateOperation().
-                
-                for (int i = 0; i < (int) args.size(); i++)
-                    c.vmovsd(x86::ptr(argsPointer, 8*i, 0), workspaceVar[args[i]]);
+
+                for (int i = 0; i < (int)args.size(); i++) {
+                    c.vmovsd(x86::ptr(argsPointer, 8 * i, 0), workspaceVar[args[i]]);
+                }
                 x86::Gp fn = c.newIntPtr();
-                c.mov(fn, imm((void*) evaluateOperation));
+                c.mov(fn, imm((void*)evaluateOperation));
                 InvokeNode* invoke;
                 c.invoke(&invoke, fn, FuncSignatureT<double, Operation*, double*>());
                 invoke->setArg(0, imm(&op));
@@ -782,29 +903,36 @@ void CompiledExpression::generateJitCode() {
                 invoke->setRet(0, workspaceVar[target[step]]);
         }
     }
-    c.ret(workspaceVar[workspace.size()-1]);
+    c.ret(workspaceVar[workspace.size() - 1]);
     c.endFunc();
     c.finalize();
     runtime.add(&jitCode, &code);
 }
 
-void CompiledExpression::generateSingleArgCall(x86::Compiler& c, x86::Xmm& dest, x86::Xmm& arg, double (*function)(double)) {
+void CompiledExpression::generateSingleArgCall(x86::Compiler& c,
+                                               x86::Xmm& dest,
+                                               x86::Xmm& arg,
+                                               double (*function)(double)) {
     x86::Gp fn = c.newIntPtr();
-    c.mov(fn, imm((void*) function));
+    c.mov(fn, imm((void*)function));
     InvokeNode* invoke;
     c.invoke(&invoke, fn, FuncSignatureT<double, double>());
     invoke->setArg(0, arg);
     invoke->setRet(0, dest);
 }
 
-void CompiledExpression::generateTwoArgCall(x86::Compiler& c, x86::Xmm& dest, x86::Xmm& arg1, x86::Xmm& arg2, double (*function)(double, double)) {
+void CompiledExpression::generateTwoArgCall(x86::Compiler& c,
+                                            x86::Xmm& dest,
+                                            x86::Xmm& arg1,
+                                            x86::Xmm& arg2,
+                                            double (*function)(double, double)) {
     x86::Gp fn = c.newIntPtr();
-    c.mov(fn, imm((void*) function));
+    c.mov(fn, imm((void*)function));
     InvokeNode* invoke;
     c.invoke(&invoke, fn, FuncSignatureT<double, double, double>());
     invoke->setArg(0, arg1);
     invoke->setArg(1, arg2);
     invoke->setRet(0, dest);
 }
-#endif
+#    endif
 #endif

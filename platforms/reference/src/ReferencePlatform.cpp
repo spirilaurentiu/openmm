@@ -28,12 +28,15 @@
  * -------------------------------------------------------------------------- */
 
 #include "ReferencePlatform.h"
+
+#include <sstream>
+
+#include "openmm/Vec3.h"
+#include "openmm/internal/ContextImpl.h"
+
 #include "ReferenceKernelFactory.h"
 #include "ReferenceKernels.h"
-#include "openmm/internal/ContextImpl.h"
 #include "SimTKOpenMMRealType.h"
-#include "openmm/Vec3.h"
-#include <sstream>
 
 using namespace OpenMM;
 using namespace std;
@@ -96,8 +99,9 @@ bool ReferencePlatform::supportsDoublePrecision() const {
 
 void ReferencePlatform::contextCreated(ContextImpl& context, const map<string, string>& properties) const {
     int numThreads = 0;
-    if (properties.find("Threads") != properties.end())
+    if (properties.find("Threads") != properties.end()) {
         stringstream(properties.at("Threads")) >> numThreads;
+    }
     context.setPlatformData(new PlatformData(context.getSystem(), numThreads));
 }
 
@@ -106,8 +110,11 @@ void ReferencePlatform::contextDestroyed(ContextImpl& context) const {
     delete data;
 }
 
-ReferencePlatform::PlatformData::PlatformData(const System& system, int numThreads) : time(0.0), stepCount(0),
-        numParticles(system.getNumParticles()), threads(numThreads) {
+ReferencePlatform::PlatformData::PlatformData(const System& system, int numThreads)
+    : time(0.0)
+    , stepCount(0)
+    , numParticles(system.getNumParticles())
+    , threads(numThreads) {
     positions = new vector<Vec3>(numParticles);
     velocities = new vector<Vec3>(numParticles);
     forces = new vector<Vec3>(numParticles);

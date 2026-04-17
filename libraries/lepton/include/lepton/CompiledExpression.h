@@ -30,19 +30,20 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "ExpressionTreeNode.h"
-#include "windowsIncludes.h"
 #include <map>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ExpressionTreeNode.h"
+#include "windowsIncludes.h"
 #ifdef LEPTON_USE_JIT
-#if defined(__ARM__) || defined(__ARM64__)
-#include "asmjit/a64.h"
-#else
-#include "asmjit/x86.h"
-#endif
+#    if defined(__ARM__) || defined(__ARM64__)
+#        include "asmjit/a64.h"
+#    else
+#        include "asmjit/x86.h"
+#    endif
 #endif
 
 namespace Lepton {
@@ -51,18 +52,18 @@ class Operation;
 class ParsedExpression;
 
 /**
- * A CompiledExpression is a highly optimized representation of an expression for cases when you want to evaluate
- * it many times as quickly as possible.  You should treat it as an opaque object; none of the internal representation
- * is visible.
- * 
+ * A CompiledExpression is a highly optimized representation of an expression for cases when you want to
+ * evaluate it many times as quickly as possible.  You should treat it as an opaque object; none of the
+ * internal representation is visible.
+ *
  * A CompiledExpression is created by calling createCompiledExpression() on a ParsedExpression.
- * 
- * WARNING: CompiledExpression is NOT thread safe.  You should never access a CompiledExpression from two threads at
- * the same time.
+ *
+ * WARNING: CompiledExpression is NOT thread safe.  You should never access a CompiledExpression from two
+ * threads at the same time.
  */
 
 class LEPTON_EXPORT CompiledExpression {
-public:
+    public:
     CompiledExpression();
     CompiledExpression(const CompiledExpression& expression);
     ~CompiledExpression();
@@ -72,8 +73,8 @@ public:
      */
     const std::set<std::string>& getVariables() const;
     /**
-     * Get a reference to the memory location where the value of a particular variable is stored.  This can be used
-     * to set the value of the variable before calling evaluate().
+     * Get a reference to the memory location where the value of a particular variable is stored.  This can be
+     * used to set the value of the variable before calling evaluate().
      */
     double& getVariableReference(const std::string& name);
     /**
@@ -86,14 +87,16 @@ public:
      * Evaluate the expression.  The values of all variables should have been set before calling this.
      */
     double evaluate() const;
-private:
+
+    private:
     friend class ParsedExpression;
     CompiledExpression(const ParsedExpression& expression);
-    void compileExpression(const ExpressionTreeNode& node, std::vector<std::pair<ExpressionTreeNode, int> >& temps);
-    int findTempIndex(const ExpressionTreeNode& node, std::vector<std::pair<ExpressionTreeNode, int> >& temps);
+    void compileExpression(const ExpressionTreeNode& node,
+                           std::vector<std::pair<ExpressionTreeNode, int>>& temps);
+    int findTempIndex(const ExpressionTreeNode& node, std::vector<std::pair<ExpressionTreeNode, int>>& temps);
     std::map<std::string, double*> variablePointers;
-    std::vector<std::pair<double*, double*> > variablesToCopy;
-    std::vector<std::vector<int> > arguments;
+    std::vector<std::pair<double*, double*>> variablesToCopy;
+    std::vector<std::vector<int>> arguments;
     std::vector<int> target;
     std::vector<Operation*> operation;
     std::map<std::string, int> variableIndices;
@@ -103,15 +106,31 @@ private:
     std::map<std::string, double> dummyVariables;
     double (*jitCode)();
 #ifdef LEPTON_USE_JIT
-    void findPowerGroups(std::vector<std::vector<int> >& groups, std::vector<std::vector<int> >& groupPowers, std::vector<int>& stepGroup);
+    void findPowerGroups(std::vector<std::vector<int>>& groups,
+                         std::vector<std::vector<int>>& groupPowers,
+                         std::vector<int>& stepGroup);
     void generateJitCode();
-#if defined(__ARM__) || defined(__ARM64__)
-    void generateSingleArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg, double (*function)(double));
-    void generateTwoArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg1, asmjit::arm::Vec& arg2, double (*function)(double, double));
-#else
-    void generateSingleArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg, double (*function)(double));
-    void generateTwoArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg1, asmjit::x86::Xmm& arg2, double (*function)(double, double));
-#endif
+#    if defined(__ARM__) || defined(__ARM64__)
+    void generateSingleArgCall(asmjit::a64::Compiler& c,
+                               asmjit::arm::Vec& dest,
+                               asmjit::arm::Vec& arg,
+                               double (*function)(double));
+    void generateTwoArgCall(asmjit::a64::Compiler& c,
+                            asmjit::arm::Vec& dest,
+                            asmjit::arm::Vec& arg1,
+                            asmjit::arm::Vec& arg2,
+                            double (*function)(double, double));
+#    else
+    void generateSingleArgCall(asmjit::x86::Compiler& c,
+                               asmjit::x86::Xmm& dest,
+                               asmjit::x86::Xmm& arg,
+                               double (*function)(double));
+    void generateTwoArgCall(asmjit::x86::Compiler& c,
+                            asmjit::x86::Xmm& dest,
+                            asmjit::x86::Xmm& arg1,
+                            asmjit::x86::Xmm& arg2,
+                            double (*function)(double, double));
+#    endif
     std::vector<double> constants;
     asmjit::JitRuntime runtime;
 #endif

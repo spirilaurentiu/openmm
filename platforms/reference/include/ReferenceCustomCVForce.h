@@ -25,18 +25,19 @@
 #ifndef __ReferenceCustomCVForce_H__
 #define __ReferenceCustomCVForce_H__
 
-#include "openmm/CustomCVForce.h"
-#include "openmm/internal/ContextImpl.h"
-#include "lepton/CompiledExpression.h"
-#include "lepton/CustomFunction.h"
 #include <map>
 #include <string>
 #include <vector>
 
+#include "lepton/CompiledExpression.h"
+#include "lepton/CustomFunction.h"
+#include "openmm/CustomCVForce.h"
+#include "openmm/internal/ContextImpl.h"
+
 namespace OpenMM {
 
 class ReferenceCustomCVForce {
-private:
+    private:
     class TabulatedFunctionWrapper;
     Lepton::CompiledExpression energyExpression;
     std::vector<std::string> variableNames, paramDerivNames, globalParameterNames;
@@ -45,7 +46,7 @@ private:
     std::vector<double> globalValues, cvValues;
     std::vector<Lepton::CustomFunction*> tabulatedFunctions;
 
-public:
+    public:
     /**
      * Constructor
      */
@@ -64,7 +65,7 @@ public:
 
     /**
      * Calculate the interaction.
-     * 
+     *
      * @param innerContext       the context created by the force for evaluating collective variables
      * @param atomCoordinates    atom coordinates
      * @param globalParameters   the values of global parameters
@@ -72,9 +73,12 @@ public:
      * @param totalEnergy        the energy is added to this
      * @param energyParamDerivs  parameter derivatives are added to this
      */
-   void calculateIxn(ContextImpl& innerContext, std::vector<OpenMM::Vec3>& atomCoordinates,
-                     const std::map<std::string, double>& globalParameters,
-                     std::vector<OpenMM::Vec3>& forces, double* totalEnergy, std::map<std::string, double>& energyParamDerivs);
+    void calculateIxn(ContextImpl& innerContext,
+                      std::vector<OpenMM::Vec3>& atomCoordinates,
+                      const std::map<std::string, double>& globalParameters,
+                      std::vector<OpenMM::Vec3>& forces,
+                      double* totalEnergy,
+                      std::map<std::string, double>& energyParamDerivs);
 };
 
 } // namespace OpenMM

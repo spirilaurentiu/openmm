@@ -23,19 +23,22 @@
  * -------------------------------------------------------------------------- */
 
 #include "openmm/common/IntegrationUtilities.h"
-#include "openmm/common/ComputeContext.h"
-#include "openmm/common/ContextSelector.h"
-#include "CommonKernelSources.h"
-#include "openmm/internal/OSRngSeed.h"
-#include "openmm/HarmonicAngleForce.h"
-#include "openmm/VirtualSite.h"
-#include "quern.h"
-#include "ReferenceCCMAAlgorithm.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <map>
 #include <set>
+
+#include "openmm/HarmonicAngleForce.h"
+#include "openmm/VirtualSite.h"
+#include "openmm/common/ComputeContext.h"
+#include "openmm/common/ContextSelector.h"
+#include "openmm/internal/OSRngSeed.h"
+
+#include "CommonKernelSources.h"
+#include "ReferenceCCMAAlgorithm.h"
+#include "quern.h"
 
 using namespace OpenMM;
 using namespace std;
@@ -47,28 +50,34 @@ struct IntegrationUtilities::ShakeCluster {
     bool valid;
     double distance;
     double centralInvMass, peripheralInvMass;
-    ShakeCluster() : valid(true) {
+    ShakeCluster()
+        : valid(true) {
     }
-    ShakeCluster(int centralID, double invMass) : centralID(centralID), centralInvMass(invMass), size(0), valid(true) {
+    ShakeCluster(int centralID, double invMass)
+        : centralID(centralID)
+        , centralInvMass(invMass)
+        , size(0)
+        , valid(true) {
     }
     void addAtom(int id, double dist, double invMass) {
-        if (size == 3 || (size > 0 && abs(dist-distance)/distance > 1e-8) || (size > 0 && abs(invMass-peripheralInvMass)/peripheralInvMass > 1e-8))
+        if (size == 3 || (size > 0 && abs(dist - distance) / distance > 1e-8)
+            || (size > 0 && abs(invMass - peripheralInvMass) / peripheralInvMass > 1e-8)) {
             valid = false;
-        else {
+        } else {
             peripheralID[size++] = id;
             distance = dist;
             peripheralInvMass = invMass;
         }
     }
-    void markInvalid(map<int, ShakeCluster>& allClusters, vector<bool>& invalidForShake)
-    {
+    void markInvalid(map<int, ShakeCluster>& allClusters, vector<bool>& invalidForShake) {
         valid = false;
         invalidForShake[centralID] = true;
         for (int i = 0; i < size; i++) {
             invalidForShake[peripheralID[i]] = true;
             map<int, ShakeCluster>::iterator otherCluster = allClusters.find(peripheralID[i]);
-            if (otherCluster != allClusters.end() && otherCluster->second.valid)
+            if (otherCluster != allClusters.end() && otherCluster->second.valid) {
                 otherCluster->second.markInvalid(allClusters, invalidForShake);
+            }
         }
     }
 };
@@ -77,19 +86,25 @@ struct IntegrationUtilities::ConstraintOrderer {
     const vector<int>& atom1;
     const vector<int>& atom2;
     const vector<int>& constraints;
-    ConstraintOrderer(const vector<int>& atom1, const vector<int>& atom2, const vector<int>& constraints) : atom1(atom1), atom2(atom2), constraints(constraints) {
+    ConstraintOrderer(const vector<int>& atom1, const vector<int>& atom2, const vector<int>& constraints)
+        : atom1(atom1)
+        , atom2(atom2)
+        , constraints(constraints) {
     }
     bool operator()(int x, int y) {
         int ix = constraints[x];
         int iy = constraints[y];
-        if (atom1[ix] != atom1[iy])
+        if (atom1[ix] != atom1[iy]) {
             return atom1[ix] < atom1[iy];
+        }
         return atom2[ix] < atom2[iy];
     }
 };
 
-IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System& system) : context(context),
-        randomPos(0), hasOverlappingVsites(false) {
+IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System& system)
+    : context(context)
+    , randomPos(0)
+    , hasOverlappingVsites(false) {
     // Create workspace arrays.
 
     lastStepSize = mm_double2(0.0, 0.0);
@@ -100,8 +115,7 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         stepSize.initialize<mm_double2>(context, 1, "stepSize");
         stepSize.upload(&lastStepSize);
         kineticEnergy.initialize<double>(context, 1, "kineticEnergy");
-    }
-    else {
+    } else {
         posDelta.initialize<mm_float4>(context, context.getPaddedNumAtoms(), "posDelta");
         vector<mm_float4> deltas(posDelta.getSize(), mm_float4(0.0f, 0.0f, 0.0f, 0.0f));
         posDelta.upload(deltas);
@@ -111,8 +125,9 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         kineticEnergy.initialize<float>(context, 1, "kineticEnergy");
     }
     keWorkGroupSize = context.getMaxThreadBlockSize();
-    if (keWorkGroupSize > 512)
+    if (keWorkGroupSize > 512) {
         keWorkGroupSize = 512;
+    }
 
     // Record the set of constraints and how many constraints each atom is involved in.
 
@@ -138,11 +153,11 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     // connected to.
 
     int numAtoms = system.getNumParticles();
-    vector<map<int, float> > settleConstraints(numAtoms);
+    vector<map<int, float>> settleConstraints(numAtoms);
     for (int i = 0; i < (int)atom1.size(); i++) {
         if (constraintCount[atom1[i]] == 2 && constraintCount[atom2[i]] == 2) {
-            settleConstraints[atom1[i]][atom2[i]] = (float) distance[i];
-            settleConstraints[atom2[i]][atom1[i]] = (float) distance[i];
+            settleConstraints[atom1[i]][atom2[i]] = (float)distance[i];
+            settleConstraints[atom2[i]][atom1[i]] = (float)distance[i];
         }
     }
 
@@ -153,14 +168,15 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         if (settleConstraints[i].size() == 2) {
             int partner1 = settleConstraints[i].begin()->first;
             int partner2 = (++settleConstraints[i].begin())->first;
-            if (settleConstraints[partner1].size() != 2 || settleConstraints[partner2].size() != 2 ||
-                    settleConstraints[partner1].find(partner2) == settleConstraints[partner1].end())
+            if (settleConstraints[partner1].size() != 2 || settleConstraints[partner2].size() != 2
+                || settleConstraints[partner1].find(partner2) == settleConstraints[partner1].end()) {
                 settleConstraints[i].clear();
-            else if (i < partner1 && i < partner2)
+            } else if (i < partner1 && i < partner2) {
                 settleClusters.push_back(i);
-        }
-        else
+            }
+        } else {
             settleConstraints[i].clear();
+        }
     }
 
     // Record the SETTLE clusters.
@@ -169,7 +185,7 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     if (settleClusters.size() > 0) {
         vector<mm_int4> atoms;
         vector<mm_float2> params;
-        for (int i = 0; i < (int) settleClusters.size(); i++) {
+        for (int i = 0; i < (int)settleClusters.size(); i++) {
             int atom1 = settleClusters[i];
             int atom2 = settleConstraints[atom1].begin()->first;
             int atom3 = (++settleConstraints[atom1].begin())->first;
@@ -180,19 +196,17 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
                 // atom1 is the central atom
                 atoms.push_back(mm_int4(atom1, atom2, atom3, 0));
                 params.push_back(mm_float2(dist12, dist23));
-            }
-            else if (dist12 == dist23) {
+            } else if (dist12 == dist23) {
                 // atom2 is the central atom
                 atoms.push_back(mm_int4(atom2, atom1, atom3, 0));
                 params.push_back(mm_float2(dist12, dist13));
-            }
-            else if (dist13 == dist23) {
+            } else if (dist13 == dist23) {
                 // atom3 is the central atom
                 atoms.push_back(mm_int4(atom3, atom1, atom2, 0));
                 params.push_back(mm_float2(dist13, dist12));
-            }
-            else
+            } else {
                 continue; // We can't handle this with SETTLE
+            }
             isShakeAtom[atom1] = true;
             isShakeAtom[atom2] = true;
             isShakeAtom[atom3] = true;
@@ -209,27 +223,28 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
 
     map<int, ShakeCluster> clusters;
     vector<bool> invalidForShake(numAtoms, false);
-    for (int i = 0; i < (int) atom1.size(); i++) {
-        if (isShakeAtom[atom1[i]])
+    for (int i = 0; i < (int)atom1.size(); i++) {
+        if (isShakeAtom[atom1[i]]) {
             continue; // This is being taken care of with SETTLE.
+        }
 
         // Determine which is the central atom.
 
         bool firstIsCentral;
-        if (constraintCount[atom1[i]] > 1)
+        if (constraintCount[atom1[i]] > 1) {
             firstIsCentral = true;
-        else if (constraintCount[atom2[i]] > 1)
+        } else if (constraintCount[atom2[i]] > 1) {
             firstIsCentral = false;
-        else if (atom1[i] < atom2[i])
+        } else if (atom1[i] < atom2[i]) {
             firstIsCentral = true;
-        else
+        } else {
             firstIsCentral = false;
+        }
         int centralID, peripheralID;
         if (firstIsCentral) {
             centralID = atom1[i];
             peripheralID = atom2[i];
-        }
-        else {
+        } else {
             centralID = atom2[i];
             peripheralID = atom1[i];
         }
@@ -237,27 +252,32 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         // Add it to the cluster.
 
         if (clusters.find(centralID) == clusters.end()) {
-            clusters[centralID] = ShakeCluster(centralID, 1.0/system.getParticleMass(centralID));
+            clusters[centralID] = ShakeCluster(centralID, 1.0 / system.getParticleMass(centralID));
         }
         ShakeCluster& cluster = clusters[centralID];
-        cluster.addAtom(peripheralID, distance[i], 1.0/system.getParticleMass(peripheralID));
+        cluster.addAtom(peripheralID, distance[i], 1.0 / system.getParticleMass(peripheralID));
         if (constraintCount[peripheralID] != 1 || invalidForShake[atom1[i]] || invalidForShake[atom2[i]]) {
             cluster.markInvalid(clusters, invalidForShake);
             map<int, ShakeCluster>::iterator otherCluster = clusters.find(peripheralID);
-            if (otherCluster != clusters.end() && otherCluster->second.valid)
+            if (otherCluster != clusters.end() && otherCluster->second.valid) {
                 otherCluster->second.markInvalid(clusters, invalidForShake);
+            }
         }
     }
     int validShakeClusters = 0;
     for (map<int, ShakeCluster>::iterator iter = clusters.begin(); iter != clusters.end(); ++iter) {
         ShakeCluster& cluster = iter->second;
         if (cluster.valid) {
-            cluster.valid = !invalidForShake[cluster.centralID] && cluster.size == constraintCount[cluster.centralID];
-            for (int i = 0; i < cluster.size; i++)
-                if (invalidForShake[cluster.peripheralID[i]])
+            cluster.valid =
+                !invalidForShake[cluster.centralID] && cluster.size == constraintCount[cluster.centralID];
+            for (int i = 0; i < cluster.size; i++) {
+                if (invalidForShake[cluster.peripheralID[i]]) {
                     cluster.valid = false;
-            if (cluster.valid)
+                }
+            }
+            if (cluster.valid) {
                 ++validShakeClusters;
+            }
         }
     }
 
@@ -269,16 +289,25 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         int index = 0;
         for (map<int, ShakeCluster>::const_iterator iter = clusters.begin(); iter != clusters.end(); ++iter) {
             const ShakeCluster& cluster = iter->second;
-            if (!cluster.valid)
+            if (!cluster.valid) {
                 continue;
-            atoms.push_back(mm_int4(cluster.centralID, cluster.peripheralID[0], (cluster.size > 1 ? cluster.peripheralID[1] : -1), (cluster.size > 2 ? cluster.peripheralID[2] : -1)));
-            params.push_back(mm_float4((float) cluster.centralInvMass, (float) (0.5/(cluster.centralInvMass+cluster.peripheralInvMass)), (float) (cluster.distance*cluster.distance), (float) cluster.peripheralInvMass));
+            }
+            atoms.push_back(mm_int4(cluster.centralID,
+                                    cluster.peripheralID[0],
+                                    (cluster.size > 1 ? cluster.peripheralID[1] : -1),
+                                    (cluster.size > 2 ? cluster.peripheralID[2] : -1)));
+            params.push_back(mm_float4((float)cluster.centralInvMass,
+                                       (float)(0.5 / (cluster.centralInvMass + cluster.peripheralInvMass)),
+                                       (float)(cluster.distance * cluster.distance),
+                                       (float)cluster.peripheralInvMass));
             isShakeAtom[cluster.centralID] = true;
             isShakeAtom[cluster.peripheralID[0]] = true;
-            if (cluster.size > 1)
+            if (cluster.size > 1) {
                 isShakeAtom[cluster.peripheralID[1]] = true;
-            if (cluster.size > 2)
+            }
+            if (cluster.size > 2) {
                 isShakeAtom[cluster.peripheralID[2]] = true;
+            }
             ++index;
         }
         shakeAtoms.initialize<mm_int4>(context, atoms.size(), "shakeAtoms");
@@ -290,18 +319,20 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     // Find connected constraints for CCMA.
 
     vector<int> ccmaConstraints;
-    for (unsigned i = 0; i < atom1.size(); i++)
-        if (!isShakeAtom[atom1[i]])
+    for (unsigned i = 0; i < atom1.size(); i++) {
+        if (!isShakeAtom[atom1[i]]) {
             ccmaConstraints.push_back(i);
+        }
+    }
 
     // Record the connections between constraints.
 
-    int numCCMA = (int) ccmaConstraints.size();
+    int numCCMA = (int)ccmaConstraints.size();
     int numCCMAAtoms = 0;
     if (numCCMA > 0) {
         // Record information needed by ReferenceCCMAAlgorithm.
-        
-        vector<pair<int, int> > refIndices(numCCMA);
+
+        vector<pair<int, int>> refIndices(numCCMA);
         vector<double> refDistance(numCCMA);
         for (int i = 0; i < numCCMA; i++) {
             int index = ccmaConstraints[i];
@@ -309,11 +340,12 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
             refDistance[i] = distance[index];
         }
         vector<double> refMasses(numAtoms);
-        for (int i = 0; i < numAtoms; ++i)
+        for (int i = 0; i < numAtoms; ++i) {
             refMasses[i] = system.getParticleMass(i);
+        }
 
         // Look up angles for CCMA.
-        
+
         vector<ReferenceCCMAAlgorithm::AngleInfo> angles;
         for (int i = 0; i < system.getNumForces(); i++) {
             const HarmonicAngleForce* force = dynamic_cast<const HarmonicAngleForce*>(&system.getForce(i));
@@ -326,39 +358,47 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
                 }
             }
         }
-        
+
         // Create a ReferenceCCMAAlgorithm.  It will build and invert the constraint matrix for us.
-        
+
         ReferenceCCMAAlgorithm ccma(numAtoms, numCCMA, refIndices, refDistance, refMasses, angles, 0.1);
-        vector<vector<pair<int, double> > > matrix = ccma.getMatrix();
+        vector<vector<pair<int, double>>> matrix = ccma.getMatrix();
         int maxRowElements = 0;
-        for (unsigned i = 0; i < matrix.size(); i++)
-            maxRowElements = max(maxRowElements, (int) matrix[i].size());
+        for (unsigned i = 0; i < matrix.size(); i++) {
+            maxRowElements = max(maxRowElements, (int)matrix[i].size());
+        }
         maxRowElements++;
 
         // Build the list of constraints for each atom.
 
-        vector<vector<int> > atomConstraints(context.getNumAtoms());
+        vector<vector<int>> atomConstraints(context.getNumAtoms());
         for (int i = 0; i < numCCMA; i++) {
             atomConstraints[atom1[ccmaConstraints[i]]].push_back(i);
             atomConstraints[atom2[ccmaConstraints[i]]].push_back(i);
         }
         int maxAtomConstraints = 0;
-        for (unsigned i = 0; i < atomConstraints.size(); i++)
-            maxAtomConstraints = max(maxAtomConstraints, (int) atomConstraints[i].size());
+        for (unsigned i = 0; i < atomConstraints.size(); i++) {
+            maxAtomConstraints = max(maxAtomConstraints, (int)atomConstraints[i].size());
+        }
 
         // Sort the constraints.
 
         vector<int> constraintOrder(numCCMA);
-        for (int i = 0; i < numCCMA; ++i)
+        for (int i = 0; i < numCCMA; ++i) {
             constraintOrder[i] = i;
-        sort(constraintOrder.begin(), constraintOrder.end(), ConstraintOrderer(atom1, atom2, ccmaConstraints));
+        }
+        sort(constraintOrder.begin(),
+             constraintOrder.end(),
+             ConstraintOrderer(atom1, atom2, ccmaConstraints));
         vector<int> inverseOrder(numCCMA);
-        for (int i = 0; i < numCCMA; ++i)
+        for (int i = 0; i < numCCMA; ++i) {
             inverseOrder[constraintOrder[i]] = i;
-        for (int i = 0; i < (int)matrix.size(); ++i)
-            for (int j = 0; j < (int)matrix[i].size(); ++j)
+        }
+        for (int i = 0; i < (int)matrix.size(); ++i) {
+            for (int j = 0; j < (int)matrix[i].size(); ++j) {
                 matrix[i][j].first = inverseOrder[matrix[i][j].first];
+            }
+        }
 
         // Make a list of all atoms that involve a CCMA constraint.
 
@@ -375,20 +415,26 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
 
         ccmaAtoms.initialize<int>(context, numCCMAAtoms, "ccmaAtoms");
         ccmaConstraintAtoms.initialize<mm_int2>(context, numCCMA, "ccmaConstraintAtoms");
-        ccmaAtomConstraints.initialize<int>(context, numAtoms*maxAtomConstraints, "CcmaAtomConstraints");
+        ccmaAtomConstraints.initialize<int>(context, numAtoms * maxAtomConstraints, "CcmaAtomConstraints");
         ccmaNumAtomConstraints.initialize<int>(context, numAtoms, "CcmaAtomConstraintsIndex");
-        ccmaConstraintMatrixColumn.initialize<int>(context, numCCMA*maxRowElements, "ConstraintMatrixColumn");
+        ccmaConstraintMatrixColumn.initialize<int>(context,
+                                                   numCCMA * maxRowElements,
+                                                   "ConstraintMatrixColumn");
         ccmaConverged.initialize<int>(context, 2, "ccmaConverged");
         vector<mm_int2> atomsVec(ccmaConstraintAtoms.getSize());
         vector<int> atomConstraintsVec(ccmaAtomConstraints.getSize());
         vector<int> numAtomConstraintsVec(ccmaNumAtomConstraints.getSize());
         vector<int> constraintMatrixColumnVec(ccmaConstraintMatrixColumn.getSize());
-        int elementSize = (context.getUseDoublePrecision() || context.getUseMixedPrecision() ? sizeof(double) : sizeof(float));
-        ccmaDistance.initialize(context, numCCMA, 4*elementSize, "CcmaDistance");
+        int elementSize = (context.getUseDoublePrecision() || context.getUseMixedPrecision() ? sizeof(double)
+                                                                                             : sizeof(float));
+        ccmaDistance.initialize(context, numCCMA, 4 * elementSize, "CcmaDistance");
         ccmaDelta1.initialize(context, numCCMA, elementSize, "CcmaDelta1");
         ccmaDelta2.initialize(context, numCCMA, elementSize, "CcmaDelta2");
         ccmaReducedMass.initialize(context, numCCMA, elementSize, "CcmaReducedMass");
-        ccmaConstraintMatrixValue.initialize(context, numCCMA*maxRowElements, elementSize, "ConstraintMatrixValue");
+        ccmaConstraintMatrixValue.initialize(context,
+                                             numCCMA * maxRowElements,
+                                             elementSize,
+                                             "ConstraintMatrixValue");
         vector<mm_double4> distanceVec(ccmaDistance.getSize());
         vector<double> reducedMassVec(ccmaReducedMass.getSize());
         vector<double> constraintMatrixValueVec(ccmaConstraintMatrixValue.getSize());
@@ -398,12 +444,13 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
             atomsVec[i].x = atom1[c];
             atomsVec[i].y = atom2[c];
             distanceVec[i].w = distance[c];
-            reducedMassVec[i] = (0.5/(1.0/system.getParticleMass(atom1[c])+1.0/system.getParticleMass(atom2[c])));
+            reducedMassVec[i] =
+                (0.5 / (1.0 / system.getParticleMass(atom1[c]) + 1.0 / system.getParticleMass(atom2[c])));
             for (unsigned int j = 0; j < matrix[index].size(); j++) {
-                constraintMatrixColumnVec[i+j*numCCMA] = matrix[index][j].first;
-                constraintMatrixValueVec[i+j*numCCMA] = matrix[index][j].second;
+                constraintMatrixColumnVec[i + j * numCCMA] = matrix[index][j].first;
+                constraintMatrixValueVec[i + j * numCCMA] = matrix[index][j].second;
             }
-            constraintMatrixColumnVec[i+matrix[index].size()*numCCMA] = numCCMA;
+            constraintMatrixColumnVec[i + matrix[index].size() * numCCMA] = numCCMA;
         }
         ccmaDistance.upload(distanceVec, true);
         ccmaReducedMass.upload(reducedMassVec, true);
@@ -412,7 +459,8 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
             numAtomConstraintsVec[i] = atomConstraints[i].size();
             for (unsigned int j = 0; j < atomConstraints[i].size(); j++) {
                 bool forward = (atom1[ccmaConstraints[atomConstraints[i][j]]] == i);
-                atomConstraintsVec[i+j*numAtoms] = (forward ? inverseOrder[atomConstraints[i][j]]+1 : -inverseOrder[atomConstraints[i][j]]-1);
+                atomConstraintsVec[i + j * numAtoms] = (forward ? inverseOrder[atomConstraints[i][j]] + 1
+                                                                : -inverseOrder[atomConstraints[i][j]] - 1);
             }
         }
         ccmaAtoms.upload(ccmaAtomsVec);
@@ -421,9 +469,9 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         ccmaNumAtomConstraints.upload(numAtomConstraintsVec);
         ccmaConstraintMatrixColumn.upload(constraintMatrixColumnVec);
     }
-    
+
     // Build the list of virtual sites.
-    
+
     vector<mm_int4> vsite2AvgAtomVec;
     vector<mm_double2> vsite2AvgWeightVec;
     vector<mm_int4> vsite3AvgAtomVec;
@@ -443,29 +491,33 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         if (system.isVirtualSite(i)) {
             if (dynamic_cast<const TwoParticleAverageSite*>(&system.getVirtualSite(i)) != NULL) {
                 // A two particle average.
-                
-                const TwoParticleAverageSite& site = dynamic_cast<const TwoParticleAverageSite&>(system.getVirtualSite(i));
+
+                const TwoParticleAverageSite& site =
+                    dynamic_cast<const TwoParticleAverageSite&>(system.getVirtualSite(i));
                 vsite2AvgAtomVec.push_back(mm_int4(i, site.getParticle(0), site.getParticle(1), 0));
                 vsite2AvgWeightVec.push_back(mm_double2(site.getWeight(0), site.getWeight(1)));
-            }
-            else if (dynamic_cast<const ThreeParticleAverageSite*>(&system.getVirtualSite(i)) != NULL) {
+            } else if (dynamic_cast<const ThreeParticleAverageSite*>(&system.getVirtualSite(i)) != NULL) {
                 // A three particle average.
-                
-                const ThreeParticleAverageSite& site = dynamic_cast<const ThreeParticleAverageSite&>(system.getVirtualSite(i));
-                vsite3AvgAtomVec.push_back(mm_int4(i, site.getParticle(0), site.getParticle(1), site.getParticle(2)));
-                vsite3AvgWeightVec.push_back(mm_double4(site.getWeight(0), site.getWeight(1), site.getWeight(2), 0.0));
-            }
-            else if (dynamic_cast<const OutOfPlaneSite*>(&system.getVirtualSite(i)) != NULL) {
+
+                const ThreeParticleAverageSite& site =
+                    dynamic_cast<const ThreeParticleAverageSite&>(system.getVirtualSite(i));
+                vsite3AvgAtomVec.push_back(
+                    mm_int4(i, site.getParticle(0), site.getParticle(1), site.getParticle(2)));
+                vsite3AvgWeightVec.push_back(
+                    mm_double4(site.getWeight(0), site.getWeight(1), site.getWeight(2), 0.0));
+            } else if (dynamic_cast<const OutOfPlaneSite*>(&system.getVirtualSite(i)) != NULL) {
                 // An out of plane site.
-                
+
                 const OutOfPlaneSite& site = dynamic_cast<const OutOfPlaneSite&>(system.getVirtualSite(i));
-                vsiteOutOfPlaneAtomVec.push_back(mm_int4(i, site.getParticle(0), site.getParticle(1), site.getParticle(2)));
-                vsiteOutOfPlaneWeightVec.push_back(mm_double4(site.getWeight12(), site.getWeight13(), site.getWeightCross(), 0.0));
-            }
-            else if (dynamic_cast<const LocalCoordinatesSite*>(&system.getVirtualSite(i)) != NULL) {
+                vsiteOutOfPlaneAtomVec.push_back(
+                    mm_int4(i, site.getParticle(0), site.getParticle(1), site.getParticle(2)));
+                vsiteOutOfPlaneWeightVec.push_back(
+                    mm_double4(site.getWeight12(), site.getWeight13(), site.getWeightCross(), 0.0));
+            } else if (dynamic_cast<const LocalCoordinatesSite*>(&system.getVirtualSite(i)) != NULL) {
                 // A local coordinates site.
-                
-                const LocalCoordinatesSite& site = dynamic_cast<const LocalCoordinatesSite&>(system.getVirtualSite(i));
+
+                const LocalCoordinatesSite& site =
+                    dynamic_cast<const LocalCoordinatesSite&>(system.getVirtualSite(i));
                 int numParticles = site.getNumParticles();
                 vector<double> origin, x, y;
                 site.getOriginWeights(origin);
@@ -481,8 +533,7 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
                 }
                 Vec3 pos = site.getLocalPosition();
                 vsiteLocalCoordsPosVec.push_back(mm_double4(pos[0], pos[1], pos[2], 0.0));
-            }
-            else if (dynamic_cast<const SymmetrySite*>(&system.getVirtualSite(i)) != NULL) {
+            } else if (dynamic_cast<const SymmetrySite*>(&system.getVirtualSite(i)) != NULL) {
                 // A symmetry site.
 
                 const SymmetrySite& site = dynamic_cast<const SymmetrySite&>(system.getVirtualSite(i));
@@ -504,42 +555,64 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     int numOutOfPlane = vsiteOutOfPlaneAtomVec.size();
     int numLocalCoords = vsiteLocalCoordsPosVec.size();
     int numSymmetry = vsiteSymmetryAtomVec.size();
-    numVsites = num2Avg+num3Avg+numOutOfPlane+numLocalCoords+numSymmetry;
+    numVsites = num2Avg + num3Avg + numOutOfPlane + numLocalCoords + numSymmetry;
     vsite2AvgAtoms.initialize<mm_int4>(context, max(1, num2Avg), "vsite2AvgAtoms");
     vsite3AvgAtoms.initialize<mm_int4>(context, max(1, num3Avg), "vsite3AvgAtoms");
     vsiteOutOfPlaneAtoms.initialize<mm_int4>(context, max(1, numOutOfPlane), "vsiteOutOfPlaneAtoms");
-    vsiteLocalCoordsIndex.initialize<int>(context, max(1, (int) vsiteLocalCoordsIndexVec.size()), "vsiteLocalCoordsIndex");
-    vsiteLocalCoordsAtoms.initialize<int>(context, max(1, (int) vsiteLocalCoordsAtomVec.size()), "vsiteLocalCoordsAtoms");
-    vsiteLocalCoordsStartIndex.initialize<int>(context, max(1, (int) vsiteLocalCoordsStartVec.size()), "vsiteLocalCoordsStartIndex");
+    vsiteLocalCoordsIndex.initialize<int>(context,
+                                          max(1, (int)vsiteLocalCoordsIndexVec.size()),
+                                          "vsiteLocalCoordsIndex");
+    vsiteLocalCoordsAtoms.initialize<int>(context,
+                                          max(1, (int)vsiteLocalCoordsAtomVec.size()),
+                                          "vsiteLocalCoordsAtoms");
+    vsiteLocalCoordsStartIndex.initialize<int>(context,
+                                               max(1, (int)vsiteLocalCoordsStartVec.size()),
+                                               "vsiteLocalCoordsStartIndex");
     vsiteSymmetryAtoms.initialize<mm_int2>(context, max(1, numSymmetry), "vsiteSymmetryAtoms");
-    if (num2Avg > 0)
+    if (num2Avg > 0) {
         vsite2AvgAtoms.upload(vsite2AvgAtomVec);
-    if (num3Avg > 0)
+    }
+    if (num3Avg > 0) {
         vsite3AvgAtoms.upload(vsite3AvgAtomVec);
-    if (numOutOfPlane > 0)
+    }
+    if (numOutOfPlane > 0) {
         vsiteOutOfPlaneAtoms.upload(vsiteOutOfPlaneAtomVec);
+    }
     if (numLocalCoords > 0) {
         vsiteLocalCoordsIndex.upload(vsiteLocalCoordsIndexVec);
         vsiteLocalCoordsAtoms.upload(vsiteLocalCoordsAtomVec);
         vsiteLocalCoordsStartIndex.upload(vsiteLocalCoordsStartVec);
     }
-    if (numSymmetry > 0)
+    if (numSymmetry > 0) {
         vsiteSymmetryAtoms.upload(vsiteSymmetryAtomVec);
+    }
     int elementSize = (context.getUseDoublePrecision() ? sizeof(double) : sizeof(float));
-    vsite2AvgWeights.initialize(context, max(1, num2Avg), 2*elementSize, "vsite2AvgWeights");
-    vsite3AvgWeights.initialize(context, max(1, num3Avg), 4*elementSize, "vsite3AvgWeights");
-    vsiteOutOfPlaneWeights.initialize(context, max(1, numOutOfPlane), 4*elementSize, "vsiteOutOfPlaneWeights");
-    vsiteLocalCoordsWeights.initialize(context, max(1, (int) vsiteLocalCoordsWeightVec.size()), elementSize, "vsiteLocalCoordsWeights");
-    vsiteLocalCoordsPos.initialize(context, max(1, (int) vsiteLocalCoordsPosVec.size()), 4*elementSize, "vsiteLocalCoordsPos");
-    vsiteSymmetryMatrix.initialize(context, max(1, 3*numSymmetry), 4*elementSize, "vsiteSymmetryMatrix");
-    vsiteSymmetryOffset.initialize(context, max(1, numSymmetry), 4*elementSize, "vsiteSymmetryOffset");
+    vsite2AvgWeights.initialize(context, max(1, num2Avg), 2 * elementSize, "vsite2AvgWeights");
+    vsite3AvgWeights.initialize(context, max(1, num3Avg), 4 * elementSize, "vsite3AvgWeights");
+    vsiteOutOfPlaneWeights.initialize(context,
+                                      max(1, numOutOfPlane),
+                                      4 * elementSize,
+                                      "vsiteOutOfPlaneWeights");
+    vsiteLocalCoordsWeights.initialize(context,
+                                       max(1, (int)vsiteLocalCoordsWeightVec.size()),
+                                       elementSize,
+                                       "vsiteLocalCoordsWeights");
+    vsiteLocalCoordsPos.initialize(context,
+                                   max(1, (int)vsiteLocalCoordsPosVec.size()),
+                                   4 * elementSize,
+                                   "vsiteLocalCoordsPos");
+    vsiteSymmetryMatrix.initialize(context, max(1, 3 * numSymmetry), 4 * elementSize, "vsiteSymmetryMatrix");
+    vsiteSymmetryOffset.initialize(context, max(1, numSymmetry), 4 * elementSize, "vsiteSymmetryOffset");
     vsiteSymmetryUseBox.initialize<int>(context, max(1, numSymmetry), "vsiteSymmetryUseBox");
-    if (num2Avg > 0)
+    if (num2Avg > 0) {
         vsite2AvgWeights.upload(vsite2AvgWeightVec, true);
-    if (num3Avg > 0)
+    }
+    if (num3Avg > 0) {
         vsite3AvgWeights.upload(vsite3AvgWeightVec, true);
-    if (numOutOfPlane > 0)
+    }
+    if (numOutOfPlane > 0) {
         vsiteOutOfPlaneWeights.upload(vsiteOutOfPlaneWeightVec, true);
+    }
     if (numLocalCoords > 0) {
         vsiteLocalCoordsWeights.upload(vsiteLocalCoordsWeightVec, true);
         vsiteLocalCoordsPos.upload(vsiteLocalCoordsPosVec, true);
@@ -552,43 +625,52 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
 
     // If multiple virtual sites depend on the same particle, make sure the force distribution
     // can be done safely.
-    
+
     vector<int> atomCounts(numAtoms, 0);
-    for (int i = 0; i < numAtoms; i++)
-        if (system.isVirtualSite(i))
-            for (int j = 0; j < system.getVirtualSite(i).getNumParticles(); j++)
+    for (int i = 0; i < numAtoms; i++) {
+        if (system.isVirtualSite(i)) {
+            for (int j = 0; j < system.getVirtualSite(i).getNumParticles(); j++) {
                 atomCounts[system.getVirtualSite(i).getParticle(j)]++;
-    for (int i = 0; i < numAtoms; i++)
-        if (atomCounts[i] > 1)
+            }
+        }
+    }
+    for (int i = 0; i < numAtoms; i++) {
+        if (atomCounts[i] > 1) {
             hasOverlappingVsites = true;
+        }
+    }
 
     // Divide virtual sites into stages to resolve dependencies between them.
 
     set<int> sites;
     vector<int> vsiteStageVec(numAtoms, -1);
-    for (int i = 0; i < numAtoms; i++)
+    for (int i = 0; i < numAtoms; i++) {
         if (system.isVirtualSite(i)) {
             sites.insert(i);
             vsiteStageVec[i] = numAtoms;
         }
+    }
     numVsiteStages = 0;
     int remainingSites = 0;
     while (sites.size() > 0) {
-        if (sites.size() == remainingSites)
+        if (sites.size() == remainingSites) {
             throw OpenMMException("Virtual site definitions are circular");
+        }
         remainingSites = sites.size();
         for (auto index = sites.begin(); index != sites.end();) {
             const VirtualSite& site = system.getVirtualSite(*index);
             bool canCompute = true;
-            for (int i = 0; i < site.getNumParticles(); i++)
-                if (vsiteStageVec[site.getParticle(i)] >= numVsiteStages)
+            for (int i = 0; i < site.getNumParticles(); i++) {
+                if (vsiteStageVec[site.getParticle(i)] >= numVsiteStages) {
                     canCompute = false;
+                }
+            }
             if (canCompute) {
                 vsiteStageVec[*index] = numVsiteStages;
                 index = sites.erase(index);
-            }
-            else
+            } else {
                 ++index;
+            }
         }
         numVsiteStages++;
     }
@@ -608,10 +690,12 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     defines["NUM_SYMMETRY"] = context.intToString(numSymmetry);
     defines["PADDED_NUM_ATOMS"] = context.intToString(context.getPaddedNumAtoms());
     defines["KE_WORK_GROUP_SIZE"] = context.intToString(keWorkGroupSize);
-    if (hasOverlappingVsites)
+    if (hasOverlappingVsites) {
         defines["HAS_OVERLAPPING_VSITES"] = "1";
-    if (numVsiteStages > 1)
+    }
+    if (numVsiteStages > 1) {
         defines["MULTIPLE_VSITE_STAGES"] = "1";
+    }
     ComputeProgram program = context.compileProgram(CommonKernelSources::integrationUtilities, defines);
     settlePosKernel = program->createKernel("applySettleToPositions");
     settleVelKernel = program->createKernel("applySettleToVelocities");
@@ -633,10 +717,11 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     // Set arguments for virtual site kernels.
 
     vsitePositionKernel->addArg(context.getPosq());
-    if (context.getUseMixedPrecision())
+    if (context.getUseMixedPrecision()) {
         vsitePositionKernel->addArg(context.getPosqCorrection());
-    else
+    } else {
         vsitePositionKernel->addArg(nullptr);
+    }
     vsitePositionKernel->addArg(vsite2AvgAtoms);
     vsitePositionKernel->addArg(vsite2AvgWeights);
     vsitePositionKernel->addArg(vsite3AvgAtoms);
@@ -652,15 +737,17 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     vsitePositionKernel->addArg(vsiteSymmetryMatrix);
     vsitePositionKernel->addArg(vsiteSymmetryOffset);
     vsitePositionKernel->addArg(vsiteSymmetryUseBox);
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++) {
         vsitePositionKernel->addArg(); // Arguments for periodic box
+    }
     vsitePositionKernel->addArg(vsiteStage);
     vsitePositionKernel->addArg();
     vsiteForceKernel->addArg(context.getPosq());
-    if (context.getUseMixedPrecision())
+    if (context.getUseMixedPrecision()) {
         vsiteForceKernel->addArg(context.getPosqCorrection());
-    else
+    } else {
         vsiteForceKernel->addArg(nullptr);
+    }
     vsiteForceKernel->addArg(); // Skip argument 2: the force array hasn't been created yet.
     vsiteForceKernel->addArg(vsite2AvgAtoms);
     vsiteForceKernel->addArg(vsite2AvgWeights);
@@ -677,60 +764,67 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
     vsiteForceKernel->addArg(vsiteSymmetryMatrix);
     vsiteForceKernel->addArg(vsiteSymmetryOffset);
     vsiteForceKernel->addArg(vsiteSymmetryUseBox);
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++) {
         vsiteForceKernel->addArg(); // Arguments for periodic box
+    }
     vsiteForceKernel->addArg(vsiteStage);
     vsiteForceKernel->addArg();
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
         vsiteSaveForcesKernel->addArg();
+    }
 
     // Set arguments for constraint kernels.
 
     if (settleAtoms.isInitialized()) {
-        settlePosKernel->addArg((int) settleAtoms.getSize());
+        settlePosKernel->addArg((int)settleAtoms.getSize());
         settlePosKernel->addArg();
         settlePosKernel->addArg(context.getPosq());
         settlePosKernel->addArg(posDelta);
         settlePosKernel->addArg(context.getVelm());
         settlePosKernel->addArg(settleAtoms);
         settlePosKernel->addArg(settleParams);
-        if (context.getUseMixedPrecision())
+        if (context.getUseMixedPrecision()) {
             settlePosKernel->addArg(context.getPosqCorrection());
-        settleVelKernel->addArg((int) settleAtoms.getSize());
+        }
+        settleVelKernel->addArg((int)settleAtoms.getSize());
         settleVelKernel->addArg();
         settleVelKernel->addArg(context.getPosq());
         settleVelKernel->addArg(posDelta);
         settleVelKernel->addArg(context.getVelm());
         settleVelKernel->addArg(settleAtoms);
         settleVelKernel->addArg(settleParams);
-        if (context.getUseMixedPrecision())
+        if (context.getUseMixedPrecision()) {
             settleVelKernel->addArg(context.getPosqCorrection());
+        }
     }
     if (shakeAtoms.isInitialized()) {
-        shakePosKernel->addArg((int) shakeAtoms.getSize());
+        shakePosKernel->addArg((int)shakeAtoms.getSize());
         shakePosKernel->addArg();
         shakePosKernel->addArg(context.getPosq());
         shakePosKernel->addArg(posDelta);
         shakePosKernel->addArg(shakeAtoms);
         shakePosKernel->addArg(shakeParams);
-        if (context.getUseMixedPrecision())
+        if (context.getUseMixedPrecision()) {
             shakePosKernel->addArg(context.getPosqCorrection());
-        shakeVelKernel->addArg((int) shakeAtoms.getSize());
+        }
+        shakeVelKernel->addArg((int)shakeAtoms.getSize());
         shakeVelKernel->addArg();
         shakeVelKernel->addArg(context.getPosq());
         shakeVelKernel->addArg(context.getVelm());
         shakeVelKernel->addArg(shakeAtoms);
         shakeVelKernel->addArg(shakeParams);
-        if (context.getUseMixedPrecision())
+        if (context.getUseMixedPrecision()) {
             shakeVelKernel->addArg(context.getPosqCorrection());
+        }
     }
     if (ccmaConstraintAtoms.isInitialized()) {
         ccmaDirectionsKernel->addArg(ccmaConstraintAtoms);
         ccmaDirectionsKernel->addArg(ccmaDistance);
         ccmaDirectionsKernel->addArg(context.getPosq());
         ccmaDirectionsKernel->addArg(ccmaConverged);
-        if (context.getUseMixedPrecision())
+        if (context.getUseMixedPrecision()) {
             ccmaDirectionsKernel->addArg(context.getPosqCorrection());
+        }
         ccmaPosForceKernel->addArg(ccmaConstraintAtoms);
         ccmaPosForceKernel->addArg(ccmaDistance);
         ccmaPosForceKernel->addArg(posDelta);
@@ -780,14 +874,16 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
         ccmaFullKernel->addArg(ccmaConstraintMatrixColumn);
         ccmaFullKernel->addArg(ccmaConstraintMatrixValue);
         ccmaFullKernel->addArg();
-        if (context.getUseMixedPrecision())
+        if (context.getUseMixedPrecision()) {
             ccmaFullKernel->addArg(context.getPosqCorrection());
+        }
     }
 
     // Arguments for time shift kernel will be set later.
-    
-    for (int i = 0; i < 3; i++)
+
+    for (int i = 0; i < 3; i++) {
         timeShiftKernel->addArg();
+    }
 
     // Set arguments of kinetic energy kernel.
 
@@ -798,19 +894,19 @@ IntegrationUtilities::IntegrationUtilities(ComputeContext& context, const System
 void IntegrationUtilities::setNextStepSize(double size) {
     if (size != lastStepSize.x || size != lastStepSize.y) {
         lastStepSize = mm_double2(size, size);
-        if (context.getUseDoublePrecision() || context.getUseMixedPrecision())
+        if (context.getUseDoublePrecision() || context.getUseMixedPrecision()) {
             stepSize.upload(&lastStepSize);
-        else {
-            mm_float2 lastStepSizeFloat = mm_float2((float) size, (float) size);
+        } else {
+            mm_float2 lastStepSizeFloat = mm_float2((float)size, (float)size);
             stepSize.upload(&lastStepSizeFloat);
         }
     }
 }
 
 double IntegrationUtilities::getLastStepSize() {
-    if (context.getUseDoublePrecision() || context.getUseMixedPrecision())
+    if (context.getUseDoublePrecision() || context.getUseMixedPrecision()) {
         stepSize.download(&lastStepSize);
-    else {
+    } else {
         mm_float2 lastStepSizeFloat;
         stepSize.download(&lastStepSizeFloat);
         lastStepSize = mm_double2(lastStepSizeFloat.x, lastStepSizeFloat.y);
@@ -835,20 +931,24 @@ void IntegrationUtilities::computeVirtualSites() {
         context.computeReciprocalBoxVectors(recipBoxVectorsDouble);
         if (context.getUseDoublePrecision()) {
             mm_double4 boxVectorsDouble[3];
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++) {
                 boxVectorsDouble[i] = mm_double4(boxVectors[i][0], boxVectors[i][1], boxVectors[i][2], 0);
+            }
             vsitePositionKernel->setArg(17, boxVectorsDouble[0]);
             vsitePositionKernel->setArg(18, boxVectorsDouble[1]);
             vsitePositionKernel->setArg(19, boxVectorsDouble[2]);
             vsitePositionKernel->setArg(20, recipBoxVectorsDouble[0]);
             vsitePositionKernel->setArg(21, recipBoxVectorsDouble[1]);
             vsitePositionKernel->setArg(22, recipBoxVectorsDouble[2]);
-        }
-        else {
+        } else {
             mm_float4 boxVectorsFloat[3], recipBoxVectorsFloat[3];
             for (int i = 0; i < 3; i++) {
-                boxVectorsFloat[i] = mm_float4((float) boxVectors[i][0], (float) boxVectors[i][1], (float) boxVectors[i][2], 0);
-                recipBoxVectorsFloat[i] = mm_float4((float) recipBoxVectorsDouble[i].x, (float) recipBoxVectorsDouble[i].y, (float) recipBoxVectorsDouble[i].z, 0);
+                boxVectorsFloat[i] =
+                    mm_float4((float)boxVectors[i][0], (float)boxVectors[i][1], (float)boxVectors[i][2], 0);
+                recipBoxVectorsFloat[i] = mm_float4((float)recipBoxVectorsDouble[i].x,
+                                                    (float)recipBoxVectorsDouble[i].y,
+                                                    (float)recipBoxVectorsDouble[i].z,
+                                                    0);
             }
             vsitePositionKernel->setArg(17, boxVectorsFloat[0]);
             vsitePositionKernel->setArg(18, boxVectorsFloat[1]);
@@ -866,18 +966,20 @@ void IntegrationUtilities::computeVirtualSites() {
 
 void IntegrationUtilities::initRandomNumberGenerator(unsigned int randomNumberSeed) {
     if (random.isInitialized()) {
-        if (randomNumberSeed != lastSeed)
-           throw OpenMMException("IntegrationUtilities::initRandomNumberGenerator(): Requested two different values for the random number seed");
+        if (randomNumberSeed != lastSeed) {
+            throw OpenMMException("IntegrationUtilities::initRandomNumberGenerator(): Requested two "
+                                  "different values for the random number seed");
+        }
         return;
     }
 
     // Create the random number arrays.
 
     lastSeed = randomNumberSeed;
-    random.initialize<mm_float4>(context, 4*context.getPaddedNumAtoms(), "random");
-    randomSeed.initialize<mm_int4>(context, context.getNumThreadBlocks()*64, "randomSeed");
+    random.initialize<mm_float4>(context, 4 * context.getPaddedNumAtoms(), "random");
+    randomSeed.initialize<mm_int4>(context, context.getNumThreadBlocks() * 64, "randomSeed");
     randomPos = random.getSize();
-    randomKernel->addArg((int) random.getSize());
+    randomKernel->addArg((int)random.getSize());
     randomKernel->addArg(random);
     randomKernel->addArg(randomSeed);
 
@@ -885,19 +987,20 @@ void IntegrationUtilities::initRandomNumberGenerator(unsigned int randomNumberSe
 
     vector<mm_int4> seed(randomSeed.getSize());
     unsigned int r = randomNumberSeed;
-    if (r == 0)
-        r = (unsigned int) osrngseed(); // A seed of 0 means use a unique one
+    if (r == 0) {
+        r = (unsigned int)osrngseed(); // A seed of 0 means use a unique one
+    }
     for (int i = 0; i < randomSeed.getSize(); i++) {
-        seed[i].x = r = (1664525*r + 1013904223) & 0xFFFFFFFF;
-        seed[i].y = r = (1664525*r + 1013904223) & 0xFFFFFFFF;
-        seed[i].z = r = (1664525*r + 1013904223) & 0xFFFFFFFF;
-        seed[i].w = r = (1664525*r + 1013904223) & 0xFFFFFFFF;
+        seed[i].x = r = (1664525 * r + 1013904223) & 0xFFFFFFFF;
+        seed[i].y = r = (1664525 * r + 1013904223) & 0xFFFFFFFF;
+        seed[i].z = r = (1664525 * r + 1013904223) & 0xFFFFFFFF;
+        seed[i].w = r = (1664525 * r + 1013904223) & 0xFFFFFFFF;
     }
     randomSeed.upload(seed);
 }
 
 int IntegrationUtilities::prepareRandomNumbers(int numValues) {
-    if (randomPos+numValues <= random.getSize()) {
+    if (randomPos + numValues <= random.getSize()) {
         int oldPos = randomPos;
         randomPos += numValues;
         return oldPos;
@@ -912,34 +1015,36 @@ int IntegrationUtilities::prepareRandomNumbers(int numValues) {
 }
 
 void IntegrationUtilities::createCheckpoint(ostream& stream) {
-    if (!random.isInitialized())
+    if (!random.isInitialized()) {
         return;
-    stream.write((char*) &randomPos, sizeof(int));
+    }
+    stream.write((char*)&randomPos, sizeof(int));
     int numRandom = random.getSize();
-    stream.write((char*) &numRandom, sizeof(int));
+    stream.write((char*)&numRandom, sizeof(int));
     vector<mm_float4> randomVec;
     random.download(randomVec);
-    stream.write((char*) &randomVec[0], sizeof(mm_float4)*random.getSize());
+    stream.write((char*)&randomVec[0], sizeof(mm_float4) * random.getSize());
     vector<mm_int4> randomSeedVec;
     randomSeed.download(randomSeedVec);
-    stream.write((char*) &randomSeedVec[0], sizeof(mm_int4)*randomSeed.getSize());
+    stream.write((char*)&randomSeedVec[0], sizeof(mm_int4) * randomSeed.getSize());
 }
 
 void IntegrationUtilities::loadCheckpoint(istream& stream) {
-    if (!random.isInitialized())
+    if (!random.isInitialized()) {
         return;
-    stream.read((char*) &randomPos, sizeof(int));
+    }
+    stream.read((char*)&randomPos, sizeof(int));
     int numRandom;
-    stream.read((char*) &numRandom, sizeof(int));
+    stream.read((char*)&numRandom, sizeof(int));
     if (numRandom != random.getSize()) {
         random.resize(numRandom);
         randomKernel->setArg(0, numRandom);
     }
     vector<mm_float4> randomVec(random.getSize());
-    stream.read((char*) &randomVec[0], sizeof(mm_float4)*random.getSize());
+    stream.read((char*)&randomVec[0], sizeof(mm_float4) * random.getSize());
     random.upload(randomVec);
     vector<mm_int4> randomSeedVec(randomSeed.getSize());
-    stream.read((char*) &randomSeedVec[0], sizeof(mm_int4)*randomSeed.getSize());
+    stream.read((char*)&randomSeedVec[0], sizeof(mm_int4) * randomSeed.getSize());
     randomSeed.upload(randomSeedVec);
 }
 
@@ -955,28 +1060,29 @@ double IntegrationUtilities::computeKineticEnergy(double timeShift) {
 
         timeShiftKernel->setArg(0, context.getVelm());
         timeShiftKernel->setArg(1, context.getLongForceBuffer());
-        if (context.getUseDoublePrecision())
+        if (context.getUseDoublePrecision()) {
             timeShiftKernel->setArg(2, timeShift);
-        else
-            timeShiftKernel->setArg(2, (float) timeShift);
+        } else {
+            timeShiftKernel->setArg(2, (float)timeShift);
+        }
         timeShiftKernel->execute(numParticles);
         applyConstraintsImpl(true, 1e-4);
     }
-    
+
     // Compute the kinetic energy.
-    
+
     kineticEnergyKernel->execute(keWorkGroupSize, keWorkGroupSize);
-    
+
     // Restore the velocities.
-    
-    if (timeShift != 0)
+
+    if (timeShift != 0) {
         posDelta.copyTo(context.getVelm());
+    }
     if (context.getUseDoublePrecision() || context.getUseMixedPrecision()) {
         double energy;
         kineticEnergy.download(&energy);
         return energy;
-    }
-    else {
+    } else {
         float energy;
         kineticEnergy.download(&energy);
         return energy;
@@ -995,16 +1101,17 @@ void IntegrationUtilities::computeShiftedVelocities(double timeShift, vector<Vec
 
         timeShiftKernel->setArg(0, context.getVelm());
         timeShiftKernel->setArg(1, context.getLongForceBuffer());
-        if (context.getUseDoublePrecision())
+        if (context.getUseDoublePrecision()) {
             timeShiftKernel->setArg(2, timeShift);
-        else
-            timeShiftKernel->setArg(2, (float) timeShift);
+        } else {
+            timeShiftKernel->setArg(2, (float)timeShift);
+        }
         timeShiftKernel->execute(numParticles);
         applyConstraintsImpl(true, 1e-4);
     }
-    
+
     // Retrieve the velocities.
-    
+
     velocities.resize(numParticles);
     if (context.getUseDoublePrecision() || context.getUseMixedPrecision()) {
         auto velm = (mm_double4*)context.getPinnedBuffer();
@@ -1013,8 +1120,7 @@ void IntegrationUtilities::computeShiftedVelocities(double timeShift, vector<Vec
             mm_double4 v = velm[i];
             velocities[i] = Vec3(v.x, v.y, v.z);
         }
-    }
-    else {
+    } else {
         auto velm = (mm_float4*)context.getPinnedBuffer();
         context.getVelm().download(velm);
         for (int i = 0; i < numParticles; i++) {
@@ -1022,9 +1128,10 @@ void IntegrationUtilities::computeShiftedVelocities(double timeShift, vector<Vec
             velocities[i] = Vec3(v.x, v.y, v.z);
         }
     }
-    
+
     // Restore the velocities.
-    
-    if (timeShift != 0)
+
+    if (timeShift != 0) {
         posDelta.copyTo(context.getVelm());
+    }
 }
