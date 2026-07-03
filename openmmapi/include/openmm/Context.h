@@ -282,6 +282,14 @@ public:
      * belong to exactly one molecule.
      */
     const std::vector<std::vector<int> >& getMolecules() const;
+    /**
+     * Robosample fork: exposed (was private) so Robosample's fused CUDA robot-kinematics
+     * pipeline (Robosample/src/OpenMMContext.cpp) can reach the platform's CudaContext via
+     * getImpl().getPlatformData() and drive calcForcesAndEnergy on-device. Upstream keeps
+     * this private; this is a deliberate vendored-fork change.
+     */
+    ContextImpl& getImpl();
+    const ContextImpl& getImpl() const;
 private:
     friend class ContextImpl;
     friend class Force;
@@ -289,8 +297,6 @@ private:
     friend class Platform;
     friend class LocalEnergyMinimizer;
     Context(const System& system, Integrator& integrator, ContextImpl& linked);
-    ContextImpl& getImpl();
-    const ContextImpl& getImpl() const;
     ContextImpl* impl;
     std::map<std::string, std::string> properties;
 };
