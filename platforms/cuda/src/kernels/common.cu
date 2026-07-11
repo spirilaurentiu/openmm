@@ -20,12 +20,12 @@
 #define ATOMIC_ADD(dest, value) atomicAdd(dest, value)
 #define FLT_MAX 3.40282347e+38f
 
-typedef long long mm_long;
-typedef unsigned long long mm_ulong;
+using mm_long = long long;
+using mm_ulong = unsigned long long;
 
 #define SUPPORTS_64_BIT_ATOMICS 1
 #define SUPPORTS_DOUBLE_PRECISION 1
 
-__device__ inline long long realToFixedPoint(real x) {
-    return static_cast<long long>(x * 0x100000000);
+__device__ inline auto realToFixedPoint(real value) -> long long {
+    return static_cast<long long>(value * 0x100000000);
 }

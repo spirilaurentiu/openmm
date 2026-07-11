@@ -4,3 +4,7 @@ build?
 
 # macOS
 .DS_Store
+
+platforms/common/src/CommonKernelSources.cpp
+platforms/cuda/src/CudaKernelSources.cpp
+platforms/opencl/src/OpenCLKernelSources.cpp
