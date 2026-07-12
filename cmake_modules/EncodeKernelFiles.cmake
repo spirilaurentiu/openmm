@@ -24,6 +24,12 @@ foreach(file ${KERNEL_FILES})
       OUTPUT_VARIABLE file_content
       RESULT_VARIABLE kernel_strip_result)
     if(kernel_strip_result EQUAL 0)
+      # execute_process stores the captured stdout verbatim, whereas file(STRINGS)
+      # below escapes ';' as '\;'. The unquoted file(APPEND) that emits the string
+      # literal treats a bare ';' as a CMake list separator and drops it, so every
+      # ';'-terminated kernel statement would lose its semicolon. Escape here so the
+      # stripped path feeds the rest of the pipeline the same '\;' the raw path does.
+      string(REPLACE ";" "\\;" file_content "${file_content}")
       set(kernel_stripped TRUE)
     endif()
   endif()

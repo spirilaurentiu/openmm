@@ -13,26 +13,26 @@
  * maps a portable name onto a CUDA/PTX construct.
  *
  * ------------------------------------------------------------------------------
- * How this file reaches the compiler (CudaContext::createModule in
- * CudaContext.cpp):
+ * How this file reaches the compiler (see CudaContext::createModule in
+ * platforms/cuda/src/CudaContext.cpp, ~line 472):
  *
- * Every kernel module NVRTC compiles at runtime is assembled, in this order, as:
+ * Every kernel module NVRTC compiles at runtime is assembled, in order, as:
  *   1. `#define`s from CudaContext::compilationDefines (precision-, PBC-, and
- *      warp-intrinsic-dependent; see "injected by the C++ layer" below).
+ *      warp-intrinsic-dependent; see "externally injected macros" below).
  *   2. `typedef ... real/real2..; typedef ... mixed..; typedef unsigned int tileflags;`
  *      emitted directly by createModule.
- *   3. THIS FILE, injected verbatim as CudaKernelSources::common.
+ *   3. THIS FILE, injected verbatim as `CudaKernelSources::common`.
  *   4. Per-module `#define`s passed to createModule.
  *   5. The actual kernel source.
  *
- * Consequence a caller may rely on: `real`, `mixed`, `tileflags`, and every
- * injected macro are ALREADY in scope where this file is textually inserted.
- * This file does NOT define `real` (step 2 does); realToFixedPoint below consumes
- * that injected typedef.
+ * Consequence: `real` (used by realToFixedPoint below) and the precision macros
+ * are ALREADY in scope by the time this file is textually inserted — this file
+ * does not define `real`; step 2 does.
  *
- * Comments here have ZERO runtime cost: strip_comments.py (openmm/cmake_modules)
- * removes all comments before the source is string-encoded into
- * CudaKernelSources::common, so NVRTC never sees them. Document freely.
+ * ------------------------------------------------------------------------------
+ * Comments have ZERO runtime cost: openmm/cmake_modules/strip_comments.py strips
+ * all comments before the source is string-encoded into CudaKernelSources, so
+ * NVRTC never sees them. Document freely.
  *
  * ------------------------------------------------------------------------------
  * Macros DEFINED here vs. macros INJECTED by the C++ layer.
@@ -43,27 +43,40 @@
  *   ATOMIC_ADD, FLT_MAX, SUPPORTS_64_BIT_ATOMICS, SUPPORTS_DOUBLE_PRECISION,
  *   mm_long, mm_ulong, realToFixedPoint.
  *
- * INHERITED FROM PREAMBLE (NOT defined here; this file relies on them being in
- * scope above it, all produced by the CudaContext constructor / createModule):
+ * INJECTED by CudaContext.cpp (NOT defined here; this file relies on them being
+ * present above it). Traced to CudaContext::CudaContext / createModule:
  *   - `real` / `real2..4`, `mixed` / `mixed2..4`, `tileflags`: emitted as
- *     typedefs by createModule (double vs float chosen by the precision mode).
- *   - USE_DOUBLE_PRECISION (= "1"): defined only when useDoublePrecision.
- *     USE_MIXED_PRECISION (= "1"): defined only in mixed mode. In single
- *     precision NEITHER is defined. This prologue does not `#ifdef` on them, but
- *     they gate the `real` typedef that realToFixedPoint consumes.
- *   - make_real2/3/4, make_mixed2/3/4: expand to the make_double2/3/4 or
- *     make_float2/3/4 constructors per precision.
- *   - SQRT/RSQRT/EXP/LOG/... math-function names: double vs float variants.
- *   - SYNC_WARPS, SHFL, BALLOT: warp intrinsics; sync (`*_sync`, full mask) vs
- *     legacy non-sync variants chosen by CUDA driver version.
- *   - APPLY_PERIODIC_TO_DELTA / _POS / _POS_WITH_CENTER: triclinic vs
- *     rectangular periodic-boundary wrapping.
+ *     `typedef`s by createModule (double vs float chosen by precision mode).
+ *   - USE_DOUBLE_PRECISION (= "1"): set only when useDoublePrecision
+ *     (CudaContext.cpp ~line 227). USE_MIXED_PRECISION (= "1") only in mixed mode
+ *     (~line 239). In single precision NEITHER is defined. Downstream kernels
+ *     `#ifdef` on these; this prologue itself does not, but they gate the typedef
+ *     of `real` that realToFixedPoint consumes.
+ *   - make_real2/3/4, make_mixed2/3/4 (~lines 228-255): expand to the
+ *     make_double2/3/4 or make_float2/3/4 constructors per precision.
+ *   - SQRT/RSQRT/EXP/... math-function names (~lines 279-294): double vs float
+ *     variants.
+ *   - SYNC_WARPS, SHFL, BALLOT (~lines 215-222): warp intrinsics, sync vs
+ *     non-sync variants chosen by CUDA driver version (>= 9000 => *_sync).
+ *   - APPLY_PERIODIC_TO_DELTA / _POS / _POS_WITH_CENTER (~lines 306-355):
+ *     triclinic vs rectangular PBC wrapping.
  *
  * ------------------------------------------------------------------------------
- * Backend contrast (why the same macro differs across files) is documented per
- * macro group below, comparing against the OpenCL prologue common.cl. The two
- * prologues are the only files that differ between backends; they are what keeps
- * one kernel source compilable on both.
+ * Backend contrast (why the same macro differs across files):
+ *   CUDA here            OpenCL (common.cl)          role
+ *   KERNEL=extern"C"     KERNEL=__kernel             entry point; extern "C"
+ *     __global__                                     defeats C++ name mangling so
+ *                                                    getKernel() can look it up.
+ *   DEVICE=__device__    DEVICE=(empty)              non-entry function.
+ *   GLOBAL=(empty)       GLOBAL=__global             CUDA global pointers need no
+ *                                                    qualifier; OpenCL requires one.
+ *   LOCAL_ARG=(empty)    LOCAL_ARG=__local           shared-mem *parameter*
+ *                                                    qualifier (see LOCAL group).
+ *   LOCAL_ID=threadIdx.x LOCAL_ID=get_local_id(0)    indexing model.
+ *
+ * The original one-line header comment ("CUDA definitions for the macros and
+ * functions needed for the common compute framework") was accurate but minimal;
+ * it is preserved in spirit and expanded here. Nothing in it was misleading.
  */
 
 /**
@@ -140,20 +153,19 @@
  * @name Synchronization and memory ordering
  * @brief Portable barrier / fence primitives.
  *
- * SYNC_THREADS -> `__syncthreads();`: block-wide barrier plus memory fence. All
- *                 threads of the block must reach the same call (never place it in
- *                 divergent control flow), and it orders shared- and global-memory
- *                 accesses across the barrier for the whole block. Callers may rely
- *                 on: after this call every thread sees every other thread's writes
- *                 issued before it.
- * MEM_FENCE    -> `__threadfence_block();`: BLOCK-SCOPE memory fence only. Orders
- *                 this thread's prior shared- and global-memory writes so that other
- *                 threads OF THE SAME BLOCK observe them in order, WITHOUT the
- *                 barrier/convergence of SYNC_THREADS. A caller may rely on
- *                 intra-block producer/consumer visibility and NOTHING wider: it does
- *                 not order writes with respect to threads in other blocks. Grid-wide
- *                 or system-wide visibility requires __threadfence() /
- *                 __threadfence_system(), which this macro does not provide.
+ * SYNC_THREADS -> `__syncthreads();`: block-wide barrier. Every thread in the
+ *                 block must reach it (do not place in divergent control flow) and
+ *                 it also orders shared-memory accesses across the barrier.
+ * MEM_FENCE    -> `__threadfence_block();`: block-scope memory fence — makes this
+ *                 thread's prior writes visible to other threads in the block,
+ *                 WITHOUT the barrier/convergence of SYNC_THREADS. NOTE: narrower
+ *                 than the OpenCL mapping, where MEM_FENCE fences BOTH local and
+ *                 global memory (`mem_fence(CLK_LOCAL_MEM_FENCE+CLK_GLOBAL_MEM_FENCE)`);
+ *                 __threadfence_block orders shared+global writes but only at
+ *                 block scope. Adequate for intra-block producer/consumer patterns;
+ *                 cross-block ordering needs __threadfence()/__threadfence_system,
+ *                 which this macro does NOT provide — a point to check when auditing
+ *                 kernels that assume grid-wide visibility.
  * @{
  */
 #define SYNC_THREADS __syncthreads();
@@ -165,17 +177,15 @@
  * @param dest  pointer to the accumulator (global or shared memory).
  * @param value increment; overload selected by its type.
  *
- * On CUDA this is a single hardware atomic; the overload is selected by the type
- * of @p value. Its dominant use in this framework is accumulating the per-atom
- * force buffer, which the CudaContext constructor allocates as `long long`
- * (`force.initialize<long long>(..., paddedNumAtoms*3)`) holding fixed-point values
- * produced by realToFixedPoint(). Integer atomicAdd is associative and commutative,
- * hence order-independent and bit-exact — the guarantee realToFixedPoint exists to
- * exploit; performance work that reorders or rebatches force accumulation must keep
- * the accumulator integer to preserve it. Contrast: OpenCL's ATOMIC_ADD maps to
- * `atom_add`, and on devices lacking cl_khr_int64_base_atomics common.cl supplies a
- * software 64-bit emulation (split lo/hi 32-bit atomics with carry); CUDA never
- * needs that (see SUPPORTS_64_BIT_ATOMICS).
+ * On CUDA this is a single hardware atomic. Its dominant use in this framework is
+ * accumulating the per-atom force buffer, which is typed `long long`
+ * (CudaContext.cpp ~line 257, `force.initialize<long long>(..., paddedNumAtoms*3)`)
+ * and holds fixed-point values produced by realToFixedPoint(). Integer atomicAdd
+ * is associative and commutative and therefore order-independent and bit-exact —
+ * see realToFixedPoint for why that matters. Contrast: OpenCL's ATOMIC_ADD maps to
+ * `atom_add`, and on devices lacking cl_khr_int64_base_atomics common.cl provides a
+ * software 64-bit emulation (split lo/hi 32-bit atomics with carry); CUDA needs no
+ * such emulation (see SUPPORTS_64_BIT_ATOMICS).
  */
 #define ATOMIC_ADD(dest, value) atomicAdd(dest, value)
 
@@ -241,11 +251,8 @@ using mm_ulong = unsigned long long;
  * depend on scheduling and are not bit-reproducible. Integer addition IS
  * associative and commutative, so summing fixed-point integers with atomicAdd is
  * order-independent and bit-exact — identical totals regardless of how the GPU
- * interleaves threads. This run-to-run determinism is the reason the force buffer
- * is allocated as `long long` (by the CudaContext constructor) rather than `real`,
- * and it is the invariant optimizers and profilers must preserve: any change that
- * accumulates forces in floating point, or that reorders integer accumulation into
- * a non-exact reduction, breaks bitwise reproducibility.
+ * interleaves threads. This determinism is the reason the force buffer is typed
+ * `long long` (CudaContext.cpp ~line 257) rather than `real`.
  *
  * @par The 0x100000000 (= 2^32) scale factor.
  * Multiplying by 2^32 places 32 bits below the binary point (Q<32>.<32> layout in
@@ -263,12 +270,5 @@ using mm_ulong = unsigned long long;
  *       device helper, no linkage cost.
  */
 __device__ inline auto realToFixedPoint(real value) -> long long {
-    // The 2^32 scale here is one half of a cross-file contract: the integrator
-    // update kernels (verlet.cc, langevinMiddle.cc, brownian.cc, qtb.cc, ...)
-    // divide the accumulated long-long force buffer by the SAME 0x100000000
-    // (RECIP((mixed) 0x100000000)) to recover a floating-point force. Changing
-    // this constant without changing every consumer silently rescales all forces.
-    // Accumulating as this integer is also what makes the atomicAdd force sum
-    // order-independent and bit-reproducible (see the Why-fixed-point contract above).
     return static_cast<long long>(value * 0x100000000);
 }
