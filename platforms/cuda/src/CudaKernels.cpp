@@ -506,12 +506,133 @@ void CudaUpdateStateDataKernel::getEnergies_drl_n14(ContextImpl& context, std::v
 }
 
 void CudaUpdateStateDataKernel::getEnergies_drl_vdw(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_vdw) {
-    assert(!"Not implemented");
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_vdw.assign(numParticles, std::vector<double>(numParticles, 0.0));
+
+    vector<Vec3> positions;
+    getPositions(context, positions);
+    Vec3 boxVectors[3];
+    cu.getPeriodicBoxVectors(boxVectors[0], boxVectors[1], boxVectors[2]);
+
+    const System& system = context.getSystem();
+    for (int forceIndex = 0; forceIndex < system.getNumForces(); ++forceIndex) {
+        const NonbondedForce* force = dynamic_cast<const NonbondedForce*>(&system.getForce(forceIndex));
+        if (force == NULL)
+            continue;
+
+        NonbondedForce::NonbondedMethod method = force->getNonbondedMethod();
+        bool useCutoff = (method != NonbondedForce::NoCutoff);
+        bool usePeriodic = (method == NonbondedForce::CutoffPeriodic || method == NonbondedForce::Ewald || method == NonbondedForce::PME || method == NonbondedForce::LJPME);
+        bool useSwitch = force->getUseSwitchingFunction();
+        double cutoffDistance = force->getCutoffDistance();
+        double cutoffDistance2 = cutoffDistance*cutoffDistance;
+        double switchingDistance = force->getSwitchingDistance();
+
+        vector<double> charges(numParticles), sigmas(numParticles), epsilons(numParticles);
+        for (int i = 0; i < numParticles; ++i)
+            force->getParticleParameters(i, charges[i], sigmas[i], epsilons[i]);
+
+        set<pair<int, int>> exceptionPairs;
+        for (int ex = 0; ex < force->getNumExceptions(); ++ex) {
+            int atom1, atom2;
+            double chargeProd, sigma, epsilon;
+            force->getExceptionParameters(ex, atom1, atom2, chargeProd, sigma, epsilon);
+            exceptionPairs.insert(make_pair(min(atom1, atom2), max(atom1, atom2)));
+        }
+
+        for (int atom1 = 0; atom1 < numParticles; ++atom1) {
+            for (int atom2 = atom1+1; atom2 < numParticles; ++atom2) {
+                if (exceptionPairs.find(make_pair(atom1, atom2)) != exceptionPairs.end())
+                    continue;
+
+                Vec3 delta = positions[atom2]-positions[atom1];
+                if (usePeriodic)
+                    delta = applyReducedPeriodicMinimumImage(delta, boxVectors[0], boxVectors[1], boxVectors[2]);
+
+                double r2 = delta.dot(delta);
+                if (r2 == 0.0)
+                    continue;
+                if (useCutoff && r2 >= cutoffDistance2)
+                    continue;
+
+                double r = sqrt(r2);
+                double invR = 1.0/r;
+                double switchValue = 1.0;
+                if (useSwitch && r > switchingDistance) {
+                    double t = (r-switchingDistance)/(cutoffDistance-switchingDistance);
+                    switchValue = 1.0+t*t*t*(-10.0+t*(15.0-t*6.0));
+                }
+
+                double sigma = 0.5*(sigmas[atom1]+sigmas[atom2]);
+                double epsilon = sqrt(epsilons[atom1]*epsilons[atom2]);
+                double sig2 = sigma*invR;
+                sig2 *= sig2;
+                double sig6 = sig2*sig2*sig2;
+                double vdw = epsilon*(sig6-1.0)*sig6;
+                if (useSwitch)
+                    vdw *= switchValue;
+
+                energies_drl_vdw[atom1][atom2] += vdw;
+            }
+        }
+    }
 
 }
 
 void CudaUpdateStateDataKernel::getEnergies_drl_cou(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_cou) {
-    assert(!"Not implemented");
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_cou.assign(numParticles, std::vector<double>(numParticles, 0.0));
+
+    vector<Vec3> positions;
+    getPositions(context, positions);
+    Vec3 boxVectors[3];
+    cu.getPeriodicBoxVectors(boxVectors[0], boxVectors[1], boxVectors[2]);
+
+    const System& system = context.getSystem();
+    for (int forceIndex = 0; forceIndex < system.getNumForces(); ++forceIndex) {
+        const NonbondedForce* force = dynamic_cast<const NonbondedForce*>(&system.getForce(forceIndex));
+        if (force == NULL)
+            continue;
+
+        NonbondedForce::NonbondedMethod method = force->getNonbondedMethod();
+        bool useCutoff = (method != NonbondedForce::NoCutoff);
+        bool usePeriodic = (method == NonbondedForce::CutoffPeriodic || method == NonbondedForce::Ewald || method == NonbondedForce::PME || method == NonbondedForce::LJPME);
+        double cutoffDistance = force->getCutoffDistance();
+        double cutoffDistance2 = cutoffDistance*cutoffDistance;
+
+        vector<double> charges(numParticles), sigmas(numParticles), epsilons(numParticles);
+        for (int i = 0; i < numParticles; ++i)
+            force->getParticleParameters(i, charges[i], sigmas[i], epsilons[i]);
+
+        set<pair<int, int>> exceptionPairs;
+        for (int ex = 0; ex < force->getNumExceptions(); ++ex) {
+            int atom1, atom2;
+            double chargeProd, sigma, epsilon;
+            force->getExceptionParameters(ex, atom1, atom2, chargeProd, sigma, epsilon);
+            exceptionPairs.insert(make_pair(min(atom1, atom2), max(atom1, atom2)));
+        }
+
+        for (int atom1 = 0; atom1 < numParticles; ++atom1) {
+            for (int atom2 = atom1+1; atom2 < numParticles; ++atom2) {
+                if (exceptionPairs.find(make_pair(atom1, atom2)) != exceptionPairs.end())
+                    continue;
+
+                Vec3 delta = positions[atom2]-positions[atom1];
+                if (usePeriodic)
+                    delta = applyReducedPeriodicMinimumImage(delta, boxVectors[0], boxVectors[1], boxVectors[2]);
+
+                double r2 = delta.dot(delta);
+                if (r2 == 0.0)
+                    continue;
+                if (useCutoff && r2 >= cutoffDistance2)
+                    continue;
+
+                double invR = 1.0/sqrt(r2);
+                double cou = ONE_4PI_EPS0*charges[atom1]*charges[atom2]*invR;
+                energies_drl_cou[atom1][atom2] += cou;
+            }
+        }
+    }
 
 }
 
