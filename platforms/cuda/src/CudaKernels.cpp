@@ -27,6 +27,10 @@
 #include "CudaKernels.h"
 #include "CudaForceInfo.h"
 #include "openmm/Context.h"
+#include "openmm/HarmonicAngleForce.h"
+#include "openmm/HarmonicBondForce.h"
+#include "openmm/NonbondedForce.h"
+#include "openmm/PeriodicTorsionForce.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/internal/NonbondedForceImpl.h"
 #include "CommonKernelSources.h"
@@ -52,6 +56,35 @@ using namespace std;
         m<<prefix<<": "<<CudaContext::getErrorString(result)<<" ("<<result<<")"<<" at "<<__FILE__<<":"<<__LINE__; \
         throw OpenMMException(m.str());\
     }
+
+static Vec3 applyReducedPeriodicMinimumImage(const Vec3& delta, const Vec3& a, const Vec3& b, const Vec3& c) {
+    // OpenMM keeps box vectors in reduced form: a=(ax,0,0), b=(bx,by,0), c=(cx,cy,cz).
+    const double cz = c[2];
+    const double by = b[1];
+    const double ax = a[0];
+    if (ax == 0.0 || by == 0.0 || cz == 0.0)
+        return delta;
+
+    const double fz = delta[2]/cz;
+    const double fy = (delta[1]-fz*c[1])/by;
+    const double fx = (delta[0]-fy*b[0]-fz*c[0])/ax;
+    const double nx = floor(fx+0.5);
+    const double ny = floor(fy+0.5);
+    const double nz = floor(fz+0.5);
+    return delta-a*nx-b*ny-c*nz;
+}
+
+static Vec3 crossProduct(const Vec3& v1, const Vec3& v2) {
+    return Vec3(v1[1]*v2[2]-v1[2]*v2[1], v1[2]*v2[0]-v1[0]*v2[2], v1[0]*v2[1]-v1[1]*v2[0]);
+}
+
+static double clampToUnit(double value) {
+    if (value < -1.0)
+        return -1.0;
+    if (value > 1.0)
+        return 1.0;
+    return value;
+}
 
 void CudaCalcForcesAndEnergyKernel::initialize(const System& system) {
 }
@@ -312,22 +345,163 @@ void CudaUpdateStateDataKernel::getForces_drl_n14(ContextImpl& context, std::vec
 // }
 
 void CudaUpdateStateDataKernel::getEnergies_drl_bon(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_bon) {
-    assert(!"Not implemented");
-    
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_bon.assign(numParticles, std::vector<double>(numParticles, 0.0));
+
+    vector<Vec3> positions;
+    getPositions(context, positions);
+    Vec3 boxVectors[3];
+    cu.getPeriodicBoxVectors(boxVectors[0], boxVectors[1], boxVectors[2]);
+
+    const System& system = context.getSystem();
+    for (int forceIndex = 0; forceIndex < system.getNumForces(); ++forceIndex) {
+        const HarmonicBondForce* force = dynamic_cast<const HarmonicBondForce*>(&system.getForce(forceIndex));
+        if (force == NULL)
+            continue;
+        bool usePeriodic = force->usesPeriodicBoundaryConditions();
+        for (int bond = 0; bond < force->getNumBonds(); ++bond) {
+            int atom1, atom2;
+            double length, k;
+            force->getBondParameters(bond, atom1, atom2, length, k);
+            Vec3 delta = positions[atom2]-positions[atom1];
+            if (usePeriodic)
+                delta = applyReducedPeriodicMinimumImage(delta, boxVectors[0], boxVectors[1], boxVectors[2]);
+            double r = sqrt(delta.dot(delta));
+            double dr = r-length;
+            double e = 0.5*k*dr*dr;
+            int i = min(atom1, atom2);
+            int j = max(atom1, atom2);
+            energies_drl_bon[i][j] += e;
+        }
+    }
 }
 
 void CudaUpdateStateDataKernel::getEnergies_drl_ang(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_ang) {
-    assert(!"Not implemented");
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_ang.assign(numParticles, std::vector<double>(numParticles, 0.0));
+
+    vector<Vec3> positions;
+    getPositions(context, positions);
+    Vec3 boxVectors[3];
+    cu.getPeriodicBoxVectors(boxVectors[0], boxVectors[1], boxVectors[2]);
+
+    const System& system = context.getSystem();
+    for (int forceIndex = 0; forceIndex < system.getNumForces(); ++forceIndex) {
+        const HarmonicAngleForce* force = dynamic_cast<const HarmonicAngleForce*>(&system.getForce(forceIndex));
+        if (force == NULL)
+            continue;
+        bool usePeriodic = force->usesPeriodicBoundaryConditions();
+        for (int angle = 0; angle < force->getNumAngles(); ++angle) {
+            int atom1, atom2, atom3;
+            double theta0, k;
+            force->getAngleParameters(angle, atom1, atom2, atom3, theta0, k);
+            Vec3 d1 = positions[atom1]-positions[atom2];
+            Vec3 d2 = positions[atom3]-positions[atom2];
+            if (usePeriodic) {
+                d1 = applyReducedPeriodicMinimumImage(d1, boxVectors[0], boxVectors[1], boxVectors[2]);
+                d2 = applyReducedPeriodicMinimumImage(d2, boxVectors[0], boxVectors[1], boxVectors[2]);
+            }
+            double r1 = sqrt(d1.dot(d1));
+            double r2 = sqrt(d2.dot(d2));
+            if (r1 == 0.0 || r2 == 0.0)
+                continue;
+            double cosTheta = clampToUnit(d1.dot(d2)/(r1*r2));
+            double theta = acos(cosTheta);
+            double dtheta = theta-theta0;
+            double e = 0.5*k*dtheta*dtheta;
+            int i = min(atom1, atom2);
+            int j = max(atom1, atom2);
+            energies_drl_ang[i][j] += e;
+        }
+    }
 
 }
 
 void CudaUpdateStateDataKernel::getEnergies_drl_tor(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_tor) {
-    assert(!"Not implemented");
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_tor.assign(numParticles, std::vector<double>(numParticles, 0.0));
+
+    vector<Vec3> positions;
+    getPositions(context, positions);
+    Vec3 boxVectors[3];
+    cu.getPeriodicBoxVectors(boxVectors[0], boxVectors[1], boxVectors[2]);
+
+    const System& system = context.getSystem();
+    for (int forceIndex = 0; forceIndex < system.getNumForces(); ++forceIndex) {
+        const PeriodicTorsionForce* force = dynamic_cast<const PeriodicTorsionForce*>(&system.getForce(forceIndex));
+        if (force == NULL)
+            continue;
+        bool usePeriodic = force->usesPeriodicBoundaryConditions();
+        for (int torsion = 0; torsion < force->getNumTorsions(); ++torsion) {
+            int atom1, atom2, atom3, atom4, periodicity;
+            double phase, k;
+            force->getTorsionParameters(torsion, atom1, atom2, atom3, atom4, periodicity, phase, k);
+            Vec3 b1 = positions[atom2]-positions[atom1];
+            Vec3 b2 = positions[atom3]-positions[atom2];
+            Vec3 b3 = positions[atom4]-positions[atom3];
+            if (usePeriodic) {
+                b1 = applyReducedPeriodicMinimumImage(b1, boxVectors[0], boxVectors[1], boxVectors[2]);
+                b2 = applyReducedPeriodicMinimumImage(b2, boxVectors[0], boxVectors[1], boxVectors[2]);
+                b3 = applyReducedPeriodicMinimumImage(b3, boxVectors[0], boxVectors[1], boxVectors[2]);
+            }
+            Vec3 n1 = crossProduct(b1, b2);
+            Vec3 n2 = crossProduct(b2, b3);
+            double b2norm = sqrt(b2.dot(b2));
+            double n1norm = sqrt(n1.dot(n1));
+            double n2norm = sqrt(n2.dot(n2));
+            if (b2norm == 0.0 || n1norm == 0.0 || n2norm == 0.0)
+                continue;
+            Vec3 b2u = b2*(1.0/b2norm);
+            Vec3 m1 = crossProduct(n1, b2u);
+            double x = n1.dot(n2);
+            double y = m1.dot(n2);
+            double theta = atan2(y, x);
+            double e = k*(1.0+cos((double) periodicity*theta-phase));
+            int i = min(atom2, atom3);
+            int j = max(atom2, atom3);
+            energies_drl_tor[i][j] += e;
+        }
+    }
 
 }
 
 void CudaUpdateStateDataKernel::getEnergies_drl_n14(ContextImpl& context, std::vector<std::vector<double>>& energies_drl_n14) {
-    assert(!"Not implemented");
+    int numParticles = context.getSystem().getNumParticles();
+    energies_drl_n14.assign(numParticles, std::vector<double>(numParticles, 0.0));
+
+    vector<Vec3> positions;
+    getPositions(context, positions);
+    Vec3 boxVectors[3];
+    cu.getPeriodicBoxVectors(boxVectors[0], boxVectors[1], boxVectors[2]);
+
+    const System& system = context.getSystem();
+    for (int forceIndex = 0; forceIndex < system.getNumForces(); ++forceIndex) {
+        const NonbondedForce* force = dynamic_cast<const NonbondedForce*>(&system.getForce(forceIndex));
+        if (force == NULL)
+            continue;
+        bool usePeriodic = force->getExceptionsUsePeriodicBoundaryConditions();
+        for (int ex = 0; ex < force->getNumExceptions(); ++ex) {
+            int atom1, atom2;
+            double chargeProd, sigma, epsilon;
+            force->getExceptionParameters(ex, atom1, atom2, chargeProd, sigma, epsilon);
+            if (chargeProd == 0.0 && epsilon == 0.0)
+                continue;
+            Vec3 delta = positions[atom2]-positions[atom1];
+            if (usePeriodic)
+                delta = applyReducedPeriodicMinimumImage(delta, boxVectors[0], boxVectors[1], boxVectors[2]);
+            double r = sqrt(delta.dot(delta));
+            if (r == 0.0)
+                continue;
+            double invR = 1.0/r;
+            double sig2 = sigma*invR;
+            sig2 *= sig2;
+            double sig6 = sig2*sig2*sig2;
+            double e = epsilon*(sig6-1.0)*sig6 + ONE_4PI_EPS0*chargeProd*invR;
+            int i = min(atom1, atom2);
+            int j = max(atom1, atom2);
+            energies_drl_n14[i][j] += e;
+        }
+    }
 
 }
 
